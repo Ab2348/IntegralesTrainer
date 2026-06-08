@@ -67,6 +67,4 @@ Para aprovechar mejor la página, conviene trabajar por bloques cortos. Practica
 
 Si una respuesta parece confusa, usa la derivación como comprobación: derivar la antiderivada es una forma directa de verificar si el resultado es correcto.
 
-## Nota
 
-Esta herramienta está hecha para apoyar el estudio y la práctica personal. Puede servir como repaso antes de tareas, exámenes o sesiones de ejercicio, pero no sustituye la explicación completa de un curso de cálculo integral.
