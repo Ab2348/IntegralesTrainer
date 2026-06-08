@@ -215,6 +215,10 @@
   ];
 
   const NEGATIVE_CORES = new Set(["acosDerivative"]);
+  const RANGE_LIMITS = {
+    min: -50,
+    max: 50,
+  };
 
   const WRONG_CORE_MAP = {
     sin: ["cos", "tan", "arcsin"],
@@ -394,16 +398,14 @@
   }
 
   function randomNonZero(min, max, rng) {
-    const values = [];
-    for (let value = min; value <= max; value += 1) {
-      if (value !== 0) {
-        values.push(value);
-      }
-    }
-    if (!values.length) {
+    const zeroCount = min <= 0 && max >= 0 ? 1 : 0;
+    const valueCount = max - min + 1 - zeroCount;
+    if (valueCount <= 0) {
       throw new Error("Range must include at least one non-zero value.");
     }
-    return choose(values, rng);
+    const offset = randomInt(0, valueCount - 1, rng);
+    const candidate = min + offset;
+    return candidate >= 0 && min <= 0 ? candidate + 1 : candidate;
   }
 
   function sanitizeRange(minValue, maxValue) {
@@ -420,6 +422,8 @@
       min = max;
       max = temp;
     }
+    min = Math.max(RANGE_LIMITS.min, Math.min(RANGE_LIMITS.max, min));
+    max = Math.max(RANGE_LIMITS.min, Math.min(RANGE_LIMITS.max, max));
     if (min === 0 && max === 0) {
       min = -10;
       max = 10;
@@ -991,10 +995,34 @@
         familyId,
       };
     }
+    if (level === 4) {
+      return {
+        A: randomNonZero(range.min, range.max, rng),
+        k: randomNonZero(range.min, range.max, rng),
+        b: randomInt(range.min, range.max, rng),
+        familyId,
+      };
+    }
+
+    const family = FAMILY_MAP[familyId];
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      const A = randomNonZero(range.min, range.max, rng);
+      const k = randomNonZero(range.min, range.max, rng);
+      const b = randomNonZero(range.min, range.max, rng);
+      const coefficient = correctCoefficient(
+        rational(A, 1),
+        family,
+        rational(k, 1),
+      );
+      if (coefficient.d !== 1) {
+        return { A, k, b, familyId };
+      }
+    }
+
     return {
       A: randomNonZero(range.min, range.max, rng),
       k: randomNonZero(range.min, range.max, rng),
-      b: randomInt(range.min, range.max, rng),
+      b: randomNonZero(range.min, range.max, rng),
       familyId,
     };
   }
@@ -1179,6 +1207,7 @@
     FAMILIES: FAMILY_DEFINITIONS,
     FAMILY_MAP,
     MODE_FAMILIES,
+    RANGE_LIMITS,
     rational,
     rationalPlain,
     rationalHtml,

@@ -4,6 +4,11 @@
   const Core = window.TrigCore;
   const STORAGE_KEY = "trig-integral-trainer:v1";
   const RECENT_LIMIT = 20;
+  const VALID_MODES = new Set(Object.keys(Core.MODE_FAMILIES));
+  const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
+  const VALID_OPTION_COUNTS = new Set(["4", "5", "6"]);
+  const VALID_ERROR_TAGS = new Set(Core.ERROR_TAGS);
+  const VALID_FAMILY_IDS = new Set(Core.FAMILIES.map((family) => family.id));
 
   const defaultState = {
     totalAnswered: 0,
@@ -55,6 +60,83 @@
     return JSON.parse(JSON.stringify(defaultState));
   }
 
+  function isPlainObject(value) {
+    return Boolean(
+      value && Object.prototype.toString.call(value) === "[object Object]",
+    );
+  }
+
+  function normalizeCounter(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+  }
+
+  function normalizeCountMap(value, validKeys) {
+    if (!isPlainObject(value)) {
+      return {};
+    }
+    return Object.entries(value).reduce((result, [key, count]) => {
+      if (validKeys.has(key)) {
+        const normalized = normalizeCounter(count);
+        if (normalized > 0) {
+          result[key] = normalized;
+        }
+      }
+      return result;
+    }, {});
+  }
+
+  function normalizeFamilyIds(value, fallbackIds) {
+    const fallback = Array.isArray(fallbackIds)
+      ? fallbackIds
+      : Core.MODE_FAMILIES.basic;
+    if (!Array.isArray(value)) {
+      return fallback.slice();
+    }
+    const ids = value.filter(
+      (id, index) =>
+        VALID_FAMILY_IDS.has(id) && value.indexOf(id) === index,
+    );
+    return ids.length ? ids : fallback.slice();
+  }
+
+  function normalizeSettings(value) {
+    const base = cloneDefaultState().settings;
+    const saved = isPlainObject(value) ? value : {};
+    const range = Core.sanitizeRange(saved.rangeMin, saved.rangeMax);
+    const mode = VALID_MODES.has(saved.mode) ? saved.mode : base.mode;
+    const difficulty = VALID_DIFFICULTIES.has(String(saved.difficulty))
+      ? String(saved.difficulty)
+      : base.difficulty;
+    const optionCount = VALID_OPTION_COUNTS.has(String(saved.optionCount))
+      ? Number.parseInt(saved.optionCount, 10)
+      : base.optionCount;
+
+    return {
+      mode,
+      difficulty,
+      rangeMin: range.min,
+      rangeMax: range.max,
+      optionCount,
+      activeFamilyIds: normalizeFamilyIds(
+        saved.activeFamilyIds,
+        Core.MODE_FAMILIES[mode],
+      ),
+    };
+  }
+
+  function normalizeRecentExercises(value) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value
+      .filter(
+        (item, index) =>
+          typeof item === "string" && value.indexOf(item) === index,
+      )
+      .slice(0, RECENT_LIMIT);
+  }
+
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -62,6 +144,9 @@
         return cloneDefaultState();
       }
       const parsed = JSON.parse(raw);
+      if (!isPlainObject(parsed)) {
+        return cloneDefaultState();
+      }
       return mergeState(parsed);
     } catch (error) {
       return cloneDefaultState();
@@ -70,24 +155,35 @@
 
   function mergeState(saved) {
     const base = cloneDefaultState();
+    const totalCorrect = normalizeCounter(saved.totalCorrect);
+    const totalIncorrect = normalizeCounter(saved.totalIncorrect);
+    const savedTotalAnswered = normalizeCounter(saved.totalAnswered);
     return {
       ...base,
-      ...saved,
-      errorCountsByTag: saved.errorCountsByTag || {},
-      familyCounts: saved.familyCounts || {},
-      familyErrorCounts: saved.familyErrorCounts || {},
-      settings: {
-        ...base.settings,
-        ...(saved.settings || {}),
-      },
-      recentExercises: Array.isArray(saved.recentExercises)
-        ? saved.recentExercises.slice(0, RECENT_LIMIT)
-        : [],
+      totalAnswered: Math.max(savedTotalAnswered, totalCorrect + totalIncorrect),
+      totalCorrect,
+      totalIncorrect,
+      errorCountsByTag: normalizeCountMap(
+        saved.errorCountsByTag,
+        VALID_ERROR_TAGS,
+      ),
+      familyCounts: normalizeCountMap(saved.familyCounts, VALID_FAMILY_IDS),
+      familyErrorCounts: normalizeCountMap(
+        saved.familyErrorCounts,
+        VALID_FAMILY_IDS,
+      ),
+      settings: normalizeSettings(saved.settings),
+      recentExercises: normalizeRecentExercises(saved.recentExercises),
     };
   }
 
   function saveState() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   function renderFamilyChecklist() {
@@ -126,6 +222,12 @@
   }
 
   function syncControlsFromState() {
+    if (Core.RANGE_LIMITS) {
+      els.rangeMinInput.min = Core.RANGE_LIMITS.min;
+      els.rangeMinInput.max = Core.RANGE_LIMITS.max;
+      els.rangeMaxInput.min = Core.RANGE_LIMITS.min;
+      els.rangeMaxInput.max = Core.RANGE_LIMITS.max;
+    }
     els.modeSelect.value = state.settings.mode || "basic";
     els.difficultySelect.value = String(state.settings.difficulty || "1");
     els.rangeMinInput.value = state.settings.rangeMin;
@@ -139,13 +241,24 @@
       els.rangeMinInput.value,
       els.rangeMaxInput.value,
     );
-    state.settings.mode = els.modeSelect.value;
-    state.settings.difficulty = els.difficultySelect.value;
+    state.settings.mode = VALID_MODES.has(els.modeSelect.value)
+      ? els.modeSelect.value
+      : "basic";
+    state.settings.difficulty = VALID_DIFFICULTIES.has(
+      els.difficultySelect.value,
+    )
+      ? els.difficultySelect.value
+      : "1";
     state.settings.rangeMin = range.min;
     state.settings.rangeMax = range.max;
-    state.settings.optionCount =
-      Number.parseInt(els.optionCountSelect.value, 10) || 4;
-    state.settings.activeFamilyIds = selectedFamiliesFromDom();
+    state.settings.optionCount = VALID_OPTION_COUNTS.has(
+      els.optionCountSelect.value,
+    )
+      ? Number.parseInt(els.optionCountSelect.value, 10)
+      : 4;
+    state.settings.activeFamilyIds = normalizeFamilyIds(
+      selectedFamiliesFromDom(),
+    );
     if (!state.settings.activeFamilyIds.length) {
       state.settings.activeFamilyIds = Core.MODE_FAMILIES.basic.slice();
     }
@@ -155,8 +268,9 @@
   }
 
   function applyMode(mode) {
-    const ids = Core.MODE_FAMILIES[mode] || Core.MODE_FAMILIES.basic;
-    state.settings.mode = mode;
+    const safeMode = VALID_MODES.has(mode) ? mode : "basic";
+    const ids = Core.MODE_FAMILIES[safeMode] || Core.MODE_FAMILIES.basic;
+    state.settings.mode = safeMode;
     state.settings.activeFamilyIds = ids.slice();
     saveState();
     renderFamilyChecklist();
@@ -170,15 +284,46 @@
 
   function generateNextExercise() {
     updateSettingsFromControls();
-    currentExercise = Core.generateExercise(
-      state.settings,
-      state.recentExercises,
-      Math.random,
-    );
-    pushRecent(currentExercise.signature);
-    saveState();
-    answered = false;
-    renderExercise();
+    try {
+      currentExercise = Core.generateExercise(
+        state.settings,
+        state.recentExercises,
+        Math.random,
+      );
+      pushRecent(currentExercise.signature);
+      saveState();
+      answered = false;
+      renderExercise();
+    } catch (error) {
+      currentExercise = null;
+      answered = false;
+      renderGenerationError(error);
+    }
+  }
+
+  function renderGenerationError(error) {
+    els.familyLabel.textContent = "Familia";
+    els.difficultyLabel.textContent = `Nivel ${state.settings.difficulty}`;
+    els.exerciseDisplay.textContent = "";
+    els.optionsContainer.innerHTML = "";
+    els.derivationZone.innerHTML = "";
+    els.derivationZone.classList.add("hidden");
+    els.derivationButton.classList.add("hidden");
+    els.derivationButton.setAttribute("aria-expanded", "false");
+
+    const title = document.createElement("div");
+    title.className = "feedback-title";
+    title.textContent = "No se pudo generar el ejercicio";
+
+    const message = document.createElement("p");
+    message.textContent =
+      error && error.message
+        ? error.message
+        : "Revisa la configuracion e intenta de nuevo.";
+
+    els.feedbackZone.innerHTML = "";
+    els.feedbackZone.className = "feedback-zone incorrect";
+    els.feedbackZone.append(title, message);
   }
 
   function renderExercise() {
@@ -280,16 +425,34 @@
     els.accuracyRate.textContent = `${accuracy}%`;
 
     renderRankedList(els.errorList, state.errorCountsByTag, (tag) =>
-      Core.errorLabelHtml(tag),
+      trustedHtml(Core.errorLabelHtml(tag)),
     );
     renderRankedList(
       els.familyErrorList,
       state.familyErrorCounts,
       (familyId) => {
         const family = Core.FAMILY_MAP[familyId];
-        return family ? Core.familyLabelHtml(family) : familyId;
+        return family
+          ? trustedHtml(Core.familyLabelHtml(family))
+          : plainText(familyId);
       },
     );
+  }
+
+  function trustedHtml(html) {
+    return { type: "html", value: html };
+  }
+
+  function plainText(text) {
+    return { type: "text", value: String(text) };
+  }
+
+  function appendLabel(label, target) {
+    if (label.type === "html") {
+      target.innerHTML = label.value;
+    } else {
+      target.textContent = label.value;
+    }
   }
 
   function renderRankedList(container, data, labelFn) {
@@ -309,7 +472,15 @@
 
     entries.forEach(([key, value]) => {
       const item = document.createElement("li");
-      item.innerHTML = `<span class="stat-item-label">${labelFn(key)}</span><span class="stat-item-count">${value}</span>`;
+      const label = document.createElement("span");
+      label.className = "stat-item-label";
+      appendLabel(labelFn(key), label);
+
+      const count = document.createElement("span");
+      count.className = "stat-item-count";
+      count.textContent = value;
+
+      item.append(label, count);
       container.appendChild(item);
     });
   }

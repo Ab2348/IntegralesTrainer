@@ -10,7 +10,7 @@
     <main class="app-shell">
       <header class="topbar">
         <div>
-          <p class="eyebrow">Práctica local</p>
+          <p class="eyebrow"></p>
           <h1>Entrenador de integrales trigonométricas</h1>
         </div>
         <button class="quiet-button" id="resetStatsButton" type="button">
@@ -51,11 +51,25 @@
           <div class="control-row">
             <div class="control-block">
               <label for="rangeMinInput">Min</label>
-              <input id="rangeMinInput" type="number" value="-10" step="1" />
+              <input
+                id="rangeMinInput"
+                type="number"
+                value="-10"
+                min="-50"
+                max="50"
+                step="1"
+              />
             </div>
             <div class="control-block">
               <label for="rangeMaxInput">Max</label>
-              <input id="rangeMaxInput" type="number" value="10" step="1" />
+              <input
+                id="rangeMaxInput"
+                type="number"
+                value="10"
+                min="-50"
+                max="50"
+                step="1"
+              />
             </div>
           </div>
 
