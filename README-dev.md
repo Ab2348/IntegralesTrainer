@@ -1,4 +1,4 @@
-# README para desarrollo
+# README para desarrolladores
 
 Este documento describe el funcionamiento interno del entrenador de integrales trigonométricas. Está pensado para personas que quieran mantener, auditar o extender la página.
 
