@@ -4,6 +4,8 @@
   const Core = window.TrigCore;
   const STORAGE_KEY = "trig-integral-trainer:v1";
   const RECENT_LIMIT = 20;
+  const ERROR_EXAMPLES_PER_TAG_LIMIT = 1;
+  const ERROR_EXAMPLE_TEXT_LIMIT = 360;
   const VALID_MODES = new Set(Object.keys(Core.MODE_FAMILIES));
   const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
   const VALID_OPTION_COUNTS = new Set(["4", "5", "6"]);
@@ -17,6 +19,7 @@
     errorCountsByTag: {},
     familyCounts: {},
     familyErrorCounts: {},
+    errorExamplesByTag: {},
     settings: {
       mode: "basic",
       difficulty: "1",
@@ -54,6 +57,7 @@
     accuracyRate: document.getElementById("accuracyRate"),
     errorList: document.getElementById("errorList"),
     familyErrorList: document.getElementById("familyErrorList"),
+    formulaAccordion: document.getElementById("formulaAccordion"),
   };
 
   function cloneDefaultState() {
@@ -137,6 +141,70 @@
       .slice(0, RECENT_LIMIT);
   }
 
+  function normalizeText(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    return value.slice(0, ERROR_EXAMPLE_TEXT_LIMIT);
+  }
+
+  function normalizeTimestamp(value) {
+    const number = Number(value);
+    return Number.isFinite(number) && number > 0 ? number : Date.now();
+  }
+
+  function normalizeErrorExample(value, fallbackTag) {
+    if (!isPlainObject(value)) {
+      return null;
+    }
+    const errorTag = VALID_ERROR_TAGS.has(value.errorTag)
+      ? value.errorTag
+      : fallbackTag;
+    const familyId = VALID_FAMILY_IDS.has(value.familyId)
+      ? value.familyId
+      : "";
+    if (!VALID_ERROR_TAGS.has(errorTag)) {
+      return null;
+    }
+    return {
+      id:
+        typeof value.id === "string" && value.id
+          ? normalizeText(value.id)
+          : `err-${normalizeTimestamp(value.timestamp)}`,
+      timestamp: normalizeTimestamp(value.timestamp),
+      errorTag,
+      familyId,
+      exercisePlain: normalizeText(value.exercisePlain),
+      chosenPlain: normalizeText(value.chosenPlain),
+      correctPlain: normalizeText(value.correctPlain),
+      exerciseMath: isPlainObject(value.exerciseMath)
+        ? value.exerciseMath
+        : null,
+      chosenMath: isPlainObject(value.chosenMath) ? value.chosenMath : null,
+    };
+  }
+
+  function normalizeErrorExamplesByTag(value) {
+    if (!isPlainObject(value)) {
+      return {};
+    }
+    return Object.entries(value).reduce((result, [tag, examples]) => {
+      if (!VALID_ERROR_TAGS.has(tag)) {
+        return result;
+      }
+      const source = Array.isArray(examples) ? examples : [examples];
+      const normalized = source
+        .map((example) => normalizeErrorExample(example, tag))
+        .filter(Boolean)
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, ERROR_EXAMPLES_PER_TAG_LIMIT);
+      if (normalized.length) {
+        result[tag] = normalized;
+      }
+      return result;
+    }, {});
+  }
+
   function loadState() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -171,6 +239,9 @@
       familyErrorCounts: normalizeCountMap(
         saved.familyErrorCounts,
         VALID_FAMILY_IDS,
+      ),
+      errorExamplesByTag: normalizeErrorExamplesByTag(
+        saved.errorExamplesByTag,
       ),
       settings: normalizeSettings(saved.settings),
       recentExercises: normalizeRecentExercises(saved.recentExercises),
@@ -212,6 +283,38 @@
 
       label.append(input, span);
       els.familyChecklist.appendChild(label);
+    });
+  }
+
+  function renderFormulaCatalog() {
+    const container = els.formulaAccordion;
+    if (!container) {
+      return;
+    }
+    container.innerHTML = "";
+    Core.formulaCatalog().forEach((formula) => {
+      const item = document.createElement("details");
+      item.className = "formula-item";
+
+      const summary = document.createElement("summary");
+      summary.className = "formula-summary";
+      summary.innerHTML = formula.labelHtml;
+
+      const body = document.createElement("div");
+      body.className = "formula-body";
+      body.innerHTML = `
+        <div>
+          <span class="section-label">Base</span>
+          <div class="centered-formula">${formula.baseHtml}</div>
+        </div>
+        <div>
+          <span class="section-label">Argumento lineal</span>
+          <div class="centered-formula">${formula.linearHtml}</div>
+        </div>
+        <p class="formula-note">u = kx + b, con k distinto de cero.</p>`;
+
+      item.append(summary, body);
+      container.appendChild(item);
     });
   }
 
@@ -411,6 +514,31 @@
       (state.errorCountsByTag[chosen.errorTag] || 0) + 1;
     state.familyErrorCounts[familyId] =
       (state.familyErrorCounts[familyId] || 0) + 1;
+    pushErrorExample(chosen);
+  }
+
+  function pushErrorExample(chosen) {
+    if (!chosen || chosen.isCorrect || !VALID_ERROR_TAGS.has(chosen.errorTag)) {
+      return;
+    }
+    const tag = chosen.errorTag;
+    const examples = Array.isArray(state.errorExamplesByTag[tag])
+      ? state.errorExamplesByTag[tag]
+      : [];
+    const example = {
+      id: `err-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      timestamp: Date.now(),
+      errorTag: tag,
+      familyId: currentExercise.familyId,
+      exercisePlain: currentExercise.integrandExpression,
+      chosenPlain: chosen.displayExpression,
+      correctPlain: currentExercise.correctAnswer.displayExpression,
+      exerciseMath: Core.exerciseSnapshot(currentExercise),
+      chosenMath: Core.optionSnapshot(chosen),
+    };
+    state.errorExamplesByTag[tag] = [example]
+      .concat(examples)
+      .slice(0, ERROR_EXAMPLES_PER_TAG_LIMIT);
   }
 
   function renderStats() {
@@ -424,9 +552,7 @@
     els.totalIncorrect.textContent = incorrect;
     els.accuracyRate.textContent = `${accuracy}%`;
 
-    renderRankedList(els.errorList, state.errorCountsByTag, (tag) =>
-      trustedHtml(Core.errorLabelHtml(tag)),
-    );
+    renderErrorList();
     renderRankedList(
       els.familyErrorList,
       state.familyErrorCounts,
@@ -453,6 +579,117 @@
     } else {
       target.textContent = label.value;
     }
+  }
+
+  function latestErrorExample(tag) {
+    const examples = Array.isArray(state.errorExamplesByTag[tag])
+      ? state.errorExamplesByTag[tag]
+      : [];
+    if (!examples.length) {
+      return null;
+    }
+    return examples.reduce((latest, example) =>
+      example.timestamp > latest.timestamp ? example : latest,
+    );
+  }
+
+  function appendTooltipRow(container, labelText, valueText, valueHtml) {
+    const row = document.createElement("div");
+    row.className = "error-tooltip-row";
+
+    const label = document.createElement("span");
+    label.className = "error-tooltip-label";
+    label.textContent = labelText;
+
+    const value = document.createElement("span");
+    value.className = "error-tooltip-value";
+    if (valueHtml) {
+      value.innerHTML = valueHtml;
+    } else {
+      value.textContent = valueText || "Sin datos";
+    }
+
+    row.append(label, value);
+    container.appendChild(row);
+  }
+
+  function appendErrorTooltip(item, tag) {
+    const tooltip = document.createElement("div");
+    const tooltipId = `error-tooltip-${tag}`;
+    tooltip.className = "error-tooltip";
+    tooltip.id = tooltipId;
+    tooltip.setAttribute("role", "tooltip");
+
+    const example = latestErrorExample(tag);
+    if (example) {
+      const math = Core.errorExampleMathHtml
+        ? Core.errorExampleMathHtml(example)
+        : null;
+      appendTooltipRow(
+        tooltip,
+        "Ejercicio",
+        example.exercisePlain,
+        math ? math.exerciseHtml : Core.plainMathHtml(example.exercisePlain),
+      );
+      appendTooltipRow(
+        tooltip,
+        "Elegiste",
+        example.chosenPlain,
+        math ? math.chosenHtml : Core.plainMathHtml(example.chosenPlain),
+      );
+      appendTooltipRow(
+        tooltip,
+        "Correcta",
+        example.correctPlain,
+        math ? math.correctHtml : Core.plainMathHtml(example.correctPlain),
+      );
+    } else {
+      const fallback = document.createElement("p");
+      fallback.className = "error-tooltip-empty";
+      fallback.textContent = "Sin ejemplo reciente disponible";
+      tooltip.appendChild(fallback);
+    }
+
+    item.appendChild(tooltip);
+    return tooltipId;
+  }
+
+  function renderErrorList() {
+    const entries = Object.entries(state.errorCountsByTag || {})
+      .filter((entry) => entry[1] > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    els.errorList.innerHTML = "";
+    if (!entries.length) {
+      const item = document.createElement("li");
+      item.className = "empty-stat";
+      item.textContent = "Sin datos";
+      els.errorList.appendChild(item);
+      return;
+    }
+
+    entries.forEach(([tag, value]) => {
+      const item = document.createElement("li");
+      item.className = "stat-error-item";
+
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "stat-error-trigger";
+
+      const label = document.createElement("span");
+      label.className = "stat-item-label";
+      appendLabel(trustedHtml(Core.errorLabelHtml(tag)), label);
+
+      const count = document.createElement("span");
+      count.className = "stat-item-count";
+      count.textContent = value;
+
+      trigger.append(label, count);
+      item.appendChild(trigger);
+      trigger.setAttribute("aria-describedby", appendErrorTooltip(item, tag));
+      els.errorList.appendChild(item);
+    });
   }
 
   function renderRankedList(container, data, labelFn) {
@@ -539,6 +776,7 @@
   function init() {
     syncControlsFromState();
     bindEvents();
+    renderFormulaCatalog();
     renderStats();
     generateNextExercise();
   }

@@ -52,6 +52,7 @@ El estado base tiene esta forma:
   errorCountsByTag: {},
   familyCounts: {},
   familyErrorCounts: {},
+  errorExamplesByTag: {},
   settings: {
     mode: "basic",
     difficulty: "1",
@@ -69,6 +70,7 @@ Los datos se normalizan al cargar. Esto evita que un estado viejo, corrupto o ed
 - contadores numéricos;
 - tags de error conocidos;
 - familias existentes;
+- ejemplos recientes por tag de error;
 - modos válidos;
 - dificultades válidas;
 - cantidad válida de opciones;
@@ -76,6 +78,24 @@ Los datos se normalizan al cargar. Esto evita que un estado viejo, corrupto o ed
 - ejercicios recientes como strings.
 
 `saveState()` usa `try/catch`, así que la app puede seguir funcionando aunque el navegador bloquee o falle al escribir en `localStorage`.
+
+### `errorExamplesByTag`
+
+Desde V1.1, cada respuesta incorrecta guarda un ejemplo reciente por `errorTag`:
+
+```js
+{
+  id: "err-...",
+  timestamp: 1710000000000,
+  errorTag: "forgot-chain-factor",
+  familyId: "cos",
+  exercisePlain: "int -3 cos(2x + 5) dx",
+  chosenPlain: "-3 sin(2x + 5) + C",
+  correctPlain: "-3/2 sin(2x + 5) + C"
+}
+```
+
+La app conserva solo el último ejemplo por etiqueta y lo usa para el detalle contextual de la sección Errores. Estos datos se guardan como texto plano y, al renderizarse, se insertan con `textContent`; no se debe leer HTML desde `localStorage` e insertarlo con `innerHTML`.
 
 ## Parámetros principales
 
@@ -235,6 +255,29 @@ La función `correctCoefficient(A, family, k)` calcula:
 ```js
 (A * family.baseSign) / k;
 ```
+
+## Retroalimentación
+
+`Core.feedbackVariables()` expone los datos necesarios para explicar cada ejercicio:
+
+- `A`, `k`, `b` y `u = kx + b`;
+- `f(u)` y `F(u)`;
+- regla base de la familia;
+- regla general;
+- sustitución concreta;
+- resultado correcto simplificado.
+
+`feedbackHtml()` usa esos datos para mostrar una explicación gradual. La capa de app solo inserta el HTML generado por el núcleo; no reconstruye fórmulas matemáticas propias.
+
+## Formulario
+
+El panel Formulario se renderiza desde `Core.formulaCatalog()`. Ese catálogo deriva sus entradas de `FAMILY_DEFINITIONS`, por lo que incluye las familias actuales en el mismo orden del núcleo.
+
+Cada entrada contiene:
+
+- etiqueta de familia;
+- integral base respecto de `u`;
+- versión con argumento lineal `kx + b`, con `k` distinto de cero.
 
 ## Opciones y distractores
 

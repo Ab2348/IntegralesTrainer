@@ -370,6 +370,49 @@
     return `<span class="math-expression">${content}</span>`;
   }
 
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function plainMathHtml(value) {
+    const source = String(value || "").slice(0, 500);
+    const tokenPattern =
+      /\b(arctan|arcsin|arccos|sin|cos|tan|cot|sec|csc|sqrt|ln)\b|\bint\b|\bdx\b|\bC\b|\bx\b|-?\d+\/\d+/g;
+    let result = "";
+    let cursor = 0;
+    let match = tokenPattern.exec(source);
+    while (match) {
+      result += escapeHtml(source.slice(cursor, match.index));
+      const token = match[0];
+      if (token === "int") {
+        result += '<span class="math-integral small">&int;</span>';
+      } else if (token === "dx") {
+        result += differentialHtml("x");
+      } else if (token === "x" || token === "C") {
+        result += varHtml(token);
+      } else if (/^-?\d+\/\d+$/.test(token)) {
+        const parts = token.split("/");
+        result += rationalHtml(
+          rational(
+            Number.parseInt(parts[0], 10),
+            Number.parseInt(parts[1], 10),
+          ),
+        );
+      } else {
+        result += `<span class="math-func">${escapeHtml(token)}</span>`;
+      }
+      cursor = match.index + token.length;
+      match = tokenPattern.exec(source);
+    }
+    result += escapeHtml(source.slice(cursor));
+    return mathExpression(result);
+  }
+
   function differentialHtml(variableName) {
     return `<span class="math-d">d</span>${varHtml(variableName)}`;
   }
@@ -693,6 +736,22 @@
     );
   }
 
+  function familyAntiderivativePlain(family) {
+    return termPlain(
+      rational(family.baseSign, 1),
+      family.baseCore,
+      createSymbolArgument("u"),
+    );
+  }
+
+  function antiderivativeWithArgumentHtml(family, argument) {
+    return termHtml(rational(family.baseSign, 1), family.baseCore, argument);
+  }
+
+  function antiderivativeWithArgumentPlain(family, argument) {
+    return termPlain(rational(family.baseSign, 1), family.baseCore, argument);
+  }
+
   function baseRuleHtml(family) {
     return mathExpression(
       `<span class="math-integral small">&int;</span>${familyIntegrandHtml(family)}<span class="math-thin-space"></span>${differentialHtml("u")} ${opHtml("=")} ${familyAntiderivativeHtml(family)} ${plusCHtml()}`,
@@ -706,6 +765,44 @@
     return mathExpression(
       `<span class="math-integral small">&int;</span>${left}<span class="math-thin-space"></span>${differentialHtml("x")} ${opHtml("=")} ${right}`,
     );
+  }
+
+  function symbolicLinearArgument() {
+    return {
+      k: rational(1, 1),
+      b: rational(0, 1),
+      display: "kx + b",
+      displayHtml: `${varHtml("k")}${varHtml("x")} ${opHtml("+")} ${varHtml("b")}`,
+      key: "kx+b",
+    };
+  }
+
+  function linearFormulaHtml(family) {
+    const argument = symbolicLinearArgument();
+    const left = coreHtml(family.integrandCore, argument);
+    const sign = family.baseSign < 0 ? `${signHtml(minusHtml())}` : "";
+    const right = `${sign}${fracHtml(numHtml(1), varHtml("k"))}<span class="math-thin-space"></span>${coreHtml(family.baseCore, argument)} ${plusCHtml()}`;
+    return mathExpression(
+      `<span class="math-integral small">&int;</span>${left}<span class="math-thin-space"></span>${differentialHtml("x")} ${opHtml("=")} ${right}`,
+    );
+  }
+
+  function linearFormulaPlain(family) {
+    const argument = symbolicLinearArgument();
+    const coefficient = family.baseSign < 0 ? "-(1/k)" : "(1/k)";
+    return `int ${corePlain(family.integrandCore, argument)} dx = ${coefficient} ${corePlain(family.baseCore, argument)} + C`;
+  }
+
+  function formulaCatalog() {
+    return FAMILY_DEFINITIONS.map((family) => ({
+      id: family.id,
+      name: family.name,
+      labelHtml: familyLabelHtml(family),
+      basePlain: `int ${family.fDisplay} du = ${family.FDisplay} + C`,
+      baseHtml: baseRuleHtml(family),
+      linearPlain: linearFormulaPlain(family),
+      linearHtml: linearFormulaHtml(family),
+    }));
   }
 
   function familyLabelHtml(familyOrId) {
@@ -761,6 +858,103 @@
     option.displayHtml = expressionHtml(option);
     option.key = optionKey(option.coefficient, option.core, option.argument);
     return option;
+  }
+
+  function rationalSnapshot(value) {
+    return { n: value.n, d: value.d };
+  }
+
+  function argumentSnapshot(argument) {
+    return {
+      k: rationalSnapshot(argument.k),
+      b: rationalSnapshot(argument.b),
+    };
+  }
+
+  function exerciseSnapshot(exercise) {
+    return {
+      A: rationalSnapshot(exercise.A),
+      k: rationalSnapshot(exercise.k),
+      b: rationalSnapshot(exercise.b),
+      familyId: exercise.familyId,
+    };
+  }
+
+  function optionSnapshot(option) {
+    return {
+      coefficient: rationalSnapshot(option.coefficient),
+      core: option.core,
+      argument: argumentSnapshot(option.argument),
+    };
+  }
+
+  function restoreRationalSnapshot(value) {
+    if (
+      !value ||
+      !Number.isInteger(value.n) ||
+      !Number.isInteger(value.d) ||
+      value.d === 0
+    ) {
+      throw new Error("Invalid rational snapshot.");
+    }
+    return rational(value.n, value.d);
+  }
+
+  function restoreArgumentSnapshot(value) {
+    if (!value) {
+      throw new Error("Invalid argument snapshot.");
+    }
+    return createArgument(
+      restoreRationalSnapshot(value.k),
+      restoreRationalSnapshot(value.b),
+    );
+  }
+
+  function restoreOptionSnapshot(value) {
+    if (!value || typeof value.core !== "string") {
+      throw new Error("Invalid option snapshot.");
+    }
+    return {
+      coefficient: restoreRationalSnapshot(value.coefficient),
+      core: value.core,
+      argument: restoreArgumentSnapshot(value.argument),
+    };
+  }
+
+  function errorExampleMathHtml(example) {
+    try {
+      if (!example || !example.exerciseMath || !example.chosenMath) {
+        return null;
+      }
+      const family = FAMILY_MAP[example.exerciseMath.familyId];
+      if (!family) {
+        return null;
+      }
+      const A = restoreRationalSnapshot(example.exerciseMath.A);
+      const k = restoreRationalSnapshot(example.exerciseMath.k);
+      const b = restoreRationalSnapshot(example.exerciseMath.b);
+      const argument = createArgument(k, b);
+      const exercise = {
+        A,
+        k,
+        b,
+        familyId: family.id,
+        family,
+        argument,
+      };
+      const correctOption = {
+        coefficient: correctCoefficient(A, family, k),
+        core: family.baseCore,
+        argument,
+      };
+      return {
+        exerciseHtml: integralHtml(exercise),
+        chosenHtml: expressionHtml(restoreOptionSnapshot(example.chosenMath)),
+        correctHtml: expressionHtml(correctOption),
+      };
+    } catch (error) {
+      return null;
+    }
   }
 
   function correctCoefficient(A, family, k) {
@@ -1070,6 +1264,9 @@
   }
 
   function feedbackVariables(exercise, chosen) {
+    const aOverK = divide(exercise.A, exercise.k);
+    const substitutionRightHtml = `${termHtml(exercise.correctCoefficient, exercise.family.baseCore, exercise.argument)} ${plusCHtml()}`;
+    const substitutionRightPlain = `${termPlain(exercise.correctCoefficient, exercise.family.baseCore, exercise.argument)} + C`;
     return {
       A: rationalPlain(exercise.A),
       AHtml: rationalHtml(exercise.A),
@@ -1083,8 +1280,26 @@
       fUHtml: familyIntegrandHtml(exercise.family),
       FU: exercise.family.FDisplay,
       FUHtml: familyAntiderivativeHtml(exercise.family),
+      FWithArgument: antiderivativeWithArgumentPlain(
+        exercise.family,
+        exercise.argument,
+      ),
+      FWithArgumentHtml: antiderivativeWithArgumentHtml(
+        exercise.family,
+        exercise.argument,
+      ),
       baseRule: `int ${exercise.family.fDisplay} du = ${exercise.family.FDisplay} + C`,
       baseRuleHtml: baseRuleHtml(exercise.family),
+      generalRule: "int A f(kx + b) dx = (A/k) F(kx + b) + C",
+      generalRuleHtml: generalRuleHtml(),
+      AOverK: rationalPlain(aOverK),
+      AOverKHtml: rationalHtml(aOverK),
+      currentIntegral: exercise.integrandExpression,
+      currentIntegralHtml: exercise.integrandHtml,
+      substitutionExpression: `${exercise.integrandExpression} = ${substitutionRightPlain}`,
+      substitutionExpressionHtml: mathExpression(
+        `${integralHtml(exercise)} ${opHtml("=")} ${substitutionRightHtml}`,
+      ),
       correctCoefficient: rationalPlain(exercise.correctCoefficient),
       correctCoefficientHtml: rationalHtml(exercise.correctCoefficient),
       chosenExpression: chosen ? chosen.displayExpression : "",
@@ -1108,15 +1323,20 @@
         <span class="section-label">Para este ejercicio</span>
         <div class="feedback-values">
           ${htmlLine("A", vars.AHtml)}
+          ${htmlLine("k", vars.kHtml)}
+          ${htmlLine("b", vars.bHtml)}
           ${htmlLine("u", vars.uHtml)}
-          ${htmlLine("u'", vars.kHtml)}
+          ${htmlLine("f(u)", vars.fUHtml)}
+          ${htmlLine("F(u)", vars.FUHtml)}
         </div>
         <div class="rule-box">
           <p>La regla base es:</p>
           <div class="centered-formula">${vars.baseRuleHtml}</div>
-          <p>Por lo tanto:</p>
-          <div class="centered-formula">${generalRuleHtml()}</div>
-          <p>En este caso:</p>
+          <p>Regla general:</p>
+          <div class="centered-formula">${vars.generalRuleHtml}</div>
+          <p>Sustituyendo:</p>
+          <div class="centered-formula">${vars.substitutionExpressionHtml}</div>
+          <p>Resultado simplificado:</p>
           <div class="centered-formula">${vars.correctExpressionHtml}</div>
         </div>
       </div>`;
@@ -1222,13 +1442,19 @@
     expressionHtml,
     integralPlain,
     integralHtml,
+    plainMathHtml,
     correctCoefficient,
     buildExerciseFromParams,
     generateExercise,
     sanitizeRange,
+    exerciseSnapshot,
+    optionSnapshot,
+    errorExampleMathHtml,
     feedbackHtml,
     derivationHtml,
     feedbackVariables,
+    generalRuleHtml,
+    formulaCatalog,
     familyLabelHtml,
     errorLabelHtml,
     shuffle,

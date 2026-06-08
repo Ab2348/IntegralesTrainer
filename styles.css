@@ -164,7 +164,7 @@ h3 {
   top: 18px;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 18px;
   padding: 18px;
 }
 
@@ -794,6 +794,84 @@ dd {
   border-radius: var(--radius-sm);
 }
 
+.compact-list .stat-error-item {
+  position: relative;
+  display: grid;
+  padding: 0;
+}
+
+.stat-error-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.stat-error-trigger:hover {
+  background: rgba(139, 184, 176, 0.07);
+}
+
+.error-tooltip {
+  display: none;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 10px;
+  color: #f4efe7;
+  background: #1f252a;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+}
+
+.stat-error-item:hover .error-tooltip,
+.stat-error-item:focus-within .error-tooltip {
+  display: grid;
+}
+
+.error-tooltip-row {
+  display: grid;
+  gap: 3px;
+}
+
+.error-tooltip-label {
+  color: #b5bfbc;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.error-tooltip-value {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-wrap: anywhere;
+  color: #f2ede5;
+  font-family: var(--math-font);
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.error-tooltip-value .math-expression {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.error-tooltip-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
 .compact-list .empty-stat {
   justify-content: flex-start;
   color: var(--faint);
@@ -824,6 +902,106 @@ dd {
   font-weight: 800;
 }
 
+.formula-panel {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.formula-panel .panel-title {
+  margin-bottom: 12px;
+}
+
+.formula-accordion {
+  display: grid;
+  gap: 8px;
+}
+
+.formula-item {
+  min-width: 0;
+  background: rgba(37, 43, 49, 0.82);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.formula-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: #e2e6df;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.formula-summary::-webkit-details-marker {
+  display: none;
+}
+
+.formula-summary::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid var(--accent);
+  transform-origin: 45% 50%;
+  transition: transform 180ms ease;
+}
+
+.formula-item[open] .formula-summary::before {
+  transform: rotate(90deg);
+}
+
+.formula-summary:hover {
+  background: rgba(139, 184, 176, 0.07);
+}
+
+.formula-body {
+  display: grid;
+  gap: 12px;
+  padding: 0 10px 12px;
+  border-top: 1px solid rgba(70, 81, 90, 0.65);
+}
+
+.formula-item[open] .formula-body {
+  animation: formula-open 180ms ease;
+  transform-origin: top;
+}
+
+.formula-body .section-label {
+  display: block;
+  margin-top: 12px;
+}
+
+.formula-body .centered-formula {
+  justify-content: start;
+  place-items: center start;
+  padding: 8px 0 2px;
+  font-size: 0.95rem;
+  text-align: left;
+}
+
+.formula-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+@keyframes formula-open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scaleY(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
 @media (max-width: 1100px) {
   .workspace {
     grid-template-columns: 250px 1fr;
@@ -832,6 +1010,16 @@ dd {
   .stats {
     grid-column: 1 / -1;
     position: static;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+    align-items: start;
+  }
+
+  .formula-panel {
+    padding-top: 0;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+    padding-left: 18px;
   }
 }
 
@@ -859,6 +1047,14 @@ dd {
 
   .stats {
     position: static;
+    display: flex;
+  }
+
+  .formula-panel {
+    padding-top: 18px;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
   }
 
   .option-grid,
