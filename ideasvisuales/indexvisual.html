@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entrenador de integrales trigonométricas</title>
+    <link rel="stylesheet" href="stylesvisual.css" />
+
+    <!-- Solo para renderizar fórmulas, no contiene lógica del entrenador -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+    ></script>
+  </head>
+
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">Práctica local</span>
+          <h1>Entrenador de integrales trigonométricas</h1>
+        </div>
+
+        <button class="ghost-button">Reiniciar progreso</button>
+      </header>
+
+      <section class="layout">
+        <!-- Panel izquierdo -->
+        <aside class="panel controls">
+          <div class="panel-title">
+            <span>Configuración</span>
+          </div>
+
+          <label class="field">
+            <span>Modo</span>
+            <select>
+              <option>Intermedio</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Dificultad</span>
+            <select>
+              <option>Nivel 1</option>
+            </select>
+          </label>
+
+          <div class="field-grid">
+            <label class="field">
+              <span>Min</span>
+              <input type="text" value="-10" />
+            </label>
+
+            <label class="field">
+              <span>Max</span>
+              <input type="text" value="10" />
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Opciones</span>
+            <select>
+              <option>4</option>
+            </select>
+          </label>
+
+          <div class="family-block">
+            <span class="group-label">Familias</span>
+
+            <label class="check-row checked">
+              <input type="checkbox" checked />
+              <span>sin</span>
+            </label>
+
+            <label class="check-row checked">
+              <input type="checkbox" checked />
+              <span>cos</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>tan</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>cot</span>
+            </label>
+
+            <label class="check-row checked">
+              <input type="checkbox" checked />
+              <span>sec²</span>
+            </label>
+
+            <label class="check-row checked">
+              <input type="checkbox" checked />
+              <span>csc²</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>sec tan</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>csc cot</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>sec</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>csc</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>arctan</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>arcsin</span>
+            </label>
+
+            <label class="check-row">
+              <input type="checkbox" />
+              <span>arccos</span>
+            </label>
+          </div>
+
+          <button class="primary-button">Siguiente ejercicio</button>
+        </aside>
+
+        <!-- Centro -->
+        <main class="practice">
+          <div class="practice-header">
+            <div>
+              <span class="eyebrow">Familia sec²</span>
+              <h2>Integral actual</h2>
+            </div>
+
+            <span class="level-pill">Nivel 1</span>
+          </div>
+
+          <section class="integral-card">
+            <div class="formula">\[ \int -\sec^2(x)\,dx \]</div>
+          </section>
+
+          <section class="options-grid">
+            <button class="option-card">
+              <span class="option-label">Opción 1</span>
+              <span class="option-formula">\(-\sin(x)+C\)</span>
+            </button>
+
+            <button class="option-card">
+              <span class="option-label">Opción 2</span>
+              <span class="option-formula">\(-\ln|\sec(x)+\tan(x)|+C\)</span>
+            </button>
+
+            <button class="option-card selected-wrong">
+              <span class="option-label">Opción 3</span>
+              <span class="option-formula">\(-\arccos(x)+C\)</span>
+            </button>
+
+            <button class="option-card correct">
+              <span class="option-label">Opción 4</span>
+              <span class="option-formula">\(-\tan(x)+C\)</span>
+            </button>
+          </section>
+
+          <section class="feedback-card error">
+            <div class="feedback-heading">
+              <span class="status-dot"></span>
+              <div>
+                <h3>Incorrecto: familia incorrecta</h3>
+                <p>Usaste una familia incorrecta como antiderivada.</p>
+              </div>
+            </div>
+
+            <p>
+              En este ejercicio el integrando usa
+              <strong>\(f(u)=\sec^2(u)\)</strong>, cuya antiderivada base es
+              <strong>\(F(u)=\tan(u)\)</strong>. Por eso la respuesta debe usar
+              <strong>\(F(u)\)</strong>, no la familia que elegiste.
+            </p>
+
+            <div class="divider"></div>
+
+            <span class="section-label">Para este ejercicio</span>
+
+            <div class="data-strip">
+              <div>
+                <span>A</span>
+                <strong>-1</strong>
+              </div>
+
+              <div>
+                <span>u</span>
+                <strong>x</strong>
+              </div>
+
+              <div>
+                <span>u'</span>
+                <strong>1</strong>
+              </div>
+            </div>
+
+            <div class="rule-box">
+              <p>La regla base es:</p>
+              <div>\[ \int \sec^2(u)\,du=\tan(u)+C \]</div>
+
+              <p>Por lo tanto:</p>
+              <div>\[ \int A\,f(kx+b)\,dx=\frac{A}{k}F(kx+b)+C \]</div>
+
+              <p>En este caso:</p>
+              <div>\[ -\tan(x)+C \]</div>
+            </div>
+          </section>
+
+          <button class="secondary-button">Ver derivación</button>
+        </main>
+
+        <!-- Panel derecho -->
+        <aside class="panel stats">
+          <div class="panel-title">
+            <span>Estadísticas</span>
+          </div>
+
+          <div class="stat-grid">
+            <article class="stat-card">
+              <span>Respondidas</span>
+              <strong>8</strong>
+            </article>
+
+            <article class="stat-card">
+              <span>Correctas</span>
+              <strong>3</strong>
+            </article>
+
+            <article class="stat-card">
+              <span>Incorrectas</span>
+              <strong>5</strong>
+            </article>
+
+            <article class="stat-card">
+              <span>Acierto</span>
+              <strong>38%</strong>
+            </article>
+          </div>
+
+          <div class="metric-section">
+            <h3>Errores</h3>
+
+            <div class="metric-row">
+              <span>Familia incorrecta</span>
+              <strong>3</strong>
+            </div>
+
+            <div class="metric-row">
+              <span>Signo base incorrecto</span>
+              <strong>2</strong>
+            </div>
+          </div>
+
+          <div class="metric-section">
+            <h3>Familias</h3>
+
+            <div class="metric-row">
+              <span>cos</span>
+              <strong>3</strong>
+            </div>
+
+            <div class="metric-row">
+              <span>sec²</span>
+              <strong>2</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </div>
+  </body>
+</html>

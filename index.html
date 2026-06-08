@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Entrenador de integrales trigonométricas</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Práctica local</p>
+          <h1>Entrenador de integrales trigonométricas</h1>
+        </div>
+        <button class="quiet-button" id="resetStatsButton" type="button">Reiniciar progreso</button>
+      </header>
+
+      <section class="workspace" aria-label="Entrenador">
+        <aside class="controls" aria-label="Configuración">
+          <div class="panel-title">
+            <span>Configuración</span>
+          </div>
+
+          <div class="control-block">
+            <label for="modeSelect">Modo</label>
+            <select id="modeSelect">
+              <option value="basic">Básico</option>
+              <option value="intermediate">Intermedio</option>
+              <option value="products">Productos</option>
+              <option value="logarithmic">Logarítmico</option>
+              <option value="inverse">Inversas</option>
+              <option value="mixed">Mixto</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+
+          <div class="control-block">
+            <label for="difficultySelect">Dificultad</label>
+            <select id="difficultySelect">
+              <option value="1">Nivel 1</option>
+              <option value="2">Nivel 2</option>
+              <option value="3">Nivel 3</option>
+              <option value="4">Nivel 4</option>
+              <option value="5">Nivel 5</option>
+            </select>
+          </div>
+
+          <div class="control-row">
+            <div class="control-block">
+              <label for="rangeMinInput">Min</label>
+              <input id="rangeMinInput" type="number" value="-10" step="1">
+            </div>
+            <div class="control-block">
+              <label for="rangeMaxInput">Max</label>
+              <input id="rangeMaxInput" type="number" value="10" step="1">
+            </div>
+          </div>
+
+          <div class="control-block">
+            <label for="optionCountSelect">Opciones</label>
+            <select id="optionCountSelect">
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+            </select>
+          </div>
+
+          <fieldset class="family-fieldset">
+            <legend>Familias</legend>
+            <div id="familyChecklist" class="family-list"></div>
+          </fieldset>
+
+          <button class="primary-button" id="nextExerciseButton" type="button">Siguiente ejercicio</button>
+        </aside>
+
+        <section class="practice" aria-label="Práctica">
+          <div class="exercise-heading">
+            <div>
+              <p class="eyebrow" id="familyLabel">Familia</p>
+              <h2 id="exerciseTitle">Integral actual</h2>
+            </div>
+            <span class="status-pill" id="difficultyLabel">Nivel 1</span>
+          </div>
+
+          <div class="exercise-display math-display" id="exerciseDisplay" aria-live="polite"></div>
+
+          <div class="option-grid" id="optionsContainer" aria-label="Opciones de respuesta"></div>
+
+          <section class="feedback-zone" id="feedbackZone" aria-live="polite"></section>
+
+          <button class="secondary-button hidden" id="derivationButton" type="button" aria-expanded="false">
+            Ver derivación
+          </button>
+          <section class="derivation-zone hidden" id="derivationZone"></section>
+        </section>
+
+        <aside class="stats" aria-label="Estadísticas">
+          <div class="panel-title">
+            <span>Estadísticas</span>
+          </div>
+
+          <dl class="stat-grid">
+            <div>
+              <dt>Respondidas</dt>
+              <dd id="totalAnswered">0</dd>
+            </div>
+            <div>
+              <dt>Correctas</dt>
+              <dd id="totalCorrect">0</dd>
+            </div>
+            <div>
+              <dt>Incorrectas</dt>
+              <dd id="totalIncorrect">0</dd>
+            </div>
+            <div>
+              <dt>Acierto</dt>
+              <dd id="accuracyRate">0%</dd>
+            </div>
+          </dl>
+
+          <div class="stat-list-block">
+            <h3>Errores</h3>
+            <ol id="errorList" class="compact-list"></ol>
+          </div>
+
+          <div class="stat-list-block">
+            <h3>Familias</h3>
+            <ol id="familyErrorList" class="compact-list"></ol>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
