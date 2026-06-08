@@ -1,0 +1,19 @@
+{
+  "name": "cicloint",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Herramientas de desarrollo para compilar SCSS del entrenador de integrales.",
+  "engines": {
+    "node": "22.22.3",
+    "npm": "10.9.8"
+  },
+  "packageManager": "npm@10.9.8",
+  "scripts": {
+    "sass": "sass --no-source-map src/styles/main.scss styles.css",
+    "sass:watch": "sass --watch --no-source-map src/styles/main.scss styles.css",
+    "sass:check": "sass --no-source-map src/styles/main.scss /tmp/cicloint-styles-check.css"
+  },
+  "devDependencies": {
+    "sass": "1.93.2"
+  }
+}

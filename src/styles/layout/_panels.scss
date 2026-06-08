@@ -1,0 +1,67 @@
+@use "../abstracts/breakpoints";
+@use "../abstracts/mixins";
+
+.controls,
+.practice,
+.stats,
+.formula-sidebar {
+  min-width: 0;
+  background: rgba(42, 49, 56, 0.88);
+  border: 1px solid rgba(86, 98, 107, 0.82);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(14px);
+}
+
+.controls,
+.practice,
+.stats,
+.formula-sidebar {
+  position: sticky;
+  top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+}
+
+.practice {
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+.formula-sidebar {
+  height: calc(100vh - 36px);
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  color: #f4efe7;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+@include mixins.media-max(breakpoints.$desktop-narrow) {
+  .stats,
+  .formula-sidebar {
+    position: static;
+  }
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .controls,
+  .practice {
+    position: static;
+  }
+
+  .stats,
+  .formula-sidebar {
+    position: static;
+    display: flex;
+  }
+}

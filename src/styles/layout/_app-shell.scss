@@ -1,0 +1,14 @@
+@use "../abstracts/breakpoints";
+@use "../abstracts/mixins";
+
+.app-shell {
+  width: min(1600px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 24px 0 44px;
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .app-shell {
+    width: min(100% - 28px, 720px);
+  }
+}

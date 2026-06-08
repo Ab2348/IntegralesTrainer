@@ -1,0 +1,40 @@
+.exercise-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.exercise-display {
+  display: grid;
+  place-items: center;
+  min-height: 132px;
+  padding: 22px 26px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  color: #f6f1e8;
+  background:
+    linear-gradient(135deg, rgba(54, 63, 71, 0.96), rgba(38, 45, 52, 0.96)),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 31px,
+      rgba(240, 236, 227, 0.035) 32px
+    );
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+}
+
+.math-display {
+  font-family: var(--math-font);
+  font-size: 2.15rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .math-display {
+    font-size: 1.75rem;
+  }
+}

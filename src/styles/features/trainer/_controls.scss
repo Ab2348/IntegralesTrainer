@@ -1,0 +1,71 @@
+.control-block {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.control-row .control-block {
+  margin-bottom: 0;
+}
+
+.family-fieldset {
+  min-width: 0;
+  margin: 6px 0 20px;
+  padding: 0;
+  border: 0;
+}
+
+.family-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.family-check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 28px;
+  color: #9ba5a2;
+  font-size: 0.92rem;
+}
+
+.family-check:has(input:checked) {
+  color: #e3e5df;
+}
+
+.family-check input {
+  width: 16px;
+  min-height: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.family-check-label {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.family-check-label .math-expression,
+.family-math-label {
+  font-family: var(--math-font);
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+.eyebrow .family-math-label {
+  margin-left: 0.18em;
+  color: #f3efe7;
+  font-size: 1.05em;
+  text-transform: none;
+}
