@@ -1,0 +1,132 @@
+.math-display .math-expression,
+.option-math .math-expression,
+.feedback-values .math-expression,
+.centered-formula .math-expression {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.math-inline,
+.math-expression,
+.option-math,
+.math-display {
+  font-feature-settings: "kern" 1;
+}
+
+.math-inline {
+  font-family: var(--math-font);
+}
+
+.math-expression {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: 0.06em;
+  row-gap: 0.16em;
+  vertical-align: middle;
+}
+
+.math-term {
+  display: inline-flex;
+  align-items: center;
+}
+
+.math-integral {
+  display: inline-block;
+  margin-right: 0.16em;
+  font-size: 1.45em;
+  line-height: 0.8;
+  transform: translateY(0.03em);
+}
+
+.math-integral.small {
+  font-size: 1.2em;
+}
+
+.math-func {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.math-var {
+  font-style: italic;
+}
+
+.math-num,
+.math-d,
+.math-op,
+.math-sign,
+.math-paren,
+.math-bracket,
+.math-bar {
+  font-style: normal;
+}
+
+.math-op {
+  margin: 0 0.14em;
+}
+
+.math-sign {
+  margin-right: 0.05em;
+}
+
+.math-paren {
+  margin: 0 0.02em;
+}
+
+.math-bar {
+  padding: 0 0.08em;
+}
+
+.math-thin-space {
+  display: inline-block;
+  width: 0.18em;
+}
+
+.math-frac {
+  display: inline-grid;
+  grid-template-rows: auto auto;
+  align-items: center;
+  vertical-align: -0.34em;
+  min-width: 1.12em;
+  margin: 0 0.04em;
+  font-size: 0.9em;
+  line-height: 1.02;
+  text-align: center;
+}
+
+.math-frac > span:first-child {
+  padding: 0 0.22em 0.07em;
+  border-bottom: 1px solid currentColor;
+}
+
+.math-frac > span:last-child {
+  padding: 0.07em 0.22em 0;
+}
+
+.math-sup {
+  margin-left: 0.02em;
+  font-size: 0.64em;
+  line-height: 0;
+}
+
+.math-sqrt {
+  display: inline-flex;
+  align-items: flex-start;
+  vertical-align: -0.08em;
+}
+
+.math-radical {
+  display: inline-block;
+  padding-right: 0.02em;
+  font-size: 1.22em;
+  line-height: 0.95;
+  transform: translateY(0.02em);
+}
+
+.math-radicand {
+  display: inline-block;
+  padding: 0.08em 0.08em 0;
+  border-top: 1px solid currentColor;
+}

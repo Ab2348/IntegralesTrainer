@@ -142,7 +142,7 @@ h3 {
 
 .workspace {
   display: grid;
-  grid-template-columns: 240px minmax(500px, 1fr) 245px 260px;
+  grid-template-columns: 240px minmax(500px, 1fr) 245px minmax(280px, 320px);
   gap: 18px;
   align-items: start;
 }
@@ -160,6 +160,7 @@ h3 {
 }
 
 .controls,
+.practice,
 .stats,
 .formula-sidebar {
   position: sticky;
@@ -173,6 +174,12 @@ h3 {
 .practice {
   padding: 22px;
   box-shadow: var(--shadow);
+}
+
+.formula-sidebar {
+  height: calc(100vh - 36px);
+  max-height: calc(100vh - 36px);
+  overflow: hidden;
 }
 
 .panel-title {
@@ -904,7 +911,11 @@ dd {
 }
 
 .formula-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
 .formula-panel .panel-title {
@@ -912,8 +923,13 @@ dd {
 }
 
 .formula-accordion {
-  display: grid;
-  gap: 8px;
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .formula-item {
@@ -921,6 +937,10 @@ dd {
   background: rgba(37, 43, 49, 0.82);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
+}
+
+.formula-item + .formula-item {
+  margin-top: 8px;
 }
 
 .formula-summary {
@@ -962,7 +982,9 @@ dd {
 .formula-body {
   display: grid;
   gap: 12px;
+  min-width: 0;
   padding: 0 10px 12px;
+  overflow: hidden;
   border-top: 1px solid rgba(70, 81, 90, 0.65);
 }
 
@@ -977,11 +999,23 @@ dd {
 }
 
 .formula-body .centered-formula {
+  display: block;
   justify-content: start;
   place-items: center start;
+  width: 100%;
+  max-width: 100%;
   padding: 8px 0 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
   font-size: 0.95rem;
   text-align: left;
+  scrollbar-width: thin;
+}
+
+.formula-body .centered-formula .math-expression {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: none;
 }
 
 .formula-note {
@@ -1039,7 +1073,8 @@ dd {
     grid-template-columns: 1fr;
   }
 
-  .controls {
+  .controls,
+  .practice {
     position: static;
   }
 

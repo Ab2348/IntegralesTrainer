@@ -7,7 +7,9 @@ Este documento describe el funcionamiento interno del entrenador de integrales t
 La aplicación es una página estática sin backend. Todo se ejecuta en el navegador:
 
 - `index.html` define la estructura de la interfaz.
-- `styles.css` contiene el diseño visual.
+- `src/styles/main.scss` es el punto de entrada de estilos SCSS.
+- `src/styles/` contiene los parciales SCSS separados por abstracts, base, layout, components, features y utilities.
+- `styles.css` es el CSS de salida que carga `index.html`.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
 - `js/core/integraleslineales.js` contiene la lógica matemática, generación de ejercicios y HTML matemático para integrales con argumento lineal.
 - `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
@@ -352,6 +354,18 @@ Este comportamiento protege la experiencia del usuario en casos como:
 La app no envía datos a servidores. El progreso se queda en el navegador del usuario.
 
 El estado local no contiene información sensible, pero sí refleja progreso de estudio. Si se cambia el esquema de estado, conviene mantener compatibilidad o migrar con cuidado desde `mergeState()`.
+
+## Estilos SCSS
+
+Los estilos fuente viven en `src/styles/main.scss` y sus parciales. El archivo `styles.css` se conserva como salida CSS para el navegador.
+
+Cuando haya Sass disponible, recompila con:
+
+```bash
+sass src/styles/main.scss styles.css
+```
+
+Si se añade una vista nueva, conviene colocar sus reglas en `features/` cuando pertenezcan a una experiencia concreta, o en `components/` si son reutilizables.
 
 ## Pruebas
 

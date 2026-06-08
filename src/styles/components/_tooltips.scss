@@ -1,0 +1,71 @@
+.stat-error-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.stat-error-trigger:hover {
+  background: rgba(139, 184, 176, 0.07);
+}
+
+.error-tooltip {
+  display: none;
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 10px;
+  color: #f4efe7;
+  background: #1f252a;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+}
+
+.stat-error-item:hover .error-tooltip,
+.stat-error-item:focus-within .error-tooltip {
+  display: grid;
+}
+
+.error-tooltip-row {
+  display: grid;
+  gap: 3px;
+}
+
+.error-tooltip-label {
+  color: #b5bfbc;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.error-tooltip-value {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-wrap: anywhere;
+  color: #f2ede5;
+  font-family: var(--math-font);
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.error-tooltip-value .math-expression {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.error-tooltip-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}

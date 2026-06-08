@@ -1,0 +1,68 @@
+@use "../../abstracts/breakpoints";
+@use "../../abstracts/mixins";
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.option-button {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: 84px;
+  padding: 15px 16px;
+  color: var(--text);
+  text-align: left;
+  background: #252b31;
+  border-color: var(--line-strong);
+  border-radius: var(--radius-md);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.option-button:hover:not(:disabled) {
+  background: #303840;
+  border-color: #6a767e;
+}
+
+.option-button[disabled] {
+  opacity: 1;
+}
+
+.option-button.is-selected,
+.option-button.is-incorrect {
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
+  box-shadow: inset 4px 0 0 var(--danger);
+}
+
+.option-button.is-correct {
+  background: var(--success-soft);
+  border-color: var(--success-line);
+  box-shadow: inset 4px 0 0 var(--success);
+}
+
+.option-index {
+  display: block;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.option-math {
+  display: block;
+  color: #f1ece3;
+  font-family: var(--math-font);
+  font-size: 1.12rem;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .option-grid {
+    grid-template-columns: 1fr;
+  }
+}

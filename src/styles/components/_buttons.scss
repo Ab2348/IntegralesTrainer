@@ -1,0 +1,48 @@
+.primary-button,
+.secondary-button,
+.quiet-button,
+.option-button {
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 800;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.primary-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 0;
+  color: #15201e;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 12px 26px rgba(139, 184, 176, 0.18);
+}
+
+.primary-button:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.quiet-button,
+.secondary-button {
+  min-height: 38px;
+  padding: 0 16px;
+  color: #efe9df;
+  background: #252b31;
+  border-color: var(--line-strong);
+}
+
+.quiet-button:hover,
+.secondary-button:hover {
+  background: #303840;
+  border-color: #6a767e;
+  box-shadow: var(--shadow-soft);
+}
+
+.secondary-button {
+  margin-top: 14px;
+}

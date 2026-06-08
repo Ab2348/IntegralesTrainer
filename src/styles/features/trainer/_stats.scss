@@ -1,0 +1,47 @@
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.stat-grid div {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: #252b31;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-md);
+}
+
+.stat-list-block {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.stat-list-block h3 {
+  margin-bottom: 10px;
+}
+
+.stat-item-label {
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.stat-item-label .family-math-label {
+  font-family: var(--math-font);
+  font-size: 1.1em;
+}
+
+.stat-item-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 8px;
+  color: #d7f1eb;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}

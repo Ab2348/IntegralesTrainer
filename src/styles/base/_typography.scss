@@ -1,0 +1,56 @@
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: #b7c2bf;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1 {
+  max-width: 920px;
+  color: #f3efe7;
+  font-size: 2.55rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+h2 {
+  color: #f4efe7;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+h3 {
+  color: #f4efe7;
+  font-size: 0.98rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+dt {
+  color: #b5bfbc;
+}
+
+dd {
+  color: #f4efe7;
+  font-size: 1.55rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+label,
+legend,
+dt,
+.section-label,
+.option-index {
+  color: #b5bfbc;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}

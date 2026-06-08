@@ -1,0 +1,29 @@
+@use "../abstracts/breakpoints";
+@use "../abstracts/mixins";
+
+.workspace {
+  display: grid;
+  grid-template-columns: 240px minmax(500px, 1fr) 245px minmax(280px, 320px);
+  gap: 18px;
+  align-items: start;
+}
+
+@include mixins.media-max(breakpoints.$desktop-narrow) {
+  .workspace {
+    grid-template-columns: 250px 1fr;
+  }
+
+  .stats {
+    grid-column: 1;
+  }
+
+  .formula-sidebar {
+    grid-column: 2;
+  }
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}

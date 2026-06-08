@@ -1,0 +1,113 @@
+.formula-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.formula-panel .panel-title {
+  margin-bottom: 12px;
+}
+
+.formula-accordion {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-right: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.formula-item {
+  min-width: 0;
+  background: rgba(37, 43, 49, 0.82);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.formula-item + .formula-item {
+  margin-top: 8px;
+}
+
+.formula-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: #e2e6df;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+
+.formula-summary::-webkit-details-marker {
+  display: none;
+}
+
+.formula-summary::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid var(--accent);
+  transform-origin: 45% 50%;
+  transition: transform 180ms ease;
+}
+
+.formula-item[open] .formula-summary::before {
+  transform: rotate(90deg);
+}
+
+.formula-summary:hover {
+  background: rgba(139, 184, 176, 0.07);
+}
+
+.formula-body {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 10px 12px;
+  overflow: hidden;
+  border-top: 1px solid rgba(70, 81, 90, 0.65);
+}
+
+.formula-item[open] .formula-body {
+  animation: formula-open 180ms ease;
+  transform-origin: top;
+}
+
+.formula-body .section-label {
+  display: block;
+  margin-top: 12px;
+}
+
+.formula-body .centered-formula {
+  display: block;
+  justify-content: start;
+  place-items: center start;
+  width: 100%;
+  max-width: 100%;
+  padding: 8px 0 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 0.95rem;
+  text-align: left;
+  scrollbar-width: thin;
+}
+
+.formula-body .centered-formula .math-expression {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: none;
+}
+
+.formula-note {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}

@@ -1,0 +1,146 @@
+@use "../../abstracts/breakpoints";
+@use "../../abstracts/mixins";
+
+.feedback-zone,
+.derivation-zone {
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+}
+
+.feedback-zone:empty {
+  display: none;
+}
+
+.feedback-zone.correct {
+  color: #e6efe8;
+  background: linear-gradient(135deg, #263a31 0%, #25342d 100%);
+  border: 1px solid rgba(111, 155, 125, 0.9);
+}
+
+.feedback-zone.incorrect {
+  color: #efe5dc;
+  background: linear-gradient(135deg, #3d2d2b 0%, #352927 100%);
+  border: 1px solid rgba(152, 100, 93, 0.9);
+}
+
+.feedback-title {
+  position: relative;
+  margin-bottom: 12px;
+  padding-left: 24px;
+  color: #f4efe7;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.feedback-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 0 5px rgba(215, 154, 142, 0.16);
+}
+
+.feedback-zone.correct .feedback-title::before {
+  background: var(--success);
+  box-shadow: 0 0 0 5px rgba(156, 201, 168, 0.14);
+}
+
+.feedback-zone p,
+.derivation-zone p {
+  margin-top: 8px;
+  color: #e8e0d8;
+  line-height: 1.65;
+}
+
+.divider {
+  height: 1px;
+  margin: 16px 0;
+  background: rgba(215, 154, 142, 0.22);
+}
+
+.feedback-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 10px 0 14px;
+}
+
+.feedback-values div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  background: rgba(37, 43, 49, 0.82);
+  border: 1px solid rgba(152, 100, 93, 0.72);
+  border-radius: var(--radius-sm);
+}
+
+.feedback-zone.correct .feedback-values div {
+  border-color: rgba(111, 155, 125, 0.72);
+}
+
+.feedback-values strong {
+  color: #b5bfbc;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.feedback-values span {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: #f4efe7;
+  font-family: var(--math-font);
+  font-size: 0.98rem;
+  white-space: nowrap;
+}
+
+.reconstruction {
+  display: grid;
+  gap: 8px;
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.rule-box {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  background: rgba(37, 43, 49, 0.58);
+  border: 1px solid rgba(152, 100, 93, 0.5);
+  border-radius: var(--radius-sm);
+}
+
+.rule-box p {
+  color: #e8e0d8;
+  font-weight: 650;
+}
+
+.centered-formula {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 6px 0 12px;
+  overflow-x: auto;
+  color: #f4efe7;
+  font-family: var(--math-font);
+  text-align: center;
+}
+
+.feedback-zone.correct .rule-box {
+  border-color: rgba(111, 155, 125, 0.5);
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .feedback-values {
+    grid-template-columns: 1fr;
+  }
+}

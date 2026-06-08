@@ -1,0 +1,23 @@
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--text);
+  font-size: 17px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(139, 184, 176, 0.13),
+      transparent 34rem
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(177, 160, 122, 0.08),
+      transparent 30rem
+    ),
+    linear-gradient(180deg, #252b31 0%, #1d2227 100%);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(139, 184, 176, 0.86);
+  outline-offset: 3px;
+}
