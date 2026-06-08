@@ -9,7 +9,13 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `index.html` define la estructura de la interfaz.
 - `styles.css` contiene el diseño visual.
 - `core.js` contiene la lógica matemática, generación de ejercicios y HTML matemático.
-- `app.js` conecta la interfaz con el núcleo, maneja eventos, estado y persistencia.
+- `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
+- `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
+- `js/app/exercise-view.js` renderiza ejercicio, opciones, feedback visual y derivación.
+- `js/app/answer.js` procesa la opción elegida y coordina feedback/estadísticas.
+- `js/app/stats-panel.js` actualiza estadísticas, errores y ejemplos recientes.
+- `js/app/formula-panel.js` renderiza el formulario del panel derecho.
+- `app.js` funciona como orquestador de arranque y flujo general.
 - `tests/` contiene pruebas manuales/de núcleo para validar casos matemáticos.
 
 No hay llamadas a servidor, cookies, autenticación ni almacenamiento remoto. El progreso del usuario se guarda localmente en el navegador mediante `localStorage`.
@@ -20,19 +26,19 @@ Al cargar la página:
 
 1. `index.html` carga `core.js`.
 2. `core.js` registra su API pública en `window.TrigCore`.
-3. `index.html` carga `app.js`.
-4. `app.js` lee el estado local, lo normaliza y sincroniza los controles.
-5. Se genera el primer ejercicio con `Core.generateExercise`.
-6. La respuesta del usuario actualiza estadísticas y guarda el estado.
+3. `index.html` carga los módulos de `js/app/`.
+4. `index.html` carga `app.js`.
+5. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
+6. Se genera el primer ejercicio con `Core.generateExercise`.
+7. La respuesta del usuario actualiza estadísticas y guarda el estado.
 
-El flujo principal está en `app.js`:
+El flujo principal queda distribuido así:
 
-- `loadState()` lee `localStorage`.
-- `mergeState()` normaliza el estado guardado.
-- `syncControlsFromState()` actualiza los controles visibles.
-- `generateNextExercise()` genera y renderiza el ejercicio actual.
-- `answer(optionId)` procesa la respuesta seleccionada.
-- `renderStats()` actualiza estadísticas.
+- `state.js`: `loadState()`, `mergeState()`, `saveState()`.
+- `controls-panel.js`: `syncControlsFromState()`, `updateSettingsFromControls()`.
+- `app.js`: `generateNextExercise()` y eventos globales.
+- `answer.js`: `answer(optionId)`.
+- `stats-panel.js`: `recordAnswer()` y `render()`.
 
 ## Estado local
 
