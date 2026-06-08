@@ -359,11 +359,39 @@ El estado local no contiene información sensible, pero sí refleja progreso de 
 
 Los estilos fuente viven en `src/styles/main.scss` y sus parciales. El archivo `styles.css` se conserva como salida CSS para el navegador.
 
-Cuando haya Sass disponible, recompila con:
+El entorno de Node/NPM es solo para desarrollo y está fijado en:
+
+- Node.js `22.22.3`
+- npm `10.9.8`
+- Sass `1.93.2`
+
+Se eligió Node 22 porque sigue soportado como LTS y evita usar líneas EOL como Node 20 o líneas más nuevas como Node 24/26. Las dependencias de npm están fijadas en `package-lock.json`.
+
+Instalación local recomendada:
 
 ```bash
-sass src/styles/main.scss styles.css
+./scripts/install-node-dev.sh
+. .dev/node-env.sh
+npm ci
 ```
+
+El instalador descarga el binario oficial de Node.js y verifica su SHA256 antes de usarlo. Todo queda dentro de `.dev/`, que no se versiona.
+
+Si ya usas `nvm`, también puedes hacer:
+
+```bash
+nvm install
+nvm use
+npm ci
+```
+
+Recompila el CSS con:
+
+```bash
+npm run sass
+```
+
+Para desarrollo continuo puedes usar `npm run sass:watch`.
 
 Si se añade una vista nueva, conviene colocar sus reglas en `features/` cuando pertenezcan a una experiencia concreta, o en `components/` si son reutilizables.
 
