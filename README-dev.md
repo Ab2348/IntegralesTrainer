@@ -8,7 +8,9 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 
 - `index.html` define la estructura de la interfaz.
 - `styles.css` contiene el diseño visual.
-- `core.js` contiene la lógica matemática, generación de ejercicios y HTML matemático.
+- `js/core/registro.js` registra módulos matemáticos disponibles.
+- `js/core/integraleslineales.js` contiene la lógica matemática, generación de ejercicios y HTML matemático para integrales con argumento lineal.
+- `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
 - `js/app/exercise-view.js` renderiza ejercicio, opciones, feedback visual y derivación.
@@ -24,13 +26,16 @@ No hay llamadas a servidor, cookies, autenticación ni almacenamiento remoto. El
 
 Al cargar la página:
 
-1. `index.html` carga `core.js`.
-2. `core.js` registra su API pública en `window.TrigCore`.
-3. `index.html` carga los módulos de `js/app/`.
-4. `index.html` carga `app.js`.
-5. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
-6. Se genera el primer ejercicio con `Core.generateExercise`.
-7. La respuesta del usuario actualiza estadísticas y guarda el estado.
+1. `index.html` carga `js/core/registro.js`.
+2. `index.html` carga `js/core/integraleslineales.js`.
+3. El módulo matemático se registra como `integrales-lineales`.
+4. `index.html` carga `core.js`.
+5. `core.js` publica la API activa en `window.TrigCore`.
+6. `index.html` carga los módulos de `js/app/`.
+7. `index.html` carga `app.js`.
+8. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
+9. Se genera el primer ejercicio con `Core.generateExercise`.
+10. La respuesta del usuario actualiza estadísticas y guarda el estado.
 
 El flujo principal queda distribuido así:
 
@@ -173,7 +178,7 @@ En modo cargado desde estado guardado, el fallback preferido es el conjunto de f
 
 ## Familias matemáticas
 
-Las familias están definidas en `FAMILY_DEFINITIONS` dentro de `core.js`.
+Las familias actuales están definidas en `FAMILY_DEFINITIONS` dentro de `js/core/integraleslineales.js`.
 
 Cada familia incluye:
 
@@ -367,8 +372,9 @@ Casos mínimos recomendados al modificar el núcleo:
 
 ## Reglas prácticas para cambios futuros
 
-- Mantener `core.js` libre de dependencias del DOM.
-- Mantener `app.js` como capa de interacción y persistencia.
+- Mantener `core.js` como fachada publica sin logica matematica especifica.
+- Mantener los tipos de integrales dentro de módulos registrables en `js/core/`.
+- Mantener `app.js` como orquestador de interacción, no como dueño de estado o render pesado.
 - No guardar ejercicios completos si solo se necesita evitar repetición.
 - Validar cualquier valor que venga de `localStorage`.
 - Usar `textContent` salvo que el HTML venga de funciones internas confiables.

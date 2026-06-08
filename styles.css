@@ -91,7 +91,7 @@ dd {
 }
 
 .app-shell {
-  width: min(1340px, calc(100% - 48px));
+  width: min(1600px, calc(100% - 48px));
   margin: 0 auto;
   padding: 24px 0 44px;
 }
@@ -142,14 +142,15 @@ h3 {
 
 .workspace {
   display: grid;
-  grid-template-columns: 280px minmax(520px, 1fr) 300px;
-  gap: 22px;
+  grid-template-columns: 240px minmax(500px, 1fr) 245px 260px;
+  gap: 18px;
   align-items: start;
 }
 
 .controls,
 .practice,
-.stats {
+.stats,
+.formula-sidebar {
   min-width: 0;
   background: rgba(42, 49, 56, 0.88);
   border: 1px solid rgba(86, 98, 107, 0.82);
@@ -159,7 +160,8 @@ h3 {
 }
 
 .controls,
-.stats {
+.stats,
+.formula-sidebar {
   position: sticky;
   top: 18px;
   display: flex;
@@ -444,9 +446,8 @@ input:focus {
   font-size: 1.12rem;
   font-weight: 650;
   line-height: 1.35;
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .feedback-zone,
@@ -903,8 +904,7 @@ dd {
 }
 
 .formula-panel {
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  min-width: 0;
 }
 
 .formula-panel .panel-title {
@@ -1002,24 +1002,22 @@ dd {
   }
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
   .workspace {
     grid-template-columns: 250px 1fr;
   }
 
-  .stats {
-    grid-column: 1 / -1;
+  .stats,
+  .formula-sidebar {
     position: static;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
-    align-items: start;
   }
 
-  .formula-panel {
-    padding-top: 0;
-    border-top: 0;
-    border-left: 1px solid var(--line);
-    padding-left: 18px;
+  .stats {
+    grid-column: 1;
+  }
+
+  .formula-sidebar {
+    grid-column: 2;
   }
 }
 
@@ -1045,16 +1043,10 @@ dd {
     position: static;
   }
 
-  .stats {
+  .stats,
+  .formula-sidebar {
     position: static;
     display: flex;
-  }
-
-  .formula-panel {
-    padding-top: 18px;
-    padding-left: 0;
-    border-top: 1px solid var(--line);
-    border-left: 0;
   }
 
   .option-grid,
