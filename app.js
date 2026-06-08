@@ -51,6 +51,9 @@
     statsPanel,
     stateStore,
   });
+  const pageWarning = App.createPageWarning
+    ? App.createPageWarning(App.pageWarningConfig)
+    : null;
 
   function generateNextExercise() {
     const settings = controlsPanel.updateSettingsFromControls();
@@ -101,6 +104,9 @@
     formulaPanel.render();
     statsPanel.render();
     generateNextExercise();
+    if (pageWarning) {
+      pageWarning.show();
+    }
   }
 
   init();
