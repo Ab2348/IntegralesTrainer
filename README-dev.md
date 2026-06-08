@@ -24,6 +24,74 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 
 No hay llamadas a servidor, cookies, autenticación ni almacenamiento remoto. El progreso del usuario se guarda localmente en el navegador mediante `localStorage`.
 
+## Mapa de estilos SCSS
+
+Los estilos fuente viven en `src/styles/`. El archivo `styles.css` es la salida compilada que carga `index.html`; para mantenimiento conviene ubicar el cambio en el parcial SCSS correspondiente y recompilar.
+
+### `src/styles/main.scss`
+
+Punto de entrada de SCSS. Solo importa los parciales en orden: abstracts, base, layout, components, features y utilities. Si se agrega una carpeta o parcial nuevo, normalmente se registra aquí.
+
+### `src/styles/abstracts/`
+
+Define valores y helpers compartidos. No genera componentes visuales por sí misma.
+
+- `_tokens.scss`: variables CSS globales en `:root`, como colores, radios, sombras, fuente matemática y fuente base.
+- `_breakpoints.scss`: breakpoints Sass reutilizables (`$desktop-narrow` y `$mobile`).
+- `_mixins.scss`: mixin `media-max()` para media queries con `max-width`.
+
+### `src/styles/base/`
+
+Estilos globales de navegador, documento y texto base.
+
+- `_reset.scss`: normalización mínima de `box-sizing`, márgenes, fuentes heredadas en controles y cursor de botones.
+- `_global.scss`: estilo general de `body`, fondo de la app y contorno de foco accesible con `:focus-visible`.
+- `_typography.scss`: estilos de `h1`, `h2`, `h3`, `dt`, `dd`, `label`, `legend`, `.eyebrow`, `.section-label` y `.option-index`.
+
+### `src/styles/layout/`
+
+Estructura principal de la página: contenedor, encabezado, grid y paneles.
+
+- `_app-shell.scss`: ancho máximo, centrado y padding del contenedor `.app-shell`; ajusta ancho en móvil.
+- `_topbar.scss`: distribución del encabezado `.topbar`, separación inferior y cambio a columna en móvil.
+- `_workspace.scss`: grid principal `.workspace`; define columnas para controles, práctica, estadísticas y formulario, con reacomodo responsive.
+- `_panels.scss`: aspecto compartido de `.controls`, `.practice`, `.stats` y `.formula-sidebar`; sticky panels, padding, sombras, altura del formulario y `.panel-title`.
+
+### `src/styles/components/`
+
+Piezas reutilizables que aparecen en varias zonas o no pertenecen a una feature específica.
+
+- `_buttons.scss`: estilos base de `.primary-button`, `.secondary-button`, `.quiet-button` y `.option-button`; hover y jerarquías visuales de botones.
+- `_forms.scss`: apariencia compartida de `select` e `input`, incluidos hover y focus.
+- `_lists.scss`: listas compactas `.compact-list`, elementos de estadísticas, estados vacíos y estructura de `.stat-error-item`.
+- `_status-pill.scss`: etiqueta tipo píldora `.status-pill`, usada para mostrar el nivel de dificultad.
+- `_tooltips.scss`: interacción y contenido del tooltip de errores en estadísticas: `.stat-error-trigger`, `.error-tooltip` y sus filas/valores.
+
+### `src/styles/features/trainer/`
+
+Estilos específicos del entrenador de integrales trigonométricas.
+
+- `_controls.scss`: panel de configuración: `.control-block`, `.control-row`, fieldset/lista de familias y checkboxes con etiquetas matemáticas.
+- `_exercise.scss`: encabezado del ejercicio, caja `.exercise-display` y tamaño de `.math-display` para la integral actual.
+- `_options.scss`: grid de respuestas `.option-grid`, botones de opción y estados `.is-selected`, `.is-correct`, `.is-incorrect`.
+- `_feedback.scss`: zona de retroalimentación `.feedback-zone`, variantes correcta/incorrecta, valores comparados, reglas, reconstrucción y fórmulas centradas.
+- `_derivation.scss`: apariencia específica de `.derivation-zone`, donde se muestra la verificación por derivada.
+- `_stats.scss`: tarjetas y listas del panel de estadísticas: `.stat-grid`, `.stat-list-block`, etiquetas y contadores.
+- `_formula-sidebar.scss`: panel lateral de formulario: acordeón, items, summary, cuerpo, animación de apertura, scroll interno y notas.
+
+### `src/styles/features/math/`
+
+Renderizado visual de expresiones matemáticas generadas por JavaScript.
+
+- `_math-renderer.scss`: clases `.math-expression`, `.math-inline`, `.math-integral`, `.math-frac`, `.math-sqrt`, `.math-func`, `.math-var`, operadores, signos, paréntesis, barras, exponentes y espaciado fino. Es el lugar a revisar si una fórmula se ve mal aunque el HTML matemático sea correcto.
+
+### `src/styles/utilities/`
+
+Utilidades pequeñas y globales.
+
+- `_hidden.scss`: clase `.hidden` para ocultar elementos de forma forzada.
+- `_animations.scss`: keyframe `formula-open`, usado por el acordeón del formulario.
+
 ## Flujo general
 
 Al cargar la página:
