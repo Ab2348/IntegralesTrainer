@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Entrenador de integrales trigonométricas</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="app-shell">
@@ -13,7 +13,9 @@
           <p class="eyebrow">Práctica local</p>
           <h1>Entrenador de integrales trigonométricas</h1>
         </div>
-        <button class="quiet-button" id="resetStatsButton" type="button">Reiniciar progreso</button>
+        <button class="quiet-button" id="resetStatsButton" type="button">
+          Reiniciar progreso
+        </button>
       </header>
 
       <section class="workspace" aria-label="Entrenador">
@@ -49,11 +51,11 @@
           <div class="control-row">
             <div class="control-block">
               <label for="rangeMinInput">Min</label>
-              <input id="rangeMinInput" type="number" value="-10" step="1">
+              <input id="rangeMinInput" type="number" value="-10" step="1" />
             </div>
             <div class="control-block">
               <label for="rangeMaxInput">Max</label>
-              <input id="rangeMaxInput" type="number" value="10" step="1">
+              <input id="rangeMaxInput" type="number" value="10" step="1" />
             </div>
           </div>
 
@@ -71,7 +73,9 @@
             <div id="familyChecklist" class="family-list"></div>
           </fieldset>
 
-          <button class="primary-button" id="nextExerciseButton" type="button">Siguiente ejercicio</button>
+          <button class="primary-button" id="nextExerciseButton" type="button">
+            Siguiente ejercicio
+          </button>
         </aside>
 
         <section class="practice" aria-label="Práctica">
@@ -83,13 +87,30 @@
             <span class="status-pill" id="difficultyLabel">Nivel 1</span>
           </div>
 
-          <div class="exercise-display math-display" id="exerciseDisplay" aria-live="polite"></div>
+          <div
+            class="exercise-display math-display"
+            id="exerciseDisplay"
+            aria-live="polite"
+          ></div>
 
-          <div class="option-grid" id="optionsContainer" aria-label="Opciones de respuesta"></div>
+          <div
+            class="option-grid"
+            id="optionsContainer"
+            aria-label="Opciones de respuesta"
+          ></div>
 
-          <section class="feedback-zone" id="feedbackZone" aria-live="polite"></section>
+          <section
+            class="feedback-zone"
+            id="feedbackZone"
+            aria-live="polite"
+          ></section>
 
-          <button class="secondary-button hidden" id="derivationButton" type="button" aria-expanded="false">
+          <button
+            class="secondary-button hidden"
+            id="derivationButton"
+            type="button"
+            aria-expanded="false"
+          >
             Ver derivación
           </button>
           <section class="derivation-zone hidden" id="derivationZone"></section>

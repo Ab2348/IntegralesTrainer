@@ -18,9 +18,9 @@
       rangeMin: -10,
       rangeMax: 10,
       optionCount: 4,
-      activeFamilyIds: Core.MODE_FAMILIES.basic.slice()
+      activeFamilyIds: Core.MODE_FAMILIES.basic.slice(),
     },
-    recentExercises: []
+    recentExercises: [],
   };
 
   let state = loadState();
@@ -48,7 +48,7 @@
     totalIncorrect: document.getElementById("totalIncorrect"),
     accuracyRate: document.getElementById("accuracyRate"),
     errorList: document.getElementById("errorList"),
-    familyErrorList: document.getElementById("familyErrorList")
+    familyErrorList: document.getElementById("familyErrorList"),
   };
 
   function cloneDefaultState() {
@@ -78,9 +78,11 @@
       familyErrorCounts: saved.familyErrorCounts || {},
       settings: {
         ...base.settings,
-        ...(saved.settings || {})
+        ...(saved.settings || {}),
       },
-      recentExercises: Array.isArray(saved.recentExercises) ? saved.recentExercises.slice(0, RECENT_LIMIT) : []
+      recentExercises: Array.isArray(saved.recentExercises)
+        ? saved.recentExercises.slice(0, RECENT_LIMIT)
+        : [],
     };
   }
 
@@ -100,7 +102,9 @@
       input.checked = state.settings.activeFamilyIds.includes(family.id);
       input.addEventListener("change", () => {
         const selected = selectedFamiliesFromDom();
-        state.settings.activeFamilyIds = selected.length ? selected : Core.MODE_FAMILIES.basic.slice();
+        state.settings.activeFamilyIds = selected.length
+          ? selected
+          : Core.MODE_FAMILIES.basic.slice();
         state.settings.mode = "custom";
         els.modeSelect.value = "custom";
         saveState();
@@ -116,7 +120,9 @@
   }
 
   function selectedFamiliesFromDom() {
-    return Array.from(els.familyChecklist.querySelectorAll("input[type='checkbox']:checked")).map((input) => input.value);
+    return Array.from(
+      els.familyChecklist.querySelectorAll("input[type='checkbox']:checked"),
+    ).map((input) => input.value);
   }
 
   function syncControlsFromState() {
@@ -129,12 +135,16 @@
   }
 
   function updateSettingsFromControls() {
-    const range = Core.sanitizeRange(els.rangeMinInput.value, els.rangeMaxInput.value);
+    const range = Core.sanitizeRange(
+      els.rangeMinInput.value,
+      els.rangeMaxInput.value,
+    );
     state.settings.mode = els.modeSelect.value;
     state.settings.difficulty = els.difficultySelect.value;
     state.settings.rangeMin = range.min;
     state.settings.rangeMax = range.max;
-    state.settings.optionCount = Number.parseInt(els.optionCountSelect.value, 10) || 4;
+    state.settings.optionCount =
+      Number.parseInt(els.optionCountSelect.value, 10) || 4;
     state.settings.activeFamilyIds = selectedFamiliesFromDom();
     if (!state.settings.activeFamilyIds.length) {
       state.settings.activeFamilyIds = Core.MODE_FAMILIES.basic.slice();
@@ -153,12 +163,18 @@
   }
 
   function pushRecent(signature) {
-    state.recentExercises = [signature].concat(state.recentExercises.filter((item) => item !== signature)).slice(0, RECENT_LIMIT);
+    state.recentExercises = [signature]
+      .concat(state.recentExercises.filter((item) => item !== signature))
+      .slice(0, RECENT_LIMIT);
   }
 
   function generateNextExercise() {
     updateSettingsFromControls();
-    currentExercise = Core.generateExercise(state.settings, state.recentExercises, Math.random);
+    currentExercise = Core.generateExercise(
+      state.settings,
+      state.recentExercises,
+      Math.random,
+    );
     pushRecent(currentExercise.signature);
     saveState();
     answered = false;
@@ -196,7 +212,9 @@
     if (answered || !currentExercise) {
       return;
     }
-    const chosen = currentExercise.options.find((option) => option.id === optionId);
+    const chosen = currentExercise.options.find(
+      (option) => option.id === optionId,
+    );
     if (!chosen) {
       return;
     }
@@ -209,9 +227,13 @@
   }
 
   function renderAnsweredState(chosen) {
-    const buttons = Array.from(els.optionsContainer.querySelectorAll(".option-button"));
+    const buttons = Array.from(
+      els.optionsContainer.querySelectorAll(".option-button"),
+    );
     buttons.forEach((button) => {
-      const option = currentExercise.options.find((item) => item.id === button.dataset.optionId);
+      const option = currentExercise.options.find(
+        (item) => item.id === button.dataset.optionId,
+      );
       button.disabled = true;
       if (option.isCorrect) {
         button.classList.add("is-correct");
@@ -240,8 +262,10 @@
     }
 
     state.totalIncorrect += 1;
-    state.errorCountsByTag[chosen.errorTag] = (state.errorCountsByTag[chosen.errorTag] || 0) + 1;
-    state.familyErrorCounts[familyId] = (state.familyErrorCounts[familyId] || 0) + 1;
+    state.errorCountsByTag[chosen.errorTag] =
+      (state.errorCountsByTag[chosen.errorTag] || 0) + 1;
+    state.familyErrorCounts[familyId] =
+      (state.familyErrorCounts[familyId] || 0) + 1;
   }
 
   function renderStats() {
@@ -255,11 +279,17 @@
     els.totalIncorrect.textContent = incorrect;
     els.accuracyRate.textContent = `${accuracy}%`;
 
-    renderRankedList(els.errorList, state.errorCountsByTag, (tag) => Core.errorLabelHtml(tag));
-    renderRankedList(els.familyErrorList, state.familyErrorCounts, (familyId) => {
-      const family = Core.FAMILY_MAP[familyId];
-      return family ? Core.familyLabelHtml(family) : familyId;
-    });
+    renderRankedList(els.errorList, state.errorCountsByTag, (tag) =>
+      Core.errorLabelHtml(tag),
+    );
+    renderRankedList(
+      els.familyErrorList,
+      state.familyErrorCounts,
+      (familyId) => {
+        const family = Core.FAMILY_MAP[familyId];
+        return family ? Core.familyLabelHtml(family) : familyId;
+      },
+    );
   }
 
   function renderRankedList(container, data, labelFn) {
@@ -323,7 +353,7 @@
       els.difficultySelect,
       els.rangeMinInput,
       els.rangeMaxInput,
-      els.optionCountSelect
+      els.optionCountSelect,
     ].forEach((control) => {
       control.addEventListener("change", () => {
         updateSettingsFromControls();
