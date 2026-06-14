@@ -98,6 +98,23 @@ Las integrales trigonométricas directas ya están migradas a este motor. Cada f
 
 Estas variantes no cambian todavía el render visual de la app; controlan el perfil de parámetros para que el motor pueda decidir con más intención qué tipo de ejercicio construir.
 
+### Cierre técnico de v1.4
+
+Antes de iniciar v1.5, el núcleo debe considerarse estable bajo estas condiciones:
+
+- Toda plantilla registrada debe declarar familia, familia matemática, método, submétodo, dificultad, variantes, parámetros, restricciones, constructores de respuesta correcta y distractores, errores típicos y `feedbackRules`.
+- `registerTemplate()` normaliza el contrato y adjunta `contractWarnings`. Si una plantilla activa queda incompleta, el generador la reporta como inválida durante validación/diagnóstico.
+- Cada distractor debe tener `errorType` distinto de `unknown` y debe existir una regla de feedback enlazable para ese `errorType`.
+- El feedback común se resuelve por `feedbackRules`; las plantillas o métodos pueden declarar sus propios mensajes sin modificar `generador.js` ni `retroalimentacion.js`.
+- La variante `lineal` es fallback. Cuando existe una variante específica compatible con la dificultad, el motor la prefiere y `variantId` representa el tipo real generado.
+- `validateAnswer()` devuelve opción elegida, distractor elegido, `errorType`, familia, familia matemática, método, submétodo, plantilla, variante y dificultad.
+- Las estadísticas internas guardan conteos por método, submétodo, plantilla y variante, además de errores por esos mismos ejes. La UI no muestra todo todavía.
+- El generador sigue filtrando por familia, familia matemática, método y dificultad, usa semilla reproducible y conserva límite de intentos.
+- `math-renderer.js` permanece desacoplado: recibe expresiones `plain`, `latex` y `html`, y los renderizadores específicos son registrables por módulo.
+- El estado interno puede conservar familias matemáticas, métodos activos, plantillas deshabilitadas e inclusión de plantillas pendientes/experimentales, aunque la UI visual completa llegue en v1.5.
+
+Con estos puntos cerrados, v1.5 debe enfocarse en contenido: nuevas familias, nuevas plantillas, distractores, mensajes específicos, configuración visual, estadísticas visibles por método y fórmulas auxiliares.
+
 ## Contratos del núcleo
 
 ### Representación matemática estándar
@@ -197,6 +214,24 @@ Estados válidos de plantilla:
 ```
 
 El generador principal filtra, elige variante, inyecta `seed`/`rng`, valida y descarta instancias inválidas. Una plantilla nueva no debe requerir cambios en `app.js`.
+
+Una plantilla completa debe incluir `feedbackRules`. Cada regla se enlaza por `errorType`:
+
+```js
+{
+  id: "basic-missing-coefficient",
+  errorType: "forgot-chain-factor",
+  errorTag: "forgot-chain-factor",
+  titleHtml: "Incorrecto: Factor de cadena olvidado",
+  messageHtml: "Revisa la derivada interna de {uHtml}.",
+  hintHtml: "",
+  detailsHtml(context) {
+    return "";
+  }
+}
+```
+
+Los mensajes pueden usar placeholders con llaves, por ejemplo `{uHtml}` o `{correctExpressionHtml}`. Las variables disponibles dependen de cada módulo o plantilla.
 
 ### VariantModel
 
@@ -619,7 +654,9 @@ El motor expone `Core.validateGeneratedExercise(exercise, context)` y `Core.test
 - exactamente una opción correcta;
 - opciones sin duplicados;
 - distractores con error asociado;
+- distractores con regla de feedback enlazable;
 - dificultad dentro del rango de la plantilla;
+- contrato mínimo de plantilla sin advertencias;
 - hook opcional `template.validateInstance()`.
 
 `testTemplates()` genera múltiples instancias por plantilla con semillas determinísticas. Es la prueba rápida recomendada al agregar familias nuevas.
@@ -670,7 +707,17 @@ La función `correctCoefficient(A, family, k)` calcula:
 - sustitución concreta;
 - resultado correcto simplificado.
 
-`feedbackHtml()` usa esos datos para mostrar una explicación gradual. La capa de app solo inserta el HTML generado por el núcleo; no reconstruye fórmulas matemáticas propias.
+`feedbackHtml()` usa esos datos para alimentar `feedbackRules`. La capa de app solo inserta el HTML generado por el núcleo; no reconstruye fórmulas matemáticas propias.
+
+El flujo recomendado es:
+
+1. La plantilla declara reglas por `errorType`.
+2. El distractor declara `errorType`, `errorTag` y `sourceStrategy`.
+3. `validateAnswer()` identifica la opción y el distractor elegido.
+4. `TrigFeedbackEngine.buildFeedbackHtml()` busca la regla correspondiente.
+5. El renderer o módulo aporta variables matemáticas y detalles visuales si los necesita.
+
+Esto evita que el núcleo tenga que conocer casos especiales de cada familia. Para agregar mensajes de una familia nueva, se agregan reglas a su plantilla o método, no ramas nuevas en `retroalimentacion.js`.
 
 ## Formulario
 
@@ -834,6 +881,9 @@ Casos mínimos recomendados al modificar el núcleo:
 - cada familia genera una respuesta correcta única;
 - no hay opciones duplicadas;
 - `Core.testTemplates()` pasa para las plantillas tocadas;
+- `contractWarnings` queda vacio para plantillas activas;
+- todos los distractores tienen `errorType` y regla de feedback enlazada;
+- `validateAnswer()` devuelve `selectedDistractor` cuando la respuesta es incorrecta;
 - una misma semilla reproduce firma y orden de opciones;
 - `generation.engineVersion` queda en `"1.4"` para ejercicios generados por el motor nuevo;
 - cada plantilla declara parámetros, restricciones, variantes y estrategias de distractores;

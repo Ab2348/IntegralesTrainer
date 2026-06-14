@@ -21,6 +21,7 @@
     parameterOverrides: {},
     renderHints: {},
     tags: [],
+    fallback: false,
   };
 
   const TEMPLATE_STATUSES = ["active", "experimental", "disabled", "pending"];
@@ -126,6 +127,7 @@
       parameterOverrides: cloneObject(source.parameterOverrides),
       renderHints: cloneObject(source.renderHints),
       tags: uniqueStrings(source.tags),
+      fallback: Boolean(source.fallback),
     };
   }
 
@@ -151,14 +153,25 @@
 
   function normalizeFeedbackRule(value) {
     const source = value && typeof value === "object" ? value : {};
+    const id = source.id || source.errorType || source.errorTag || "unknown";
     return {
+      id,
       errorType: source.errorType || source.errorTag || "unknown",
       errorTag: source.errorTag || source.errorType || "unknown",
       methodId: source.methodId || "",
       familyId: source.familyId || "",
+      templateId: source.templateId || "",
+      variantId: source.variantId || "",
+      title: source.title || "",
+      titleHtml: source.titleHtml || "",
       message: source.message || "",
+      messageHtml: source.messageHtml || "",
       hint: source.hint || "",
+      hintHtml: source.hintHtml || "",
       severity: source.severity || "basic",
+      detailsHtml:
+        typeof source.detailsHtml === "function" ? source.detailsHtml : null,
+      metadata: cloneObject(source.metadata),
     };
   }
 
@@ -205,6 +218,7 @@
       restrictions: [],
       commonErrors: [],
       distractorStrategies: [],
+      feedbackRules: [],
       tags: [],
       ...template,
       status,
@@ -225,7 +239,79 @@
         ? template.distractorStrategies
         : []
       ).map(normalizeDistractorStrategy),
+      feedbackRules: (Array.isArray(template.feedbackRules)
+        ? template.feedbackRules
+        : []
+      ).map(normalizeFeedbackRule),
       difficultyProfile: normalizeDifficultyProfile(template.difficultyProfile),
+    };
+  }
+
+  function validateTemplateContract(template) {
+    const warnings = [];
+    const source = template || {};
+    const requiredStringFields = [
+      "id",
+      "familyId",
+      "mathFamilyId",
+      "methodId",
+      "submethodId",
+    ];
+    requiredStringFields.forEach((field) => {
+      if (typeof source[field] !== "string" || !source[field]) {
+        warnings.push(`missing-${field}`);
+      }
+    });
+    if (!Number.isFinite(Number(source.difficultyMin))) {
+      warnings.push("missing-difficultyMin");
+    }
+    if (!Number.isFinite(Number(source.difficultyMax))) {
+      warnings.push("missing-difficultyMax");
+    }
+    if (!Array.isArray(source.variants) || !source.variants.length) {
+      warnings.push("missing-variants");
+    }
+    if (!Array.isArray(source.parameters) || !source.parameters.length) {
+      warnings.push("missing-parameters");
+    }
+    if (!Array.isArray(source.restrictions) || !source.restrictions.length) {
+      warnings.push("missing-restrictions");
+    }
+    if (typeof source.buildCorrectAnswer !== "function") {
+      warnings.push("missing-buildCorrectAnswer");
+    }
+    if (typeof source.buildDistractors !== "function") {
+      warnings.push("missing-buildDistractors");
+    }
+    if (!Array.isArray(source.commonErrors) || !source.commonErrors.length) {
+      warnings.push("missing-commonErrors");
+    }
+    if (
+      !Array.isArray(source.distractorStrategies) ||
+      !source.distractorStrategies.length
+    ) {
+      warnings.push("missing-distractorStrategies");
+    }
+    if (!Array.isArray(source.feedbackRules) || !source.feedbackRules.length) {
+      warnings.push("missing-feedbackRules");
+    }
+
+    const feedbackErrorTypes = new Set(
+      (source.feedbackRules || []).map((rule) => rule.errorType),
+    );
+    (source.distractorStrategies || []).forEach((strategy) => {
+      const errorType =
+        strategy && typeof strategy === "object"
+          ? strategy.errorType || strategy.errorTag || strategy.id
+          : strategy;
+      if (errorType && !feedbackErrorTypes.has(errorType)) {
+        warnings.push(`missing-feedbackRule:${errorType}`);
+      }
+    });
+
+    return {
+      valid: warnings.length === 0,
+      warnings,
     };
   }
 
@@ -240,6 +326,7 @@
     normalizeParameter,
     normalizeRestriction,
     normalizeTemplate,
+    validateTemplateContract,
   };
 
   if (typeof module !== "undefined" && module.exports) {

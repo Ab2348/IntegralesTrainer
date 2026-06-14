@@ -223,6 +223,7 @@
     parameterOverrides: {},
     renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
     tags: ["directa", "argumento-lineal"],
+    fallback: true,
   };
   const TRIG_LINEAR_VARIANTS = [
     BASE_VARIANT,
@@ -1262,7 +1263,7 @@
 
   function renderOption(option) {
     return MathRenderer.expressionForOption
-      ? MathRenderer.expressionForOption(option, TRIG_LINEAR_RENDERER_ID)
+      ? MathRenderer.expressionForOption(option)
       : {
           plain: option.displayPlain || option.displayExpression || "",
           latex: option.displayLatex || "",
@@ -1283,6 +1284,17 @@
       .replace(/[^a-zA-Z0-9_-]+/g, "-")
       .replace(/^-+|-+$/g, "")
       .slice(0, 80);
+  }
+
+  function variantIdForDifficulty(difficulty) {
+    const level = Number.parseInt(difficulty, 10) || 1;
+    const variant = TRIG_LINEAR_VARIANTS.find(
+      (item) =>
+        !item.fallback &&
+        level >= Number(item.difficultyMin || 1) &&
+        level <= Number(item.difficultyMax || 5),
+    );
+    return variant ? variant.id : BASE_VARIANT.id;
   }
 
   function buildCorrectOption(exercise) {
@@ -1469,6 +1481,7 @@
     const meta = metadata || {};
     const templateId = meta.templateId || `trig-linear-${family.id}`;
     const difficulty = String(meta.difficulty || params.difficulty || "1");
+    const variantId = meta.variantId || variantIdForDifficulty(difficulty);
     const seedPart = safeIdPart(meta.seed);
     const exercise = {
       id: seedPart
@@ -1483,19 +1496,22 @@
       methodId: meta.methodId || DEFAULT_METHOD_ID,
       submethodId: meta.submethodId || DEFAULT_SUBMETHOD_ID,
       templateId,
-      variantId: meta.variantId || "lineal",
+      variantId,
       difficulty,
       generatorId: meta.generatorId || "integrales-lineales",
       rendererId: meta.rendererId || TRIG_LINEAR_RENDERER_ID,
       seed: meta.seed || null,
       engineVersion: meta.engineVersion || "",
+      feedbackRules: Array.isArray(meta.feedbackRules)
+        ? meta.feedbackRules
+        : buildTrigFeedbackRules(),
       generationParams: {
         A: params.A,
         k: params.k,
         b: params.b,
         familyId: family.id,
         difficulty,
-        variantId: meta.variantId || "lineal",
+        variantId,
       },
       argument,
       correctCoefficient: coefficient,
@@ -1695,6 +1711,7 @@
             plain: `Aplicar int A f(kx + b) dx = (A/k) F(kx + b) + C para ${exercise.family.name}.`,
           };
         },
+        feedbackRules: buildTrigFeedbackRules(),
         validateInstance(exercise) {
           const optionKeys = new Set(
             (exercise.options || []).map((option) => option.key),
@@ -1736,6 +1753,7 @@
               rendererId: TRIG_LINEAR_RENDERER_ID,
               seed: context.seed || null,
               engineVersion: context.engineVersion || "",
+              feedbackRules: template.feedbackRules || [],
             },
           );
         },
@@ -1921,51 +1939,137 @@
       </div>`;
   }
 
-  function feedbackHtml(exercise, chosen) {
-    function renderCorrect(context) {
-      const vars = feedbackVariables(exercise, context.chosen || chosen);
+  function incorrectDetailsHtml(context) {
+    return `
+      <div class="divider"></div>
+      ${reconstructionHtml(context.exercise, context.variables || {})}`;
+  }
+
+  function buildTrigFeedbackRules() {
+    return [
+      {
+        id: "trig-linear-correct",
+        errorType: "correct",
+        errorTag: "correct",
+        titleHtml: "Correcto",
+        messageHtml:
+          "Identificaste la antiderivada base F(u) = <span class=\"math-inline\">{FUHtml}</span> y compensaste la derivada del argumento u' = <span class=\"math-inline\">{kHtml}</span>.",
+        hintHtml:
+          "<strong class=\"math-inline\">{correctExpressionHtml}</strong>",
+      },
+      {
+        id: "trig-linear-wrong-family",
+        errorType: "wrong-family",
+        errorTag: "wrong-family",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Usaste una familia incorrecta como antiderivada. En este ejercicio el integrando usa f(u) = <span class=\"math-inline\">{fUHtml}</span>, cuya antiderivada base es F(u) = <span class=\"math-inline\">{FUHtml}</span>. Por eso la respuesta debe usar F(u), no la familia que elegiste.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-wrong-base-sign",
+        errorType: "wrong-base-sign",
+        errorTag: "wrong-base-sign",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Recordaste la familia correcta, pero fallaste el signo base de la integral. Para esta familia se cumple que <span class=\"math-inline\">{baseRuleHtml}</span>. Ese signo debe aplicarse antes de dividir entre k.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-forgot-chain-factor",
+        errorType: "forgot-chain-factor",
+        errorTag: "forgot-chain-factor",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Usaste la antiderivada base correcta, pero olvidaste compensar la derivada del argumento. El argumento es u = <span class=\"math-inline\">{uHtml}</span>, por lo tanto u' = <span class=\"math-inline\">{kHtml}</span>. Por eso la antiderivada debe multiplicarse por <span class=\"math-inline\">{inverseKHtml}</span>.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-ignored-negative-k",
+        errorType: "ignored-negative-k",
+        errorTag: "ignored-negative-k",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Compensaste la derivada del argumento, pero ignoraste su signo. El argumento es u = <span class=\"math-inline\">{uHtml}</span>, asi que u' = <span class=\"math-inline\">{kHtml}</span>, no {absK}. Debias dividir entre <span class=\"math-inline\">{kHtml}</span>, no solamente entre su valor positivo.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-lost-external-sign",
+        errorType: "lost-external-sign",
+        errorTag: "lost-external-sign",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Perdiste el signo del coeficiente externo. El integrando completo esta multiplicado por A = <span class=\"math-inline\">{AHtml}</span>. Ese valor debe entrar completo en el coeficiente A/k, incluyendo su signo.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-copied-integrand",
+        errorType: "copied-integrand",
+        errorTag: "copied-integrand",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Tu respuesta conserva demasiado la forma del integrando. Integrar significa buscar una funcion que, al derivarse, regrese al integrando original. Aqui el integrando usa f(u) = <span class=\"math-inline\">{fUHtml}</span>, pero la antiderivada base debe ser F(u) = <span class=\"math-inline\">{FUHtml}</span>.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-lost-argument-shift",
+        errorType: "lost-argument-shift",
+        errorTag: "lost-argument-shift",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "Usaste la estructura correcta, pero cambiaste el argumento. El argumento original es u = <span class=\"math-inline\">{uHtml}</span>. La antiderivada debe conservar exactamente ese argumento, porque al derivarlo aparece el factor u' = <span class=\"math-inline\">{kHtml}</span>.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+      {
+        id: "trig-linear-generic-coefficient-error",
+        errorType: "generic-coefficient-error",
+        errorTag: "generic-coefficient-error",
+        titleHtml: "Incorrecto: {errorLabelHtml}",
+        messageHtml:
+          "El tipo de funcion es correcto, pero el coeficiente no coincide. El coeficiente correcto se obtiene con A por el signo base, dividido entre k. En este ejercicio eso da <span class=\"math-inline\">{correctCoefficientHtml}</span>.",
+        detailsHtml: incorrectDetailsHtml,
+      },
+    ];
+  }
+
+  function defaultFallbackFeedbackHtml(exercise, chosen) {
+    const vars = feedbackVariables(exercise, chosen);
+    if (!chosen || chosen.isCorrect) {
       return `
         <div class="feedback-title">Correcto</div>
         <p>Identificaste la antiderivada base F(u) = <span class="math-inline">${vars.FUHtml}</span> y compensaste la derivada del argumento u' = <span class="math-inline">${vars.kHtml}</span>.</p>
         <p><strong class="math-inline">${vars.correctExpressionHtml}</strong></p>`;
     }
+    return `
+      <div class="feedback-title">Incorrecto: ${errorLabelHtml(chosen.errorTag)}</div>
+      <p>Revisa la regla general y el tipo de error asociado a la opcion elegida.</p>
+      <div class="divider"></div>
+      ${reconstructionHtml(exercise, vars)}`;
+  }
 
-    function renderIncorrect(context) {
-      const activeChoice = context.chosen || chosen;
-      const vars = feedbackVariables(exercise, activeChoice);
-      const errorTag =
-        (context.validation && context.validation.errorTag) ||
-        (activeChoice && activeChoice.errorTag) ||
-        "generic-coefficient-error";
-      const templates = {
-        "wrong-family": `Usaste una familia incorrecta como antiderivada. En este ejercicio el integrando usa f(u) = <span class="math-inline">${vars.fUHtml}</span>, cuya antiderivada base es F(u) = <span class="math-inline">${vars.FUHtml}</span>. Por eso la respuesta debe usar F(u), no la familia que elegiste.`,
-        "wrong-base-sign": `Recordaste la familia correcta, pero fallaste el signo base de la integral. Para esta familia se cumple que <span class="math-inline">${vars.baseRuleHtml}</span>. Ese signo debe aplicarse antes de dividir entre k.`,
-        "forgot-chain-factor": `Usaste la antiderivada base correcta, pero olvidaste compensar la derivada del argumento. El argumento es u = <span class="math-inline">${vars.uHtml}</span>, por lo tanto u' = <span class="math-inline">${vars.kHtml}</span>. Por eso la antiderivada debe multiplicarse por <span class="math-inline">${fracHtml(numHtml(1), vars.kHtml)}</span>.`,
-        "ignored-negative-k": `Compensaste la derivada del argumento, pero ignoraste su signo. El argumento es u = <span class="math-inline">${vars.uHtml}</span>, asi que u' = <span class="math-inline">${vars.kHtml}</span>, no ${vars.absK}. Debias dividir entre <span class="math-inline">${vars.kHtml}</span>, no solamente entre su valor positivo.`,
-        "lost-external-sign": `Perdiste el signo del coeficiente externo. El integrando completo esta multiplicado por A = <span class="math-inline">${vars.AHtml}</span>. Ese valor debe entrar completo en el coeficiente A/k, incluyendo su signo.`,
-        "copied-integrand": `Tu respuesta conserva demasiado la forma del integrando. Integrar significa buscar una funcion que, al derivarse, regrese al integrando original. Aqui el integrando usa f(u) = <span class="math-inline">${vars.fUHtml}</span>, pero la antiderivada base debe ser F(u) = <span class="math-inline">${vars.FUHtml}</span>.`,
-        "lost-argument-shift": `Usaste la estructura correcta, pero cambiaste el argumento. El argumento original es u = <span class="math-inline">${vars.uHtml}</span>. La antiderivada debe conservar exactamente ese argumento, porque al derivarlo aparece el factor u' = <span class="math-inline">${vars.kHtml}</span>.`,
-        "generic-coefficient-error": `El tipo de funcion es correcto, pero el coeficiente no coincide. El coeficiente correcto se obtiene con A por el signo base, dividido entre k. En este ejercicio eso da <span class="math-inline">${vars.correctCoefficientHtml}</span>.`,
-      };
-
-      return `
-        <div class="feedback-title">Incorrecto: ${errorLabelHtml(errorTag)}</div>
-        <p>${templates[errorTag] || templates["generic-coefficient-error"]}</p>
-        <div class="divider"></div>
-        ${reconstructionHtml(exercise, vars)}`;
-    }
-
+  function feedbackHtml(exercise, chosen) {
     if (FeedbackEngine.buildFeedbackHtml) {
+      const validation = chosen ? validateAnswer(exercise, chosen.id) : null;
+      const variables = feedbackVariables(
+        exercise,
+        validation && validation.selectedOption
+          ? validation.selectedOption
+          : chosen,
+      );
+      variables.errorLabelHtml = errorLabelHtml(
+        (validation && validation.errorTag) ||
+          (chosen && chosen.errorTag) ||
+          "generic-coefficient-error",
+      );
+      variables.inverseKHtml = fracHtml(numHtml(1), variables.kHtml);
       return FeedbackEngine.buildFeedbackHtml(exercise, chosen, {
-        validation: chosen ? validateAnswer(exercise, chosen.id) : null,
-        correct: renderCorrect,
-        incorrect: renderIncorrect,
+        validation,
+        variables,
+        rules: exercise.feedbackRules || buildTrigFeedbackRules(),
       });
     }
 
-    return !chosen || chosen.isCorrect
-      ? renderCorrect({ chosen })
-      : renderIncorrect({ chosen });
+    return defaultFallbackFeedbackHtml(exercise, chosen);
   }
 
   function validateAnswer(exercise, optionId) {

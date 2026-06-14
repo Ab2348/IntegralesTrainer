@@ -39,6 +39,8 @@
       difficultyErrorCounts: {},
       templateCounts: {},
       templateErrorCounts: {},
+      variantCounts: {},
+      variantErrorCounts: {},
       errorExamplesByTag: {},
       recentErrorHistory: [],
       settings: {
@@ -52,6 +54,8 @@
         activeMathFamilyIds: ["trigonometrica-directa"],
         activeMethodIds: ["directa"],
         includePendingMethods: false,
+        includeExperimentalMethods: true,
+        disabledTemplateIds: [],
       },
       recentExercises: [],
     };
@@ -169,6 +173,18 @@
           base.activeMethodIds,
         ),
         includePendingMethods: normalizeBoolean(saved.includePendingMethods),
+        includeExperimentalMethods:
+          saved.includeExperimentalMethods === undefined
+            ? base.includeExperimentalMethods
+            : normalizeBoolean(saved.includeExperimentalMethods),
+        disabledTemplateIds: Array.isArray(saved.disabledTemplateIds)
+          ? saved.disabledTemplateIds.filter(
+              (id, index) =>
+                typeof id === "string" &&
+                id &&
+                saved.disabledTemplateIds.indexOf(id) === index,
+            )
+          : base.disabledTemplateIds.slice(),
       };
     }
 
@@ -206,6 +222,12 @@
       const familyId = VALID_FAMILY_IDS.has(value.familyId)
         ? value.familyId
         : "";
+      const mathFamilyId = VALID_MATH_FAMILY_IDS.has(value.mathFamilyId)
+        ? value.mathFamilyId
+        : "";
+      const methodId = VALID_METHOD_IDS.has(value.methodId)
+        ? value.methodId
+        : "";
       if (!VALID_ERROR_TAGS.has(errorTag)) {
         return null;
       }
@@ -217,6 +239,14 @@
         timestamp: normalizeTimestamp(value.timestamp),
         errorTag,
         familyId,
+        mathFamilyId,
+        methodId,
+        submethodId: normalizeText(value.submethodId),
+        templateId: normalizeText(value.templateId),
+        variantId: normalizeText(value.variantId),
+        difficulty: VALID_DIFFICULTIES.has(String(value.difficulty))
+          ? String(value.difficulty)
+          : "",
         exercisePlain: normalizeText(value.exercisePlain),
         chosenPlain: normalizeText(value.chosenPlain),
         correctPlain: normalizeText(value.correctPlain),
@@ -295,6 +325,8 @@
         ),
         templateCounts: normalizeCountMap(saved.templateCounts),
         templateErrorCounts: normalizeCountMap(saved.templateErrorCounts),
+        variantCounts: normalizeCountMap(saved.variantCounts),
+        variantErrorCounts: normalizeCountMap(saved.variantErrorCounts),
         errorExamplesByTag: normalizeErrorExamplesByTag(
           saved.errorExamplesByTag,
         ),
@@ -366,6 +398,20 @@
       state.settings.includePendingMethods = normalizeBoolean(
         values.includePendingMethods,
       );
+      state.settings.includeExperimentalMethods =
+        values.includeExperimentalMethods === undefined
+          ? state.settings.includeExperimentalMethods
+          : normalizeBoolean(values.includeExperimentalMethods);
+      state.settings.disabledTemplateIds = Array.isArray(
+        values.disabledTemplateIds,
+      )
+        ? values.disabledTemplateIds.filter(
+            (id, index) =>
+              typeof id === "string" &&
+              id &&
+              values.disabledTemplateIds.indexOf(id) === index,
+          )
+        : state.settings.disabledTemplateIds;
       saveState();
       return state.settings;
     }

@@ -13,8 +13,19 @@
         isValid: false,
         isCorrect: false,
         selectedOption: null,
+        selectedDistractor: null,
+        distractor: null,
         errorTag: "invalid-option",
         errorType: "invalid-option",
+        familyId: statsInfo.familyId || (exercise && exercise.familyId) || "",
+        mathFamilyId:
+          statsInfo.mathFamilyId || (exercise && exercise.mathFamilyId) || "",
+        methodId: statsInfo.methodId || (exercise && exercise.methodId) || "",
+        submethodId:
+          statsInfo.submethodId || (exercise && exercise.submethodId) || "",
+        templateId: statsInfo.templateId || (exercise && exercise.templateId) || "",
+        variantId: statsInfo.variantId || (exercise && exercise.variantId) || "",
+        difficulty: statsInfo.difficulty || (exercise && exercise.difficulty) || "",
         stats: { ...statsInfo },
       };
     }
@@ -28,6 +39,8 @@
       isValid: true,
       isCorrect: Boolean(selectedOption.isCorrect),
       selectedOption,
+      selectedDistractor: selectedOption.isCorrect ? null : selectedOption,
+      distractor: selectedOption.isCorrect ? null : selectedOption,
       correctOption:
         options.find((option) => option.isCorrect) ||
         exercise.correctAnswer ||
@@ -40,6 +53,7 @@
       submethodId: statsInfo.submethodId || exercise.submethodId || "",
       difficulty: statsInfo.difficulty || exercise.difficulty || "",
       templateId: statsInfo.templateId || exercise.templateId || "",
+      variantId: statsInfo.variantId || exercise.variantId || "",
       stats: {
         familyId: statsInfo.familyId || exercise.familyId || "",
         mathFamilyId: statsInfo.mathFamilyId || exercise.mathFamilyId || "",
@@ -47,6 +61,7 @@
         submethodId: statsInfo.submethodId || exercise.submethodId || "",
         difficulty: statsInfo.difficulty || exercise.difficulty || "",
         templateId: statsInfo.templateId || exercise.templateId || "",
+        variantId: statsInfo.variantId || exercise.variantId || "",
         errorTag,
         errorType: selectedOption.errorType || errorTag,
       },

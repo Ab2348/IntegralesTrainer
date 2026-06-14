@@ -212,14 +212,17 @@
 
     function pushErrorExample(exercise, chosen, validation) {
       const state = stateStore.getState();
+      const tag =
+        (validation && (validation.errorType || validation.errorTag)) ||
+        (chosen && (chosen.errorType || chosen.errorTag)) ||
+        "";
       if (
         !chosen ||
         chosen.isCorrect ||
-        !stateStore.isValidErrorTag(chosen.errorTag)
+        !stateStore.isValidErrorTag(tag)
       ) {
         return;
       }
-      const tag = chosen.errorTag;
       const examples = Array.isArray(state.errorExamplesByTag[tag])
         ? state.errorExamplesByTag[tag]
         : [];
@@ -228,6 +231,7 @@
         timestamp: Date.now(),
         errorTag: tag,
         familyId: exercise.familyId,
+        mathFamilyId: validation.mathFamilyId || validation.stats.mathFamilyId || "",
         exercisePlain: exercise.integrandExpression,
         chosenPlain: chosen.displayExpression,
         correctPlain: exercise.correctAnswer.displayExpression,
@@ -238,6 +242,7 @@
           validation.submethodId || validation.stats.submethodId || "",
         difficulty: validation.difficulty || validation.stats.difficulty || "",
         templateId: validation.templateId || validation.stats.templateId || "",
+        variantId: validation.variantId || validation.stats.variantId || "",
       };
       state.errorExamplesByTag[tag] = [example]
         .concat(examples)
@@ -263,6 +268,8 @@
         String(stats.difficulty || validation.difficulty || exercise.difficulty || "");
       const templateId =
         stats.templateId || validation.templateId || exercise.templateId;
+      const variantId =
+        stats.variantId || validation.variantId || exercise.variantId;
       state.totalAnswered += 1;
       incrementCounter(state.familyCounts, familyId);
       incrementCounter(state.mathFamilyCounts, mathFamilyId);
@@ -270,6 +277,7 @@
       incrementCounter(state.submethodCounts, submethodId);
       incrementCounter(state.difficultyCounts, difficulty);
       incrementCounter(state.templateCounts, templateId);
+      incrementCounter(state.variantCounts, variantId);
 
       if (validation.isCorrect) {
         state.totalCorrect += 1;
@@ -284,6 +292,7 @@
       incrementCounter(state.submethodErrorCounts, submethodId);
       incrementCounter(state.difficultyErrorCounts, difficulty);
       incrementCounter(state.templateErrorCounts, templateId);
+      incrementCounter(state.variantErrorCounts, variantId);
       pushErrorExample(exercise, chosen, validation);
     }
 

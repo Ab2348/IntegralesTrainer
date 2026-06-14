@@ -49,6 +49,20 @@
           pending: false,
           ...template,
         };
+    const contract = Contracts.validateTemplateContract
+      ? Contracts.validateTemplateContract(normalized)
+      : { valid: true, warnings: [] };
+    normalized.contractWarnings = contract.warnings || [];
+    normalized.isContractComplete = Boolean(contract.valid);
+    if (
+      normalized.contractWarnings.length &&
+      typeof console !== "undefined" &&
+      typeof console.warn === "function"
+    ) {
+      console.warn(
+        `Plantilla ${normalized.id} incompleta: ${normalized.contractWarnings.join(", ")}`,
+      );
+    }
     templates[normalized.id] = normalized;
     return templates[normalized.id];
   }
@@ -132,7 +146,13 @@
         effectiveDifficulty <= Number(template.difficultyMax || 5)
       );
     });
-    return choose(activeVariants.length ? activeVariants : variants, rng) || null;
+    const specificVariants = activeVariants.filter((variant) => !variant.fallback);
+    return (
+      choose(
+        specificVariants.length ? specificVariants : activeVariants.length ? activeVariants : variants,
+        rng,
+      ) || null
+    );
   }
 
   function optionIdentity(option) {
@@ -159,6 +179,11 @@
       : [];
     const correctOptions = options.filter((option) => option && option.isCorrect);
     const optionKeys = new Set();
+    const feedbackErrorTypes = new Set(
+      template && Array.isArray(template.feedbackRules)
+        ? template.feedbackRules.map((rule) => rule.errorType)
+        : [],
+    );
     const difficulty = String(
       (exercise && exercise.difficulty) ||
         (context && context.settings && context.settings.difficulty) ||
@@ -193,10 +218,24 @@
       optionKeys.add(key);
       if (!option.isCorrect && !(option.errorType || option.errorTag)) {
         errors.push("distractor-without-error-type");
+      } else if (
+        !option.isCorrect &&
+        (!option.errorType || option.errorType === "unknown")
+      ) {
+        errors.push("distractor-with-unknown-error-type");
+      } else if (
+        !option.isCorrect &&
+        feedbackErrorTypes.size &&
+        !feedbackErrorTypes.has(option.errorType || option.errorTag)
+      ) {
+        errors.push(`distractor-without-feedback-rule:${option.errorType || option.errorTag}`);
       }
     });
 
     if (template) {
+      if (Array.isArray(template.contractWarnings) && template.contractWarnings.length) {
+        errors.push(`template-contract-incomplete:${template.contractWarnings.join("|")}`);
+      }
       if (!templateSupportsDifficulty(template, difficulty)) {
         errors.push("difficulty-out-of-template-range");
       }
@@ -242,7 +281,11 @@
       ...(exercise.metadata || {}),
       templateStatus: template.status || "active",
       variantStatus: variant.status || "active",
+      contractWarnings: template.contractWarnings || [],
     };
+    if (!exercise.feedbackRules && Array.isArray(template.feedbackRules)) {
+      exercise.feedbackRules = template.feedbackRules;
+    }
     return exercise;
   }
 
@@ -257,11 +300,15 @@
       Array.isArray(source.recentSignatures) ? source.recentSignatures : [],
     );
     const candidates = findTemplates({
-      familyIds: source.familyIds,
+      familyIds:
+        source.familyIds ||
+        (source.settings && source.settings.activeFamilyIds),
       mathFamilyIds:
         source.mathFamilyIds ||
         (source.settings && source.settings.activeMathFamilyIds),
-      methodIds: source.methodIds,
+      methodIds:
+        source.methodIds ||
+        (source.settings && source.settings.activeMethodIds),
       difficulty: source.settings && source.settings.difficulty,
       includePending:
         source.settings && source.settings.includePendingMethods,

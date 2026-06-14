@@ -19,7 +19,10 @@
       id: source.id || `opt-${Math.random().toString(36).slice(2)}`,
       value: source.value || displayPlain,
       isCorrect: Boolean(source.isCorrect),
-      errorTag: source.errorTag || (source.isCorrect ? "correct" : "unknown"),
+      errorTag:
+        source.errorTag ||
+        source.errorType ||
+        (source.isCorrect ? "correct" : "unknown"),
       errorType:
         source.errorType || source.errorTag || (source.isCorrect ? "correct" : "unknown"),
       displayPlain,
@@ -123,6 +126,7 @@
         submethodId: source.submethodId || "",
         difficulty,
         templateId,
+        variantId: source.variantId || "",
         ...(source.statsInfo || {}),
       },
       metadata: source.metadata || {},
