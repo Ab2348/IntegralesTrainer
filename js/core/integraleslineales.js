@@ -216,10 +216,82 @@
     name: "Argumento lineal",
     description: "Integral directa con argumento kx + b.",
     appliesToTemplate: "*",
+    status: "active",
+    difficultyMin: 1,
+    difficultyMax: 5,
     difficultyModifier: 0,
     parameterOverrides: {},
     renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+    tags: ["directa", "argumento-lineal"],
   };
+  const TRIG_LINEAR_VARIANTS = [
+    BASE_VARIANT,
+    {
+      id: "directa-unitaria",
+      name: "Directa unitaria",
+      description: "A vale -1 o 1, k = 1 y b = 0.",
+      appliesToTemplate: "*",
+      status: "active",
+      difficultyMin: 1,
+      difficultyMax: 1,
+      difficultyModifier: 0,
+      parameterOverrides: { profileLevel: 1 },
+      renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+      tags: ["directa", "unitaria"],
+    },
+    {
+      id: "cadena-simple",
+      name: "Cadena simple",
+      description: "A vale -1 o 1, k es no cero y b = 0.",
+      appliesToTemplate: "*",
+      status: "active",
+      difficultyMin: 2,
+      difficultyMax: 2,
+      difficultyModifier: 0,
+      parameterOverrides: { profileLevel: 2 },
+      renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+      tags: ["cadena", "sin-desplazamiento"],
+    },
+    {
+      id: "coeficiente-externo",
+      name: "Coeficiente externo",
+      description: "A y k son no cero, b = 0.",
+      appliesToTemplate: "*",
+      status: "active",
+      difficultyMin: 3,
+      difficultyMax: 3,
+      difficultyModifier: 0,
+      parameterOverrides: { profileLevel: 3 },
+      renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+      tags: ["coeficiente", "sin-desplazamiento"],
+    },
+    {
+      id: "desplazada",
+      name: "Desplazada",
+      description: "A, k y b varian; A y k no pueden ser cero.",
+      appliesToTemplate: "*",
+      status: "active",
+      difficultyMin: 4,
+      difficultyMax: 4,
+      difficultyModifier: 0,
+      parameterOverrides: { profileLevel: 4 },
+      renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+      tags: ["desplazamiento"],
+    },
+    {
+      id: "coeficiente-fraccionario",
+      name: "Coeficiente fraccionario",
+      description: "Busca coeficiente final fraccionario y b no cero.",
+      appliesToTemplate: "*",
+      status: "active",
+      difficultyMin: 5,
+      difficultyMax: 5,
+      difficultyModifier: 0,
+      parameterOverrides: { profileLevel: 5 },
+      renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+      tags: ["fraccion", "desplazamiento"],
+    },
+  ];
   const TRIG_LINEAR_DIFFICULTY_PROFILE = {
     id: "trig-linear-direct",
     name: "Dificultad para integrales directas con argumento lineal",
@@ -1206,6 +1278,13 @@
     return `${params.A}|${params.familyId}|${params.k}|${params.b}`;
   }
 
+  function safeIdPart(value) {
+    return String(value || "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 80);
+  }
+
   function buildCorrectOption(exercise) {
     return createOption({
       isCorrect: true,
@@ -1390,8 +1469,11 @@
     const meta = metadata || {};
     const templateId = meta.templateId || `trig-linear-${family.id}`;
     const difficulty = String(meta.difficulty || params.difficulty || "1");
+    const seedPart = safeIdPart(meta.seed);
     const exercise = {
-      id: `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: seedPart
+        ? `ex-${templateId}-${seedPart}`
+        : `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       A,
       k,
       b,
@@ -1405,7 +1487,16 @@
       difficulty,
       generatorId: meta.generatorId || "integrales-lineales",
       rendererId: meta.rendererId || TRIG_LINEAR_RENDERER_ID,
-      generationParams: { A: params.A, k: params.k, b: params.b },
+      seed: meta.seed || null,
+      engineVersion: meta.engineVersion || "",
+      generationParams: {
+        A: params.A,
+        k: params.k,
+        b: params.b,
+        familyId: family.id,
+        difficulty,
+        variantId: meta.variantId || "lineal",
+      },
       argument,
       correctCoefficient: coefficient,
       signature: exerciseSignature(params),
@@ -1437,8 +1528,16 @@
     return exercise;
   }
 
-  function paramsForDifficulty(difficulty, familyIds, range, rng) {
-    const level = Number.parseInt(difficulty, 10) || 1;
+  function paramsForDifficulty(difficulty, familyIds, range, rng, variant) {
+    const selectedVariant = variant || {};
+    const profileLevel = Number.parseInt(
+      selectedVariant.parameterOverrides &&
+        selectedVariant.parameterOverrides.profileLevel,
+      10,
+    );
+    const level = Number.isFinite(profileLevel) && profileLevel > 0
+      ? profileLevel
+      : Number.parseInt(difficulty, 10) || 1;
     const familyId = choose(familyIds, rng);
     if (level === 1) {
       return { A: choose([-1, 1], rng), k: 1, b: 0, familyId };
@@ -1527,18 +1626,61 @@
       ExerciseGenerator.registerTemplate({
         id: templateId,
         name: `Integral directa de ${family.name}`,
+        status: "active",
         familyId: family.id,
         mathFamilyId: DEFAULT_MATH_FAMILY_ID,
         methodId: DEFAULT_METHOD_ID,
         submethodId: DEFAULT_SUBMETHOD_ID,
+        tags: ["trigonometrica", "directa", "argumento-lineal", family.group],
         difficultyMin: 1,
         difficultyMax: 5,
-        variants: [{ ...BASE_VARIANT, appliesToTemplate: templateId }],
+        variants: TRIG_LINEAR_VARIANTS.map((variant) => ({
+          ...variant,
+          appliesToTemplate: templateId,
+        })),
         commonErrors: ERROR_TAGS.slice(),
         distractorStrategies: DISTRACTOR_STRATEGIES.slice(),
         difficultyProfile: TRIG_LINEAR_DIFFICULTY_PROFILE,
-        parameters: ["A", "k", "b"],
-        restrictions: ["A != 0", "k != 0"],
+        parameters: [
+          {
+            id: "A",
+            name: "Coeficiente externo",
+            type: "integer",
+            range: RANGE_LIMITS,
+            prohibited: [0],
+            restrictions: ["A != 0"],
+          },
+          {
+            id: "k",
+            name: "Coeficiente interno",
+            type: "integer",
+            range: RANGE_LIMITS,
+            prohibited: [0],
+            restrictions: ["k != 0"],
+          },
+          {
+            id: "b",
+            name: "Termino independiente",
+            type: "integer",
+            range: RANGE_LIMITS,
+            prohibited: [],
+            restrictions: [],
+          },
+        ],
+        restrictions: [
+          {
+            id: "non-zero-external-coefficient",
+            description: "A no puede ser cero.",
+          },
+          {
+            id: "non-zero-inner-coefficient",
+            description: "k no puede ser cero.",
+          },
+          {
+            id: "unique-options",
+            description: "Las opciones generadas no pueden duplicarse.",
+          },
+        ],
         buildIntegral(exercise) {
           return {
             plain: integralPlain(exercise),
@@ -1553,14 +1695,31 @@
             plain: `Aplicar int A f(kx + b) dx = (A/k) F(kx + b) + C para ${exercise.family.name}.`,
           };
         },
+        validateInstance(exercise) {
+          const optionKeys = new Set(
+            (exercise.options || []).map((option) => option.key),
+          );
+          return Boolean(
+            exercise &&
+              exercise.A &&
+              exercise.k &&
+              exercise.A.n !== 0 &&
+              exercise.k.n !== 0 &&
+              exercise.correctAnswer &&
+              Array.isArray(exercise.options) &&
+              optionKeys.size === exercise.options.length,
+          );
+        },
         generate(context) {
           const template = context.template || {};
+          const variant = context.variant || BASE_VARIANT;
           const settings = context.settings || {};
           const params = paramsForDifficulty(
             settings.difficulty,
             [family.id],
             context.range || sanitizeRange(settings.rangeMin, settings.rangeMax),
             context.rng || Math.random,
+            variant,
           );
           return buildExerciseFromParams(
             params,
@@ -1573,8 +1732,10 @@
               submethodId: template.submethodId || DEFAULT_SUBMETHOD_ID,
               difficulty: settings.difficulty,
               generatorId: "integrales-lineales",
-              variantId: BASE_VARIANT.id,
+              variantId: variant.id || BASE_VARIANT.id,
               rendererId: TRIG_LINEAR_RENDERER_ID,
+              seed: context.seed || null,
+              engineVersion: context.engineVersion || "",
             },
           );
         },
@@ -1641,6 +1802,8 @@
         settings,
         recentSignatures,
         rng: random,
+        seed: settings.seed,
+        maxAttempts: settings.maxAttempts,
         familyIds,
         mathFamilyIds,
         methodIds,
@@ -1878,6 +2041,7 @@
     moduleId: "integrales-lineales",
     moduleName: "Integrales con argumento lineal",
     modelVersion: "1.3",
+    generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.4",
     ERROR_TAGS,
     ERROR_LABELS,
     ERROR_LABELS_HTML,
@@ -1915,6 +2079,9 @@
     registerTemplate: ExerciseGenerator.registerTemplate,
     listTemplates: ExerciseGenerator.listTemplates,
     findTemplates: ExerciseGenerator.findTemplates,
+    testTemplates: ExerciseGenerator.testTemplates,
+    createSeededRng: ExerciseGenerator.createSeededRng,
+    validateGeneratedExercise: ExerciseGenerator.validateGeneratedExercise,
     validateAnswer,
     sanitizeRange,
     exerciseSnapshot,

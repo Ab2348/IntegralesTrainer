@@ -84,11 +84,28 @@
       distractors,
       explanation: source.explanation || "",
       generation: {
+        engineVersion: source.engineVersion || "1.3",
         generatorId: source.generatorId || "",
         templateId,
         seed: source.seed || null,
         params: source.generationParams || {},
+        variantId: source.variantId || "",
         ...(source.generation || {}),
+      },
+      answer: source.answer || {
+        expression: correctAnswer
+          ? {
+              plain: correctAnswer.displayPlain,
+              latex: correctAnswer.displayLatex,
+              html: correctAnswer.displayHtml,
+            }
+          : { plain: "", latex: "", html: "" },
+        equivalenceKey:
+          (correctAnswer && (correctAnswer.equivalenceKey || correctAnswer.key)) ||
+          "",
+        includesConstant: correctAnswer
+          ? /\+\s*C\b/.test(correctAnswer.displayPlain || "")
+          : false,
       },
       render: {
         integralPlain: integralShown.plain || source.integrandExpression || "",

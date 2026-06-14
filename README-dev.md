@@ -11,15 +11,15 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `src/styles/` contiene los parciales SCSS separados por abstracts, base, layout, components, features y utilities.
 - `styles.css` es el CSS de salida que carga `index.html`.
 - `js/core/taxonomia.js` define familias matemáticas, métodos y tipos de error de la arquitectura v1.3.
-- `js/core/contratos.js` normaliza los contratos de plantilla, variante, dificultad, feedback y distractores.
+- `js/core/contratos.js` normaliza los contratos de plantilla, variante, dificultad, parámetros, restricciones, feedback y distractores.
 - `js/core/math-renderer.js` registra renderizadores matemáticos y estandariza expresiones `plain`, `latex` y `html`.
 - `js/core/modelo-ejercicio.js` normaliza el contrato universal de ejercicio.
 - `js/core/opciones.js` construye conjuntos de opción correcta y distractores.
 - `js/core/validacion.js` centraliza la validación de opción múltiple.
 - `js/core/retroalimentacion.js` orquesta la retroalimentación desde el resultado de validación.
-- `js/core/generador.js` registra plantillas y genera ejercicios desde plantillas compatibles.
+- `js/core/generador.js` registra plantillas, selecciona variantes, genera ejercicios con semilla y valida instancias.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
-- `js/core/integraleslineales.js` registra las plantillas trigonométricas actuales, sus reglas matemáticas y su renderizador.
+- `js/core/integraleslineales.js` registra las plantillas trigonométricas actuales, sus variantes, restricciones, reglas matemáticas y su renderizador.
 - `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
@@ -56,6 +56,47 @@ La generación estándar queda así:
 8. `stats-panel.js` registra familia, método, submétodo, dificultad, plantilla y tipo de error.
 
 Para agregar una familia futura, la ruta esperada es registrar nuevas plantillas compatibles con `js/core/generador.js`, no modificar el flujo principal de `app.js`.
+
+## Arquitectura v1.4
+
+La versión 1.4 convierte los contratos de v1.3 en un motor real de plantillas paramétricas. El modelo universal de ejercicio se conserva como `modelVersion: "1.3"` para no romper la interfaz, estadísticas ni renderizado, pero la generación ahora agrega metadatos de motor con `generation.engineVersion: "1.4"`.
+
+El objetivo de v1.4 es que el núcleo pueda construir ejercicios distintos, válidos, controlados y reproducibles sin añadir lógica nueva en `app.js` cada vez que aparezca una familia matemática.
+
+El motor v1.4 aporta:
+
+- generación por plantillas registradas;
+- selección de variantes por dificultad;
+- generación reproducible mediante `seed`;
+- RNG determinístico interno con `createSeededRng(seed)`;
+- límite de intentos por generación;
+- validación central de instancias generadas;
+- descarte de ejercicios inválidos;
+- diagnóstico interno con `Core.testTemplates()`;
+- parámetros y restricciones normalizados desde `TemplateModel`;
+- distractores con `errorType`, `errorTag` y `sourceStrategy`;
+- metadatos suficientes para depuración y reconstrucción básica.
+
+La generación v1.4 mantiene esta separación:
+
+1. `generador.js` filtra plantillas por familia, familia matemática, método, estado y dificultad.
+2. `generador.js` elige una variante compatible con la dificultad solicitada.
+3. La plantilla genera parámetros seguros usando el RNG recibido.
+4. La plantilla construye integral, respuesta correcta y distractores.
+5. `modelo-ejercicio.js` conserva el contrato universal y agrega `generation` y `answer`.
+6. `generador.js` valida que la instancia tenga integral, respuesta correcta única, opciones no duplicadas, distractores tipados y dificultad compatible.
+7. La app renderiza con los mismos hooks de siempre: `Core.renderIntegral()`, `Core.renderOption()`, `Core.feedbackHtml()` y `Core.derivationHtml()`.
+
+Las integrales trigonométricas directas ya están migradas a este motor. Cada familia actual (`sin`, `cos`, `tan`, `cot`, `sec`, `csc`, etc.) se registra como plantilla `trig-linear-<familia>` y declara variantes para los niveles de dificultad:
+
+- `lineal`
+- `directa-unitaria`
+- `cadena-simple`
+- `coeficiente-externo`
+- `desplazada`
+- `coeficiente-fraccionario`
+
+Estas variantes no cambian todavía el render visual de la app; controlan el perfil de parámetros para que el motor pueda decidir con más intención qué tipo de ejercicio construir.
 
 ## Contratos del núcleo
 
@@ -101,12 +142,14 @@ Las plantillas se registran con `Core.registerTemplate()` o directamente desde e
 {
   id,
   name,
+  status,
   familyId,
   mathFamilyId,
   methodId,
   submethodId,
   difficultyMin,
   difficultyMax,
+  tags,
   parameters,
   restrictions,
   variants,
@@ -117,11 +160,43 @@ Las plantillas se registran con `Core.registerTemplate()` o directamente desde e
   buildCorrectAnswer,
   buildDistractors,
   buildExplanation,
+  validateInstance,
   generate
 }
 ```
 
-El generador principal solo debe filtrar y delegar. Una plantilla nueva no debe requerir cambios en `app.js`.
+Estados válidos de plantilla:
+
+- `active`
+- `experimental`
+- `disabled`
+- `pending`
+
+`parameters` puede usar strings simples por compatibilidad, pero v1.4 prefiere objetos estructurados:
+
+```js
+{
+  id: "k",
+  name: "Coeficiente interno",
+  type: "integer",
+  range: { min: -50, max: 50 },
+  prohibited: [0],
+  restrictions: ["k != 0"],
+  required: true
+}
+```
+
+`restrictions` también puede usar strings, aunque la forma preferida es:
+
+```js
+{
+  id: "non-zero-inner-coefficient",
+  description: "k no puede ser cero.",
+  severity: "error"
+}
+```
+
+El generador principal filtra, elige variante, inyecta `seed`/`rng`, valida y descarta instancias inválidas. Una plantilla nueva no debe requerir cambios en `app.js`.
 
 ### VariantModel
 
@@ -133,13 +208,17 @@ Cada plantilla puede declarar variantes. La variante mínima es:
   name,
   description,
   appliesToTemplate,
+  status,
+  difficultyMin,
+  difficultyMax,
   difficultyModifier,
   parameterOverrides,
-  renderHints
+  renderHints,
+  tags
 }
 ```
 
-En v1.3.2 solo se usa la variante base `lineal`, pero el contrato ya existe para v1.4.
+En v1.4 las variantes ya se usan para las trigonométricas lineales. Por ejemplo, `coeficiente-fraccionario` aplica en dificultad 5 y fuerza el perfil de parámetros que busca una respuesta con coeficiente fraccionario.
 
 ### DifficultyModel
 
@@ -461,12 +540,18 @@ El generador:
 
 1. Normaliza `optionCount`.
 2. Normaliza familias activas.
-3. Sanea el rango.
-4. Construye parámetros según dificultad.
-5. Evita firmas recientes durante los primeros intentos.
-6. Construye el ejercicio.
-7. Genera distractores únicos.
-8. Mezcla opciones.
+3. Normaliza familias matemáticas y métodos activos.
+4. Sanea el rango.
+5. Crea o recibe una semilla.
+6. Crea un RNG determinístico para esa semilla.
+7. Filtra plantillas compatibles.
+8. Elige plantilla y variante.
+9. Construye parámetros según dificultad y variante.
+10. Construye el ejercicio.
+11. Genera distractores únicos.
+12. Mezcla opciones con el RNG de la semilla.
+13. Valida la instancia generada.
+14. Evita firmas recientes durante los primeros intentos.
 
 La firma de un ejercicio se construye con:
 
@@ -475,6 +560,88 @@ A | familyId | k | b;
 ```
 
 Esto permite reducir repeticiones recientes sin guardar el ejercicio completo.
+
+### Semillas y reproducibilidad
+
+`Core.generateExercise()` acepta `settings.seed`. Si se entrega la misma semilla junto con la misma configuración, el motor debe producir la misma firma y el mismo orden de opciones.
+
+Ejemplo:
+
+```js
+const exercise = Core.generateExercise(
+  {
+    difficulty: "4",
+    rangeMin: -5,
+    rangeMax: 5,
+    optionCount: 4,
+    activeFamilyIds: ["sin"],
+    activeMathFamilyIds: ["trigonometrica-directa"],
+    activeMethodIds: ["directa"],
+    seed: "debug-001"
+  },
+  [],
+  Math.random
+);
+```
+
+Cada ejercicio generado conserva:
+
+```js
+exercise.generation = {
+  engineVersion: "1.4",
+  generatorId: "integrales-lineales",
+  templateId: "trig-linear-sin",
+  variantId: "desplazada",
+  seed: "debug-001",
+  attempt: 0,
+  params: {
+    A,
+    k,
+    b,
+    familyId,
+    difficulty,
+    variantId
+  }
+}
+```
+
+El `id` del ejercicio puede usar la semilla cuando existe, pero la deduplicación real sigue usando `signature`.
+
+### Validación interna de plantillas
+
+El motor expone `Core.validateGeneratedExercise(exercise, context)` y `Core.testTemplates(config)`.
+
+`validateGeneratedExercise()` revisa:
+
+- integral existente;
+- respuesta correcta existente;
+- opciones existentes;
+- exactamente una opción correcta;
+- opciones sin duplicados;
+- distractores con error asociado;
+- dificultad dentro del rango de la plantilla;
+- hook opcional `template.validateInstance()`.
+
+`testTemplates()` genera múltiples instancias por plantilla con semillas determinísticas. Es la prueba rápida recomendada al agregar familias nuevas.
+
+```js
+const diagnostics = Core.testTemplates({
+  iterations: 20,
+  optionCount: 4
+});
+```
+
+La respuesta tiene esta forma:
+
+```js
+{
+  engineVersion: "1.4",
+  passed: true,
+  templateCount: 13,
+  iterations: 20,
+  results: [...]
+}
+```
 
 ## Modelo matemático
 
@@ -554,7 +721,7 @@ Los distractores se generan con errores didácticos:
 - `lost-argument-shift`
 - `generic-coefficient-error`
 
-`buildOptions()` garantiza que haya una sola respuesta correcta y que las opciones no dupliquen la misma expresión matemática.
+`buildOptions()` garantiza que haya una sola respuesta correcta y que las opciones no dupliquen la misma expresión matemática. En v1.4 la identidad de una opción se compara con `key`, `equivalenceKey`, `value`, `displayPlain`, `displayExpression` o `displayLatex`, en ese orden, para soportar mejor plantillas futuras.
 
 ## Renderizado matemático
 
@@ -577,14 +744,17 @@ Las estadísticas usan renderizado con DOM y solo aceptan labels previamente val
 3. Crear o extender un módulo matemático registrable en `js/core/`.
 4. Registrar el módulo con `TrigCoreRegistry.registerMathModule()`.
 5. Crear una plantilla compatible con `TemplateModel`.
-6. Definir `familyId`, `mathFamilyId`, `methodId`, `submethodId`, dificultad y variante base.
-7. Definir la representación matemática estándar de la integral: `plain`, `latex` y `html`.
-8. Definir la respuesta correcta como opción normalizada.
-9. Definir distractores tipados con `errorType`, `errorTag` y `sourceStrategy`.
-10. Definir reglas o hooks de feedback para los errores esperados.
-11. Registrar la plantilla en `GeneratorRegistry` mediante `registerTemplate()`.
-12. Validar que el ejercicio generado cumpla `ExerciseModel`.
-13. Probar generación, validación, renderizado, distractores únicos y estadísticas.
+6. Definir `status`, `familyId`, `mathFamilyId`, `methodId`, `submethodId`, dificultad y tags.
+7. Declarar `parameters` y `restrictions`.
+8. Declarar variantes con rango de dificultad y `parameterOverrides` si aplica.
+9. Definir la representación matemática estándar de la integral: `plain`, `latex` y `html`.
+10. Definir la respuesta correcta como opción normalizada.
+11. Definir distractores tipados con `errorType`, `errorTag` y `sourceStrategy`.
+12. Definir reglas o hooks de feedback para los errores esperados.
+13. Registrar la plantilla en `GeneratorRegistry` mediante `registerTemplate()`.
+14. Implementar `validateInstance()` si la familia necesita restricciones específicas.
+15. Validar que el ejercicio generado cumpla `ExerciseModel`.
+16. Probar generación, semillas, validación, renderizado, distractores únicos y estadísticas.
 
 Una familia nueva no debería requerir cambios en `app.js`. Si necesita controles visibles nuevos, primero debe existir una configuración interna compatible en `state.js`.
 
@@ -635,6 +805,13 @@ nvm use
 npm ci
 ```
 
+En sesiones automatizadas o shells que no carguen `nvm` por defecto, usa:
+
+```bash
+source "$HOME/.nvm/nvm.sh"
+node --version
+```
+
 Recompila el CSS con:
 
 ```bash
@@ -656,11 +833,22 @@ Casos mínimos recomendados al modificar el núcleo:
 
 - cada familia genera una respuesta correcta única;
 - no hay opciones duplicadas;
+- `Core.testTemplates()` pasa para las plantillas tocadas;
+- una misma semilla reproduce firma y orden de opciones;
+- `generation.engineVersion` queda en `"1.4"` para ejercicios generados por el motor nuevo;
+- cada plantilla declara parámetros, restricciones, variantes y estrategias de distractores;
 - coeficientes con `k` negativo son correctos;
 - familias logarítmicas mantienen signo correcto;
 - familias inversas conservan su forma esperada;
 - rangos extremos se sanean;
 - estado corrupto en `localStorage` no rompe la app.
+
+Comando recomendado:
+
+```bash
+source "$HOME/.nvm/nvm.sh"
+node tests/core.test.js
+```
 
 ## Reglas prácticas para cambios futuros
 

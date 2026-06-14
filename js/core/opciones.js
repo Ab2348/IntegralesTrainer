@@ -15,6 +15,21 @@
     return result;
   }
 
+  function optionIdentity(option) {
+    if (!option) {
+      return "";
+    }
+    return (
+      option.key ||
+      option.equivalenceKey ||
+      option.value ||
+      option.displayPlain ||
+      option.displayExpression ||
+      option.displayLatex ||
+      ""
+    );
+  }
+
   function buildOptionSet(config) {
     const source = config || {};
     const optionCount = Math.max(2, Number.parseInt(source.optionCount, 10) || 4);
@@ -22,7 +37,10 @@
       ? Model.normalizeOption(source.correctOption)
       : source.correctOption;
     const candidates = Array.isArray(source.candidates) ? source.candidates : [];
-    const correctKey = source.correctKey || (correctOption && correctOption.key);
+    const correctKey =
+      source.correctKey ||
+      optionIdentity(correctOption) ||
+      (correctOption && correctOption.id);
     const seen = new Set();
     const distractors = [];
 
@@ -33,7 +51,7 @@
       const option = Model.normalizeOption
         ? Model.normalizeOption(candidate)
         : candidate;
-      const key = option.key || option.id;
+      const key = optionIdentity(option) || option.id;
       if (key === correctKey || seen.has(key)) {
         continue;
       }
