@@ -1,23 +1,21 @@
 (function (root) {
   "use strict";
 
+  const Contracts = root.TrigContractModels || {};
   const templates = {};
 
   function registerTemplate(template) {
-    if (!template || typeof template.id !== "string" || !template.id) {
-      throw new Error("La plantilla debe exponer un id.");
-    }
-    if (typeof template.generate !== "function") {
-      throw new Error(`La plantilla ${template.id} debe exponer generate().`);
-    }
-    templates[template.id] = {
-      difficultyMin: 1,
-      difficultyMax: 5,
-      enabled: true,
-      pending: false,
-      ...template,
-    };
-    return templates[template.id];
+    const normalized = Contracts.normalizeTemplate
+      ? Contracts.normalizeTemplate(template)
+      : {
+          difficultyMin: 1,
+          difficultyMax: 5,
+          enabled: true,
+          pending: false,
+          ...template,
+        };
+    templates[normalized.id] = normalized;
+    return templates[normalized.id];
   }
 
   function listTemplates() {
@@ -40,6 +38,9 @@
     const methodIds = Array.isArray(source.methodIds)
       ? new Set(source.methodIds)
       : null;
+    const mathFamilyIds = Array.isArray(source.mathFamilyIds)
+      ? new Set(source.mathFamilyIds)
+      : null;
     const includePending = Boolean(source.includePending);
 
     return listTemplates().filter((template) => {
@@ -47,6 +48,9 @@
         return false;
       }
       if (familyIds && !familyIds.has(template.familyId)) {
+        return false;
+      }
+      if (mathFamilyIds && !mathFamilyIds.has(template.mathFamilyId)) {
         return false;
       }
       if (methodIds && !methodIds.has(template.methodId)) {
@@ -69,6 +73,9 @@
     );
     const candidates = findTemplates({
       familyIds: source.familyIds,
+      mathFamilyIds:
+        source.mathFamilyIds ||
+        (source.settings && source.settings.activeMathFamilyIds),
       methodIds: source.methodIds,
       difficulty: source.settings && source.settings.difficulty,
       includePending:

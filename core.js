@@ -15,6 +15,8 @@
 
     if (typeof require === "function") {
       require("./js/core/taxonomia.js");
+      require("./js/core/contratos.js");
+      require("./js/core/math-renderer.js");
       require("./js/core/modelo-ejercicio.js");
       require("./js/core/opciones.js");
       require("./js/core/validacion.js");

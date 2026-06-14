@@ -5,8 +5,6 @@ node_modules/
 .dev/
 tests/
 URS-SRS/
-alcancegeneral.txt
-.txt
 
 
 # Generated documents
@@ -27,4 +25,5 @@ coverage/
 .DS_Store
 .vscode/
 
-V1.3.txt
+*.txt
+*.odt

@@ -49,6 +49,7 @@
         rangeMax: 10,
         optionCount: 4,
         activeFamilyIds: Core.MODE_FAMILIES.basic.slice(),
+        activeMathFamilyIds: ["trigonometrica-directa"],
         activeMethodIds: ["directa"],
         includePendingMethods: false,
       },
@@ -119,6 +120,20 @@
       return ids.length ? ids : fallback.slice();
     }
 
+    function normalizeMathFamilyIds(value, fallbackIds) {
+      const fallback = Array.isArray(fallbackIds) && fallbackIds.length
+        ? fallbackIds
+        : ["trigonometrica-directa"];
+      if (!Array.isArray(value)) {
+        return fallback.slice();
+      }
+      const ids = value.filter(
+        (id, index) =>
+          VALID_MATH_FAMILY_IDS.has(id) && value.indexOf(id) === index,
+      );
+      return ids.length ? ids : fallback.slice();
+    }
+
     function normalizeSettings(value) {
       const base = cloneDefaultState().settings;
       const saved = isPlainObject(value) ? value : {};
@@ -144,6 +159,10 @@
         activeFamilyIds: normalizeFamilyIds(
           saved.activeFamilyIds,
           Core.MODE_FAMILIES[mode],
+        ),
+        activeMathFamilyIds: normalizeMathFamilyIds(
+          saved.activeMathFamilyIds,
+          base.activeMathFamilyIds,
         ),
         activeMethodIds: normalizeMethodIds(
           saved.activeMethodIds,
@@ -335,6 +354,10 @@
         : 4;
       state.settings.activeFamilyIds = normalizeFamilyIds(
         values.activeFamilyIds,
+      );
+      state.settings.activeMathFamilyIds = normalizeMathFamilyIds(
+        values.activeMathFamilyIds,
+        state.settings.activeMathFamilyIds,
       );
       state.settings.activeMethodIds = normalizeMethodIds(
         values.activeMethodIds,

@@ -38,6 +38,7 @@
 
   root.TrigCoreRegistry = {
     register,
+    registerMathModule: register,
     get,
     getActive,
     setActive,

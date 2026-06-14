@@ -11,13 +11,15 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `src/styles/` contiene los parciales SCSS separados por abstracts, base, layout, components, features y utilities.
 - `styles.css` es el CSS de salida que carga `index.html`.
 - `js/core/taxonomia.js` define familias matemáticas, métodos y tipos de error de la arquitectura v1.3.
+- `js/core/contratos.js` normaliza los contratos de plantilla, variante, dificultad, feedback y distractores.
+- `js/core/math-renderer.js` registra renderizadores matemáticos y estandariza expresiones `plain`, `latex` y `html`.
 - `js/core/modelo-ejercicio.js` normaliza el contrato universal de ejercicio.
 - `js/core/opciones.js` construye conjuntos de opción correcta y distractores.
 - `js/core/validacion.js` centraliza la validación de opción múltiple.
 - `js/core/retroalimentacion.js` orquesta la retroalimentación desde el resultado de validación.
 - `js/core/generador.js` registra plantillas y genera ejercicios desde plantillas compatibles.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
-- `js/core/integraleslineales.js` registra las plantillas trigonométricas actuales y conserva sus reglas matemáticas/renderizado.
+- `js/core/integraleslineales.js` registra las plantillas trigonométricas actuales, sus reglas matemáticas y su renderizador.
 - `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
@@ -45,15 +47,122 @@ El contrato universal de un ejercicio incluye:
 La generación estándar queda así:
 
 1. La app lee la configuración.
-2. `js/core/generador.js` filtra plantillas por familia, método y dificultad.
+2. `js/core/generador.js` filtra plantillas por familia concreta, familia matemática, método y dificultad.
 3. La plantilla trigonométrica registrada en `integraleslineales.js` crea una instancia matemática.
 4. `js/core/opciones.js` arma opción correcta y distractores tipados.
 5. `js/core/modelo-ejercicio.js` normaliza la instancia al modelo universal.
 6. `js/core/validacion.js` valida la opción elegida.
-7. `js/core/retroalimentacion.js` entrega el feedback usando el resultado de validación.
+7. La capa de render matemático expone integral, opciones, feedback y derivación en formato visual.
 8. `stats-panel.js` registra familia, método, submétodo, dificultad, plantilla y tipo de error.
 
 Para agregar una familia futura, la ruta esperada es registrar nuevas plantillas compatibles con `js/core/generador.js`, no modificar el flujo principal de `app.js`.
+
+## Contratos del núcleo
+
+### Representación matemática estándar
+
+Las expresiones matemáticas deben poder viajar con esta forma:
+
+```js
+{
+  plain: "int 2 sin(3x - 1) dx",
+  latex: "\\int 2\\sin\\left(3x - 1\\right)\\,dx",
+  html: "..."
+}
+```
+
+`plain` sirve para estadísticas, ejemplos y depuración. `latex` es la representación portable preferida para futuros renderizadores. `html` queda como salida visual compatible con la interfaz actual.
+
+Las opciones conservan compatibilidad con `displayExpression` y `displayHtml`, pero el contrato nuevo es:
+
+```js
+{
+  id: "opt-...",
+  value: "...",
+  displayPlain: "...",
+  displayLatex: "...",
+  displayHtml: "...",
+  isCorrect: false,
+  errorType: "wrong-family",
+  errorTag: "wrong-family",
+  sourceStrategy: "wrong-family",
+  explanation: "",
+  metadata: {}
+}
+```
+
+`exercise.correctAnswer` debe apuntar a la misma entidad lógica que la opción correcta dentro de `exercise.options`.
+
+### TemplateModel
+
+Las plantillas se registran con `Core.registerTemplate()` o directamente desde el módulo matemático. `js/core/contratos.js` normaliza la forma:
+
+```js
+{
+  id,
+  name,
+  familyId,
+  mathFamilyId,
+  methodId,
+  submethodId,
+  difficultyMin,
+  difficultyMax,
+  parameters,
+  restrictions,
+  variants,
+  commonErrors,
+  distractorStrategies,
+  difficultyProfile,
+  buildIntegral,
+  buildCorrectAnswer,
+  buildDistractors,
+  buildExplanation,
+  generate
+}
+```
+
+El generador principal solo debe filtrar y delegar. Una plantilla nueva no debe requerir cambios en `app.js`.
+
+### VariantModel
+
+Cada plantilla puede declarar variantes. La variante mínima es:
+
+```js
+{
+  id,
+  name,
+  description,
+  appliesToTemplate,
+  difficultyModifier,
+  parameterOverrides,
+  renderHints
+}
+```
+
+En v1.3.2 solo se usa la variante base `lineal`, pero el contrato ya existe para v1.4.
+
+### DifficultyModel
+
+La dificultad se describe con `difficultyProfile`, no con condicionales sueltos fuera de la familia responsable. Las trigonométricas actuales mantienen niveles `1` a `5`, pero el perfil queda declarado en la plantilla para que otras familias puedan definir sus propias reglas.
+
+### FeedbackModel y DistractorModel
+
+La retroalimentación y los distractores se tipan por `errorType`/`errorTag`. Un distractor debe indicar al menos:
+
+```js
+{
+  id,
+  value,
+  display,
+  errorType,
+  errorTag,
+  sourceStrategy,
+  explanation,
+  metadata
+}
+```
+
+Las plantillas declaran sus `distractorStrategies`, aunque la lógica concreta de construcción siga dentro del módulo matemático correspondiente.
 
 ## Mapa de estilos SCSS
 
@@ -413,11 +522,21 @@ Cada opción tiene esta forma aproximada:
 ```js
 {
   id: "opt-...",
+  value: "-3/2 sin(2x + 5) + C",
   isCorrect: false,
   errorTag: "wrong-family",
+  errorType: "wrong-family",
+  sourceStrategy: "wrong-family",
   coefficient: { n: 1, d: 2 },
   core: "sin",
   argument: { ... },
+  displayPlain: "...",
+  displayLatex: "...",
+  display: {
+    plain: "...",
+    latex: "...",
+    html: "..."
+  },
   displayExpression: "...",
   displayHtml: "...",
   key: "..."
@@ -437,20 +556,37 @@ Los distractores se generan con errores didácticos:
 
 `buildOptions()` garantiza que haya una sola respuesta correcta y que las opciones no dupliquen la misma expresión matemática.
 
-## Renderizado HTML
+## Renderizado matemático
 
-El núcleo genera HTML matemático mediante funciones como:
+El renderizado matemático se concentra en `js/core/math-renderer.js`. El renderer activo convierte datos matemáticos internos a:
 
-- `rationalHtml()`
-- `coreHtml()`
-- `expressionHtml()`
-- `integralHtml()`
-- `feedbackHtml()`
-- `derivationHtml()`
+- texto plano;
+- LaTeX;
+- HTML confiable para la interfaz actual.
 
-La app usa `innerHTML` para insertar ese HTML generado internamente. No debe insertarse HTML proveniente de usuarios o de estado persistido sin validación.
+El módulo trigonométrico actual registra `trig-linear-renderer`. Sus funciones internas como `rationalHtml()`, `coreHtml()`, `expressionHtml()`, `integralHtml()`, `feedbackHtml()` y `derivationHtml()` siguen existiendo por compatibilidad, pero la app debe preferir `Core.renderIntegral()` y `Core.renderOption()` cuando estén disponibles.
+
+La app usa `innerHTML` solo para HTML generado internamente por el renderer. No debe insertarse HTML proveniente de usuarios o de estado persistido sin validación.
 
 Las estadísticas usan renderizado con DOM y solo aceptan labels previamente validados. Si no se puede confiar en el texto, debe usarse `textContent`.
+
+## Cómo agregar una nueva familia matemática
+
+1. Registrar la familia matemática general en `js/core/taxonomia.js` si todavía no existe.
+2. Registrar el método principal en `js/core/taxonomia.js` o reutilizar uno existente.
+3. Crear o extender un módulo matemático registrable en `js/core/`.
+4. Registrar el módulo con `TrigCoreRegistry.registerMathModule()`.
+5. Crear una plantilla compatible con `TemplateModel`.
+6. Definir `familyId`, `mathFamilyId`, `methodId`, `submethodId`, dificultad y variante base.
+7. Definir la representación matemática estándar de la integral: `plain`, `latex` y `html`.
+8. Definir la respuesta correcta como opción normalizada.
+9. Definir distractores tipados con `errorType`, `errorTag` y `sourceStrategy`.
+10. Definir reglas o hooks de feedback para los errores esperados.
+11. Registrar la plantilla en `GeneratorRegistry` mediante `registerTemplate()`.
+12. Validar que el ejercicio generado cumpla `ExerciseModel`.
+13. Probar generación, validación, renderizado, distractores únicos y estadísticas.
+
+Una familia nueva no debería requerir cambios en `app.js`. Si necesita controles visibles nuevos, primero debe existir una configuración interna compatible en `state.js`.
 
 ## Manejo de errores
 
@@ -534,5 +670,5 @@ Casos mínimos recomendados al modificar el núcleo:
 - No guardar ejercicios completos si solo se necesita evitar repetición.
 - Validar cualquier valor que venga de `localStorage`.
 - Usar `textContent` salvo que el HTML venga de funciones internas confiables.
-- Si agregas una familia, actualiza también distractores, renderizado y pruebas.
+- Si agregas una familia, declara plantillas, distractores, renderer y pruebas dentro de su módulo.
 - Si cambias la forma del estado, considera subir la versión de `STORAGE_KEY` o agregar migración.

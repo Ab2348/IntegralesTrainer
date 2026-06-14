@@ -29,8 +29,8 @@
       isCorrect: Boolean(selectedOption.isCorrect),
       selectedOption,
       correctOption:
-        exercise.correctAnswer ||
         options.find((option) => option.isCorrect) ||
+        exercise.correctAnswer ||
         null,
       errorTag,
       errorType: selectedOption.errorType || errorTag,

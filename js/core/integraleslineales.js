@@ -7,6 +7,9 @@
   const Validation = root.TrigValidation || {};
   const FeedbackEngine = root.TrigFeedbackEngine || {};
   const ExerciseGenerator = root.TrigExerciseGenerator || {};
+  const MathRenderer = root.TrigMathRenderer || {};
+
+  const TRIG_LINEAR_RENDERER_ID = "trig-linear-renderer";
 
   const ERROR_TAGS = [
     "wrong-family",
@@ -208,6 +211,66 @@
   const DEFAULT_MATH_FAMILY_ID = "trigonometrica-directa";
   const DEFAULT_METHOD_ID = "directa";
   const DEFAULT_SUBMETHOD_ID = "argumento-lineal";
+  const BASE_VARIANT = {
+    id: "lineal",
+    name: "Argumento lineal",
+    description: "Integral directa con argumento kx + b.",
+    appliesToTemplate: "*",
+    difficultyModifier: 0,
+    parameterOverrides: {},
+    renderHints: { rendererId: TRIG_LINEAR_RENDERER_ID },
+  };
+  const TRIG_LINEAR_DIFFICULTY_PROFILE = {
+    id: "trig-linear-direct",
+    name: "Dificultad para integrales directas con argumento lineal",
+    levels: [
+      {
+        id: "1",
+        name: "Base",
+        description: "A vale -1 o 1, k = 1 y b = 0.",
+        parameterRules: { A: "unit", k: "one", b: "zero" },
+      },
+      {
+        id: "2",
+        name: "Cadena simple",
+        description: "A vale -1 o 1, k es no cero y b = 0.",
+        parameterRules: { A: "unit", k: "non-zero", b: "zero" },
+      },
+      {
+        id: "3",
+        name: "Coeficiente",
+        description: "A y k son no cero, b = 0.",
+        parameterRules: { A: "non-zero", k: "non-zero", b: "zero" },
+      },
+      {
+        id: "4",
+        name: "Desplazamiento",
+        description: "A, k y b varian; A y k no pueden ser cero.",
+        parameterRules: { A: "non-zero", k: "non-zero", b: "integer" },
+      },
+      {
+        id: "5",
+        name: "Fraccionario",
+        description: "Busca coeficiente final fraccionario y b no cero.",
+        parameterRules: {
+          A: "non-zero",
+          k: "non-zero",
+          b: "non-zero",
+          result: "fractional-coefficient",
+        },
+      },
+    ],
+  };
+  const DISTRACTOR_STRATEGIES = [
+    "wrong-family",
+    "wrong-base-sign",
+    "forgot-chain-factor",
+    "ignored-negative-k",
+    "lost-external-sign",
+    "copied-integrand",
+    "lost-argument-shift",
+    "generic-coefficient-error",
+  ];
 
   const ANSWER_CORES = [
     "sin",
@@ -321,6 +384,14 @@
     return `${value.n}/${value.d}`;
   }
 
+  function rationalLatex(value) {
+    if (value.d === 1) {
+      return String(value.n);
+    }
+    const sign = value.n < 0 ? "-" : "";
+    return `${sign}\\frac{${Math.abs(value.n)}}{${value.d}}`;
+  }
+
   function minusHtml() {
     return "&minus;";
   }
@@ -379,6 +450,14 @@
 
   function mathExpression(content) {
     return `<span class="math-expression">${content}</span>`;
+  }
+
+  function parensLatex(content) {
+    return `\\left(${content}\\right)`;
+  }
+
+  function absLatex(content) {
+    return `\\left|${content}\\right|`;
   }
 
   function escapeHtml(value) {
@@ -525,6 +604,26 @@
     return `${xPart} ${opHtml(minusHtml())} ${numHtml(Math.abs(b))}`;
   }
 
+  function formatArgumentLatex(kValue, bValue) {
+    const k = kValue.n;
+    const b = bValue.n;
+    let xPart;
+    if (k === 1) {
+      xPart = "x";
+    } else if (k === -1) {
+      xPart = "-x";
+    } else {
+      xPart = `${k}x`;
+    }
+    if (b === 0) {
+      return xPart;
+    }
+    if (b > 0) {
+      return `${xPart} + ${b}`;
+    }
+    return `${xPart} - ${Math.abs(b)}`;
+  }
+
   function createArgument(kValue, bValue) {
     const k = typeof kValue === "number" ? rational(kValue, 1) : kValue;
     const b = typeof bValue === "number" ? rational(bValue, 1) : bValue;
@@ -532,6 +631,7 @@
       k,
       b,
       display: formatArgumentPlain(k, b),
+      displayLatex: formatArgumentLatex(k, b),
       displayHtml: formatArgumentHtml(k, b),
       key: `${rationalKey(k)}|${rationalKey(b)}`,
     };
@@ -542,6 +642,7 @@
       k: rational(1, 1),
       b: rational(0, 1),
       display: symbol,
+      displayLatex: symbol,
       displayHtml: varHtml(symbol),
       key: symbol,
     };
@@ -651,6 +752,48 @@
     }
   }
 
+  function coreLatex(core, argument) {
+    const u = argument.displayLatex || argument.display;
+    const wrapped = parensLatex(u);
+    switch (core) {
+      case "sin":
+      case "cos":
+      case "tan":
+      case "cot":
+      case "sec":
+      case "csc":
+        return `\\${core}${wrapped}`;
+      case "arctan":
+      case "arcsin":
+      case "arccos":
+        return `\\${core}${wrapped}`;
+      case "sec2":
+        return `\\sec^2${wrapped}`;
+      case "csc2":
+        return `\\csc^2${wrapped}`;
+      case "secTan":
+        return `\\sec${wrapped}\\tan${wrapped}`;
+      case "cscCot":
+        return `\\csc${wrapped}\\cot${wrapped}`;
+      case "lnAbsCos":
+        return `\\ln ${absLatex(`\\cos${wrapped}`)}`;
+      case "lnAbsSin":
+        return `\\ln ${absLatex(`\\sin${wrapped}`)}`;
+      case "lnAbsSecPlusTan":
+        return `\\ln ${absLatex(`\\sec${wrapped} + \\tan${wrapped}`)}`;
+      case "lnAbsCscMinusCot":
+        return `\\ln ${absLatex(`\\csc${wrapped} - \\cot${wrapped}`)}`;
+      case "atanDerivative":
+        return `\\frac{1}{1 + ${wrapped}^2}`;
+      case "asinDerivative":
+        return `\\frac{1}{\\sqrt{1 - ${wrapped}^2}}`;
+      case "acosDerivative":
+        return `-\\frac{1}{\\sqrt{1 - ${wrapped}^2}}`;
+      default:
+        throw new Error(`Unknown core: ${core}`);
+    }
+  }
+
   function termHtml(coefficient, core, argument) {
     const body = coreHtml(core, argument);
     if (
@@ -685,6 +828,23 @@
     return `${rationalPlain(coefficient)} ${body}`;
   }
 
+  function termLatex(coefficient, core, argument) {
+    const body = coreLatex(core, argument);
+    if (
+      NEGATIVE_CORES.has(core) &&
+      !(coefficient.n === 1 && coefficient.d === 1)
+    ) {
+      return `${rationalLatex(coefficient)} ${parensLatex(body)}`;
+    }
+    if (coefficient.n === 1 && coefficient.d === 1) {
+      return body;
+    }
+    if (coefficient.n === -1 && coefficient.d === 1) {
+      return `-${body}`;
+    }
+    return `${rationalLatex(coefficient)} ${body}`;
+  }
+
   function expressionHtml(option) {
     return mathExpression(
       `${termHtml(option.coefficient, option.core, option.argument)} ${plusCHtml()}`,
@@ -693,6 +853,10 @@
 
   function expressionPlain(option) {
     return `${termPlain(option.coefficient, option.core, option.argument)} + C`;
+  }
+
+  function expressionLatex(option) {
+    return `${termLatex(option.coefficient, option.core, option.argument)} + C`;
   }
 
   function integralTermHtml(family, coefficient, argument) {
@@ -725,6 +889,19 @@
     return termPlain(coefficient, family.integrandCore, argument);
   }
 
+  function integralTermLatex(family, coefficient, argument) {
+    if (family.integrandCore === "atanDerivative") {
+      return `\\frac{${rationalLatex(coefficient)}}{1 + ${parensLatex(argument.displayLatex)}^2}`;
+    }
+    if (family.integrandCore === "asinDerivative") {
+      return `\\frac{${rationalLatex(coefficient)}}{\\sqrt{1 - ${parensLatex(argument.displayLatex)}^2}}`;
+    }
+    if (family.integrandCore === "acosDerivative") {
+      return termLatex(coefficient, "acosDerivative", argument);
+    }
+    return termLatex(coefficient, family.integrandCore, argument);
+  }
+
   function integralHtml(exercise) {
     return mathExpression(
       `<span class="math-integral">&int;</span>${integralTermHtml(exercise.family, exercise.A, exercise.argument)}<span class="math-thin-space"></span>${differentialHtml("x")}`,
@@ -733,6 +910,10 @@
 
   function integralPlain(exercise) {
     return `int ${integralTermPlain(exercise.family, exercise.A, exercise.argument)} dx`;
+  }
+
+  function integralLatex(exercise) {
+    return `\\int ${integralTermLatex(exercise.family, exercise.A, exercise.argument)}\\,dx`;
   }
 
   function familyIntegrandHtml(family) {
@@ -783,6 +964,7 @@
       k: rational(1, 1),
       b: rational(0, 1),
       display: "kx + b",
+      displayLatex: "kx + b",
       displayHtml: `${varHtml("k")}${varHtml("x")} ${opHtml("+")} ${varHtml("b")}`,
       key: "kx+b",
     };
@@ -856,21 +1038,47 @@
   }
 
   function createOption(params) {
+    const displayPlain = expressionPlain(params);
+    const displayLatex = expressionLatex(params);
+    const displayHtml = expressionHtml(params);
     const option = {
       id: params.id || `opt-${Math.random().toString(36).slice(2)}`,
+      value: displayPlain,
       isCorrect: Boolean(params.isCorrect),
       errorTag: params.errorTag,
       errorType: params.errorType || params.errorTag,
+      sourceStrategy: params.sourceStrategy || params.errorType || params.errorTag,
+      explanation: params.explanation || "",
       coefficient: params.coefficient,
       core: params.core,
       argument: params.argument,
+      rendererId: TRIG_LINEAR_RENDERER_ID,
+      displayPlain,
+      displayLatex,
+      displayHtml,
+      displayExpression: displayPlain,
+      display: {
+        plain: displayPlain,
+        latex: displayLatex,
+        html: displayHtml,
+      },
       debugData: params.debugData || {},
       metadata: params.metadata || {},
     };
-    option.displayExpression = expressionPlain(option);
-    option.displayHtml = expressionHtml(option);
     option.key = optionKey(option.coefficient, option.core, option.argument);
     return option;
+  }
+
+  function distractorOption(params) {
+    return createOption({
+      ...params,
+      isCorrect: false,
+      sourceStrategy: params.sourceStrategy || params.errorTag,
+      metadata: {
+        ...(params.metadata || {}),
+        sourceStrategy: params.sourceStrategy || params.errorTag,
+      },
+    });
   }
 
   function rationalSnapshot(value) {
@@ -970,6 +1178,26 @@
     }
   }
 
+  function renderIntegral(exercise) {
+    return MathRenderer.integralForExercise
+      ? MathRenderer.integralForExercise(exercise)
+      : {
+          plain: exercise.integrandExpression || "",
+          latex: exercise.integrandLatex || "",
+          html: exercise.integrandHtml || "",
+        };
+  }
+
+  function renderOption(option) {
+    return MathRenderer.expressionForOption
+      ? MathRenderer.expressionForOption(option, TRIG_LINEAR_RENDERER_ID)
+      : {
+          plain: option.displayPlain || option.displayExpression || "",
+          latex: option.displayLatex || "",
+          html: option.displayHtml || "",
+        };
+  }
+
   function correctCoefficient(A, family, k) {
     return divide(multiplyInt(A, family.baseSign), k);
   }
@@ -1006,8 +1234,7 @@
       fallback.filter((core) => !configured.includes(core)),
     );
     return cores.map((core) =>
-      createOption({
-        isCorrect: false,
+      distractorOption({
         errorTag: "wrong-family",
         coefficient: exercise.correctCoefficient,
         core,
@@ -1042,8 +1269,7 @@
     candidates.push(...wrongFamilyCandidates(exercise));
 
     candidates.push(
-      createOption({
-        isCorrect: false,
+      distractorOption({
         errorTag: "wrong-base-sign",
         coefficient: negate(exercise.correctCoefficient),
         core: family.baseCore,
@@ -1052,8 +1278,7 @@
     );
 
     candidates.push(
-      createOption({
-        isCorrect: false,
+      distractorOption({
         errorTag: "forgot-chain-factor",
         coefficient: multiplyInt(A, family.baseSign),
         core: family.baseCore,
@@ -1063,8 +1288,7 @@
 
     if (k.n < 0) {
       candidates.push(
-        createOption({
-          isCorrect: false,
+        distractorOption({
           errorTag: "ignored-negative-k",
           coefficient: divide(multiplyInt(A, family.baseSign), absRational(k)),
           core: family.baseCore,
@@ -1074,8 +1298,7 @@
     }
 
     candidates.push(
-      createOption({
-        isCorrect: false,
+      distractorOption({
         errorTag: "lost-external-sign",
         coefficient: divide(multiplyInt(negate(A), family.baseSign), k),
         core: family.baseCore,
@@ -1084,8 +1307,7 @@
     );
 
     candidates.push(
-      createOption({
-        isCorrect: false,
+      distractorOption({
         errorTag: "copied-integrand",
         coefficient: exercise.correctCoefficient,
         core: family.integrandCore,
@@ -1095,8 +1317,7 @@
 
     if (exercise.b.n !== 0) {
       candidates.push(
-        createOption({
-          isCorrect: false,
+        distractorOption({
           errorTag: "lost-argument-shift",
           coefficient: exercise.correctCoefficient,
           core: family.baseCore,
@@ -1108,8 +1329,7 @@
     const primary = shuffle(candidates, rng);
     const generic = genericCoefficientVariants(exercise.correctCoefficient).map(
       (coefficient) =>
-        createOption({
-          isCorrect: false,
+        distractorOption({
           errorTag: "generic-coefficient-error",
           coefficient,
           core: family.baseCore,
@@ -1124,7 +1344,7 @@
     const correct = buildCorrectOption(exercise);
     const candidates = buildDistractorCandidates(exercise, rng);
     if (OptionEngine.buildOptionSet) {
-      const optionSet = OptionEngine.buildOptionSet({
+      return OptionEngine.buildOptionSet({
         correctOption: correct,
         candidates,
         correctKey: correct.key,
@@ -1132,7 +1352,6 @@
         rng,
         shuffle,
       });
-      return optionSet ? optionSet.options : null;
     }
 
     const distractors = [];
@@ -1143,9 +1362,14 @@
         break;
       }
     }
-    return distractors.length < optionCount - 1
-      ? null
-      : shuffle([correct].concat(distractors), rng);
+    if (distractors.length < optionCount - 1) {
+      return null;
+    }
+    return {
+      correctOption: correct,
+      distractors,
+      options: shuffle([correct].concat(distractors), rng),
+    };
   }
 
   function buildExerciseFromParams(params, optionCount, rng, metadata) {
@@ -1180,22 +1404,33 @@
       variantId: meta.variantId || "lineal",
       difficulty,
       generatorId: meta.generatorId || "integrales-lineales",
+      rendererId: meta.rendererId || TRIG_LINEAR_RENDERER_ID,
       generationParams: { A: params.A, k: params.k, b: params.b },
       argument,
       correctCoefficient: coefficient,
       signature: exerciseSignature(params),
     };
     exercise.integrandExpression = integralPlain(exercise);
+    exercise.integrandLatex = integralLatex(exercise);
     exercise.integrandHtml = integralHtml(exercise);
-    exercise.correctAnswer = buildCorrectOption(exercise);
-    exercise.options = buildOptions(
+    exercise.integralShown = {
+      plain: exercise.integrandExpression,
+      latex: exercise.integrandLatex,
+      html: exercise.integrandHtml,
+    };
+    const optionSet = buildOptions(
       exercise,
       optionCount || 4,
       rng || Math.random,
     );
-    if (!exercise.options) {
+    if (!optionSet) {
       return null;
     }
+    exercise.options = optionSet.options;
+    exercise.correctAnswer =
+      exercise.options.find((option) => option.isCorrect) ||
+      optionSet.correctOption;
+    exercise.distractors = optionSet.distractors;
     if (ExerciseModel.createUniversalExercise) {
       return ExerciseModel.createUniversalExercise(exercise);
     }
@@ -1271,13 +1506,26 @@
     return valid.length ? valid : [DEFAULT_METHOD_ID];
   }
 
+  function normalizeMathFamilyIds(ids) {
+    const mathFamilyMap = Taxonomy.MATH_FAMILY_MAP || {
+      [DEFAULT_MATH_FAMILY_ID]: true,
+    };
+    const valid = Array.isArray(ids)
+      ? ids.filter(
+          (id, index) => mathFamilyMap[id] && ids.indexOf(id) === index,
+        )
+      : [];
+    return valid.length ? valid : [DEFAULT_MATH_FAMILY_ID];
+  }
+
   function registerLinearTemplates() {
     if (!ExerciseGenerator.registerTemplate) {
       return;
     }
     FAMILY_DEFINITIONS.forEach((family) => {
+      const templateId = `trig-linear-${family.id}`;
       ExerciseGenerator.registerTemplate({
-        id: `trig-linear-${family.id}`,
+        id: templateId,
         name: `Integral directa de ${family.name}`,
         familyId: family.id,
         mathFamilyId: DEFAULT_MATH_FAMILY_ID,
@@ -1285,8 +1533,26 @@
         submethodId: DEFAULT_SUBMETHOD_ID,
         difficultyMin: 1,
         difficultyMax: 5,
+        variants: [{ ...BASE_VARIANT, appliesToTemplate: templateId }],
+        commonErrors: ERROR_TAGS.slice(),
+        distractorStrategies: DISTRACTOR_STRATEGIES.slice(),
+        difficultyProfile: TRIG_LINEAR_DIFFICULTY_PROFILE,
         parameters: ["A", "k", "b"],
         restrictions: ["A != 0", "k != 0"],
+        buildIntegral(exercise) {
+          return {
+            plain: integralPlain(exercise),
+            latex: integralLatex(exercise),
+            html: integralHtml(exercise),
+          };
+        },
+        buildCorrectAnswer: buildCorrectOption,
+        buildDistractors: buildDistractorCandidates,
+        buildExplanation(exercise) {
+          return {
+            plain: `Aplicar int A f(kx + b) dx = (A/k) F(kx + b) + C para ${exercise.family.name}.`,
+          };
+        },
         generate(context) {
           const template = context.template || {};
           const settings = context.settings || {};
@@ -1307,10 +1573,50 @@
               submethodId: template.submethodId || DEFAULT_SUBMETHOD_ID,
               difficulty: settings.difficulty,
               generatorId: "integrales-lineales",
+              variantId: BASE_VARIANT.id,
+              rendererId: TRIG_LINEAR_RENDERER_ID,
             },
           );
         },
       });
+    });
+  }
+
+  function registerLinearRenderer() {
+    if (!MathRenderer.registerRenderer) {
+      return;
+    }
+    MathRenderer.registerRenderer({
+      id: TRIG_LINEAR_RENDERER_ID,
+      renderIntegral(exercise) {
+        return {
+          plain: integralPlain(exercise),
+          latex: integralLatex(exercise),
+          html: integralHtml(exercise),
+        };
+      },
+      renderOption(option) {
+        return {
+          plain: option.displayPlain || expressionPlain(option),
+          latex: option.displayLatex || expressionLatex(option),
+          html: option.displayHtml || expressionHtml(option),
+        };
+      },
+      renderFeedbackHtml(exercise, chosen) {
+        return feedbackHtml(exercise, chosen);
+      },
+      renderDerivationHtml(exercise) {
+        return derivationHtml(exercise);
+      },
+      renderFamilyLabelHtml(family) {
+        return familyLabelHtml(family);
+      },
+      renderFormulaCatalog() {
+        return formulaCatalog();
+      },
+      renderErrorExampleMathHtml(example) {
+        return errorExampleMathHtml(example);
+      },
     });
   }
 
@@ -1323,6 +1629,7 @@
     const familyIds = normalizeFamilyIds(
       settings.activeFamilyIds || MODE_FAMILIES[settings.mode],
     );
+    const mathFamilyIds = normalizeMathFamilyIds(settings.activeMathFamilyIds);
     const methodIds = normalizeMethodIds(settings.activeMethodIds);
     const range = sanitizeRange(settings.rangeMin, settings.rangeMax);
     const recent = new Set(
@@ -1335,6 +1642,7 @@
         recentSignatures,
         rng: random,
         familyIds,
+        mathFamilyIds,
         methodIds,
         range,
         optionCount,
@@ -1359,6 +1667,7 @@
       }
       const exercise = buildExerciseFromParams(params, optionCount, random, {
         difficulty: settings.difficulty,
+        mathFamilyId: mathFamilyIds[0] || DEFAULT_MATH_FAMILY_ID,
       });
       if (exercise) {
         return exercise;
@@ -1562,6 +1871,7 @@
       <p>El resultado coincide con el integrando.</p>`;
   }
 
+  registerLinearRenderer();
   registerLinearTemplates();
 
   const api = {
@@ -1583,6 +1893,7 @@
     RANGE_LIMITS,
     rational,
     rationalPlain,
+    rationalLatex,
     rationalHtml,
     rationalKey,
     equals,
@@ -1592,18 +1903,25 @@
     corePlain,
     coreHtml,
     expressionPlain,
+    expressionLatex,
     expressionHtml,
     integralPlain,
+    integralLatex,
     integralHtml,
     plainMathHtml,
     correctCoefficient,
     buildExerciseFromParams,
     generateExercise,
+    registerTemplate: ExerciseGenerator.registerTemplate,
+    listTemplates: ExerciseGenerator.listTemplates,
+    findTemplates: ExerciseGenerator.findTemplates,
     validateAnswer,
     sanitizeRange,
     exerciseSnapshot,
     optionSnapshot,
     errorExampleMathHtml,
+    renderIntegral,
+    renderOption,
     feedbackHtml,
     derivationHtml,
     feedbackVariables,
@@ -1612,6 +1930,7 @@
     familyLabelHtml,
     errorLabelHtml,
     normalizeMethodIds,
+    normalizeMathFamilyIds,
     shuffle,
   };
 
