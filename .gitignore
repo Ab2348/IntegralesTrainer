@@ -6,6 +6,7 @@ node_modules/
 tests/
 URS-SRS/
 
+
 # Generated documents
 *.pdf
 
@@ -23,3 +24,6 @@ coverage/
 # OS / editor
 .DS_Store
 .vscode/
+
+*.txt
+*.odt

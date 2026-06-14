@@ -14,6 +14,14 @@
     }
 
     if (typeof require === "function") {
+      require("./js/core/taxonomia.js");
+      require("./js/core/contratos.js");
+      require("./js/core/math-renderer.js");
+      require("./js/core/modelo-ejercicio.js");
+      require("./js/core/opciones.js");
+      require("./js/core/validacion.js");
+      require("./js/core/retroalimentacion.js");
+      require("./js/core/generador.js");
       return require("./js/core/integraleslineales.js");
     }
 

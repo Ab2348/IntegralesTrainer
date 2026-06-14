@@ -11,8 +11,16 @@
     const VALID_MODES = new Set(Object.keys(Core.MODE_FAMILIES));
     const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
     const VALID_OPTION_COUNTS = new Set(["4", "5", "6"]);
-    const VALID_ERROR_TAGS = new Set(Core.ERROR_TAGS);
+    const VALID_ERROR_TAGS = new Set(
+      (Core.ERROR_TYPES || []).map((error) => error.id).concat(Core.ERROR_TAGS),
+    );
     const VALID_FAMILY_IDS = new Set(Core.FAMILIES.map((family) => family.id));
+    const VALID_MATH_FAMILY_IDS = new Set(
+      (Core.MATH_FAMILIES || []).map((family) => family.id),
+    );
+    const VALID_METHOD_IDS = new Set(
+      (Core.METHODS || []).map((method) => method.id),
+    );
 
     const defaultState = {
       totalAnswered: 0,
@@ -21,14 +29,33 @@
       errorCountsByTag: {},
       familyCounts: {},
       familyErrorCounts: {},
+      mathFamilyCounts: {},
+      mathFamilyErrorCounts: {},
+      methodCounts: {},
+      methodErrorCounts: {},
+      submethodCounts: {},
+      submethodErrorCounts: {},
+      difficultyCounts: {},
+      difficultyErrorCounts: {},
+      templateCounts: {},
+      templateErrorCounts: {},
+      variantCounts: {},
+      variantErrorCounts: {},
       errorExamplesByTag: {},
+      recentErrorHistory: [],
       settings: {
         mode: "basic",
+        practiceMode: "practice",
         difficulty: "1",
         rangeMin: -10,
         rangeMax: 10,
         optionCount: 4,
         activeFamilyIds: Core.MODE_FAMILIES.basic.slice(),
+        activeMathFamilyIds: ["trigonometrica-directa"],
+        activeMethodIds: ["directa"],
+        includePendingMethods: false,
+        includeExperimentalMethods: true,
+        disabledTemplateIds: [],
       },
       recentExercises: [],
     };
@@ -55,7 +82,7 @@
         return {};
       }
       return Object.entries(value).reduce((result, [key, count]) => {
-        if (validKeys.has(key)) {
+        if (!validKeys || validKeys.has(key)) {
           const normalized = normalizeCounter(count);
           if (normalized > 0) {
             result[key] = normalized;
@@ -63,6 +90,10 @@
         }
         return result;
       }, {});
+    }
+
+    function normalizeBoolean(value) {
+      return value === true || value === "true";
     }
 
     function normalizeFamilyIds(value, fallbackIds) {
@@ -75,6 +106,34 @@
       const ids = value.filter(
         (id, index) =>
           VALID_FAMILY_IDS.has(id) && value.indexOf(id) === index,
+      );
+      return ids.length ? ids : fallback.slice();
+    }
+
+    function normalizeMethodIds(value, fallbackIds) {
+      const fallback = Array.isArray(fallbackIds) && fallbackIds.length
+        ? fallbackIds
+        : ["directa"];
+      if (!Array.isArray(value)) {
+        return fallback.slice();
+      }
+      const ids = value.filter(
+        (id, index) =>
+          VALID_METHOD_IDS.has(id) && value.indexOf(id) === index,
+      );
+      return ids.length ? ids : fallback.slice();
+    }
+
+    function normalizeMathFamilyIds(value, fallbackIds) {
+      const fallback = Array.isArray(fallbackIds) && fallbackIds.length
+        ? fallbackIds
+        : ["trigonometrica-directa"];
+      if (!Array.isArray(value)) {
+        return fallback.slice();
+      }
+      const ids = value.filter(
+        (id, index) =>
+          VALID_MATH_FAMILY_IDS.has(id) && value.indexOf(id) === index,
       );
       return ids.length ? ids : fallback.slice();
     }
@@ -93,6 +152,10 @@
 
       return {
         mode,
+        practiceMode:
+          typeof saved.practiceMode === "string" && saved.practiceMode
+            ? saved.practiceMode
+            : base.practiceMode,
         difficulty,
         rangeMin: range.min,
         rangeMax: range.max,
@@ -101,6 +164,27 @@
           saved.activeFamilyIds,
           Core.MODE_FAMILIES[mode],
         ),
+        activeMathFamilyIds: normalizeMathFamilyIds(
+          saved.activeMathFamilyIds,
+          base.activeMathFamilyIds,
+        ),
+        activeMethodIds: normalizeMethodIds(
+          saved.activeMethodIds,
+          base.activeMethodIds,
+        ),
+        includePendingMethods: normalizeBoolean(saved.includePendingMethods),
+        includeExperimentalMethods:
+          saved.includeExperimentalMethods === undefined
+            ? base.includeExperimentalMethods
+            : normalizeBoolean(saved.includeExperimentalMethods),
+        disabledTemplateIds: Array.isArray(saved.disabledTemplateIds)
+          ? saved.disabledTemplateIds.filter(
+              (id, index) =>
+                typeof id === "string" &&
+                id &&
+                saved.disabledTemplateIds.indexOf(id) === index,
+            )
+          : base.disabledTemplateIds.slice(),
       };
     }
 
@@ -138,6 +222,12 @@
       const familyId = VALID_FAMILY_IDS.has(value.familyId)
         ? value.familyId
         : "";
+      const mathFamilyId = VALID_MATH_FAMILY_IDS.has(value.mathFamilyId)
+        ? value.mathFamilyId
+        : "";
+      const methodId = VALID_METHOD_IDS.has(value.methodId)
+        ? value.methodId
+        : "";
       if (!VALID_ERROR_TAGS.has(errorTag)) {
         return null;
       }
@@ -149,6 +239,14 @@
         timestamp: normalizeTimestamp(value.timestamp),
         errorTag,
         familyId,
+        mathFamilyId,
+        methodId,
+        submethodId: normalizeText(value.submethodId),
+        templateId: normalizeText(value.templateId),
+        variantId: normalizeText(value.variantId),
+        difficulty: VALID_DIFFICULTIES.has(String(value.difficulty))
+          ? String(value.difficulty)
+          : "",
         exercisePlain: normalizeText(value.exercisePlain),
         chosenPlain: normalizeText(value.chosenPlain),
         correctPlain: normalizeText(value.correctPlain),
@@ -202,9 +300,39 @@
           saved.familyErrorCounts,
           VALID_FAMILY_IDS,
         ),
+        mathFamilyCounts: normalizeCountMap(
+          saved.mathFamilyCounts,
+          VALID_MATH_FAMILY_IDS,
+        ),
+        mathFamilyErrorCounts: normalizeCountMap(
+          saved.mathFamilyErrorCounts,
+          VALID_MATH_FAMILY_IDS,
+        ),
+        methodCounts: normalizeCountMap(saved.methodCounts, VALID_METHOD_IDS),
+        methodErrorCounts: normalizeCountMap(
+          saved.methodErrorCounts,
+          VALID_METHOD_IDS,
+        ),
+        submethodCounts: normalizeCountMap(saved.submethodCounts),
+        submethodErrorCounts: normalizeCountMap(saved.submethodErrorCounts),
+        difficultyCounts: normalizeCountMap(
+          saved.difficultyCounts,
+          VALID_DIFFICULTIES,
+        ),
+        difficultyErrorCounts: normalizeCountMap(
+          saved.difficultyErrorCounts,
+          VALID_DIFFICULTIES,
+        ),
+        templateCounts: normalizeCountMap(saved.templateCounts),
+        templateErrorCounts: normalizeCountMap(saved.templateErrorCounts),
+        variantCounts: normalizeCountMap(saved.variantCounts),
+        variantErrorCounts: normalizeCountMap(saved.variantErrorCounts),
         errorExamplesByTag: normalizeErrorExamplesByTag(
           saved.errorExamplesByTag,
         ),
+        recentErrorHistory: Array.isArray(saved.recentErrorHistory)
+          ? saved.recentErrorHistory.slice(0, 20)
+          : [],
         settings: normalizeSettings(saved.settings),
         recentExercises: normalizeRecentExercises(saved.recentExercises),
       };
@@ -240,6 +368,10 @@
       state.settings.mode = VALID_MODES.has(values.mode)
         ? values.mode
         : "basic";
+      state.settings.practiceMode =
+        typeof values.practiceMode === "string" && values.practiceMode
+          ? values.practiceMode
+          : state.settings.practiceMode;
       state.settings.difficulty = VALID_DIFFICULTIES.has(
         String(values.difficulty),
       )
@@ -255,6 +387,31 @@
       state.settings.activeFamilyIds = normalizeFamilyIds(
         values.activeFamilyIds,
       );
+      state.settings.activeMathFamilyIds = normalizeMathFamilyIds(
+        values.activeMathFamilyIds,
+        state.settings.activeMathFamilyIds,
+      );
+      state.settings.activeMethodIds = normalizeMethodIds(
+        values.activeMethodIds,
+        state.settings.activeMethodIds,
+      );
+      state.settings.includePendingMethods = normalizeBoolean(
+        values.includePendingMethods,
+      );
+      state.settings.includeExperimentalMethods =
+        values.includeExperimentalMethods === undefined
+          ? state.settings.includeExperimentalMethods
+          : normalizeBoolean(values.includeExperimentalMethods);
+      state.settings.disabledTemplateIds = Array.isArray(
+        values.disabledTemplateIds,
+      )
+        ? values.disabledTemplateIds.filter(
+            (id, index) =>
+              typeof id === "string" &&
+              id &&
+              values.disabledTemplateIds.indexOf(id) === index,
+          )
+        : state.settings.disabledTemplateIds;
       saveState();
       return state.settings;
     }

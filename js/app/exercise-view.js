@@ -38,7 +38,13 @@
       const family = exercise.family;
       els.familyLabel.innerHTML = `Familia ${Core.familyLabelHtml(family)}`;
       els.difficultyLabel.textContent = `Nivel ${settings.difficulty}`;
-      els.exerciseDisplay.innerHTML = exercise.integrandHtml;
+      const integralDisplay = Core.renderIntegral
+        ? Core.renderIntegral(exercise)
+        : exercise.integralShown;
+      els.exerciseDisplay.innerHTML =
+        integralDisplay && integralDisplay.html
+          ? integralDisplay.html
+          : exercise.integrandHtml;
       els.optionsContainer.innerHTML = "";
       els.feedbackZone.innerHTML = "";
       els.feedbackZone.className = "feedback-zone";
@@ -46,13 +52,16 @@
       els.nextExerciseButton.textContent = "Siguiente ejercicio";
 
       exercise.options.forEach((option, index) => {
+        const optionDisplay = Core.renderOption
+          ? Core.renderOption(option)
+          : option.display;
         const button = document.createElement("button");
         button.type = "button";
         button.className = "option-button";
         button.dataset.optionId = option.id;
         button.innerHTML = `
           <span class="option-index">Opción ${index + 1}</span>
-          <span class="option-math">${option.displayHtml}</span>`;
+          <span class="option-math">${optionDisplay && optionDisplay.html ? optionDisplay.html : option.displayHtml}</span>`;
         button.addEventListener("click", () => onAnswer(option.id));
         els.optionsContainer.appendChild(button);
       });
