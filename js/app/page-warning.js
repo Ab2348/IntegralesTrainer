@@ -4,7 +4,7 @@
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
 
   const PAGE_WARNING_CONFIG = {
-    enabled: true,
+    enabled: false,
     message:
       "Si estás leyendo esto, es porque la versión móvil está rota y aunque funciona, no se ve nada bien. Dame chance de arreglarlo, me muero de sueño, intenta usar la versión de escritorio. Xdona las molestias.",
   };

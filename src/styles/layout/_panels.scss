@@ -6,6 +6,7 @@
 .stats,
 .formula-sidebar {
   min-width: 0;
+  scroll-margin-top: 16px;
   background: rgba(42, 49, 56, 0.88);
   border: 1px solid rgba(86, 98, 107, 0.82);
   border-radius: var(--radius-lg);
@@ -55,13 +56,17 @@
 
 @include mixins.media-max(breakpoints.$mobile) {
   .controls,
-  .practice {
-    position: static;
-  }
-
+  .practice,
   .stats,
   .formula-sidebar {
     position: static;
+    min-width: 0;
+  }
+
+  .formula-sidebar {
     display: flex;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 }

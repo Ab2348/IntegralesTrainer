@@ -11,10 +11,21 @@
   border-bottom: 1px solid var(--line);
 }
 
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 @include mixins.media-max(breakpoints.$mobile) {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .topbar-actions {
+    justify-content: space-between;
+    width: 100%;
   }
 
   h1 {

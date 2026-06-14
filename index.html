@@ -13,13 +13,39 @@
           <p class="eyebrow"></p>
           <h1>Entrenador de integrales trigonométricas</h1>
         </div>
-        <button class="quiet-button" id="resetStatsButton" type="button">
-          Reiniciar progreso
-        </button>
+        <div class="topbar-actions">
+          <button
+            class="mobile-menu-toggle"
+            id="mobileMenuToggle"
+            type="button"
+            aria-controls="mobileSectionNav"
+            aria-expanded="false"
+            aria-label="Abrir navegación móvil"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <button class="quiet-button" id="resetStatsButton" type="button">
+            Reiniciar progreso
+          </button>
+        </div>
       </header>
 
+      <nav
+        class="mobile-section-nav"
+        id="mobileSectionNav"
+        aria-label="Navegación móvil"
+        hidden
+      >
+        <a href="#controlsPanel">Configuración</a>
+        <a href="#practicePanel">Ejercicio</a>
+        <a href="#statsPanel">Estadísticas</a>
+        <a href="#formulaPanel">Formulario</a>
+      </nav>
+
       <section class="workspace" aria-label="Entrenador">
-        <aside class="controls" aria-label="Configuración">
+        <aside class="controls" id="controlsPanel" aria-label="Configuración">
           <div class="panel-title">
             <span>Configuración</span>
           </div>
@@ -92,7 +118,7 @@
           </button>
         </aside>
 
-        <section class="practice" aria-label="Práctica">
+        <section class="practice" id="practicePanel" aria-label="Práctica">
           <div class="exercise-heading">
             <div>
               <p class="eyebrow" id="familyLabel">Familia</p>
@@ -130,7 +156,7 @@
           <section class="derivation-zone hidden" id="derivationZone"></section>
         </section>
 
-        <aside class="stats" aria-label="Panel de estadísticas">
+        <aside class="stats" id="statsPanel" aria-label="Panel de estadísticas">
           <section class="stats-panel" aria-labelledby="statsTitle">
             <div class="panel-title">
               <span id="statsTitle">Estadísticas</span>
@@ -167,7 +193,11 @@
           </section>
         </aside>
 
-        <aside class="formula-sidebar" aria-label="Panel de formulario">
+        <aside
+          class="formula-sidebar"
+          id="formulaPanel"
+          aria-label="Panel de formulario"
+        >
           <section class="formula-panel" aria-labelledby="formulaTitle">
             <div class="panel-title">
               <span id="formulaTitle">Formulario</span>
@@ -181,6 +211,19 @@
         </aside>
       </section>
     </main>
+
+    <button
+      class="mobile-quick-nav"
+      id="mobileQuickNavButton"
+      type="button"
+      aria-controls="mobileSectionNav"
+      aria-expanded="false"
+      aria-label="Abrir menú de secciones"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
 
     <script src="js/core/registro.js"></script>
     <script src="js/core/integraleslineales.js"></script>

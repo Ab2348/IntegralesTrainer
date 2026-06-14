@@ -24,6 +24,32 @@
 
 @include mixins.media-max(breakpoints.$mobile) {
   .workspace {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .controls,
+  .practice,
+  .stats,
+  .formula-sidebar {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .controls {
+    order: 1;
+  }
+
+  .practice {
+    order: 2;
+  }
+
+  .stats {
+    order: 3;
+  }
+
+  .formula-sidebar {
+    order: 4;
   }
 }

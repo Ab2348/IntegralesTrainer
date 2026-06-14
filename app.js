@@ -30,7 +30,14 @@
     errorList: document.getElementById("errorList"),
     familyErrorList: document.getElementById("familyErrorList"),
     formulaAccordion: document.getElementById("formulaAccordion"),
+    mobileMenuToggle: document.getElementById("mobileMenuToggle"),
+    mobileQuickNavButton: document.getElementById("mobileQuickNavButton"),
+    mobileSectionNav: document.getElementById("mobileSectionNav"),
   };
+
+  const mobileNavLinks = Array.from(
+    document.querySelectorAll("#mobileSectionNav a"),
+  );
 
   const stateStore = App.createStateStore(Core);
   const controlsPanel = App.createControlsPanel({
@@ -91,11 +98,56 @@
     statsPanel.render();
   }
 
+  function setMobileNavOpen(isOpen) {
+    if (!els.mobileSectionNav) {
+      return;
+    }
+
+    const open = Boolean(isOpen);
+    els.mobileSectionNav.hidden = !open;
+    [els.mobileMenuToggle, els.mobileQuickNavButton].forEach((button) => {
+      if (button) {
+        button.setAttribute("aria-expanded", String(open));
+      }
+    });
+  }
+
+  function toggleMobileNav() {
+    setMobileNavOpen(els.mobileSectionNav.hidden);
+  }
+
+  function bindMobileNavigation() {
+    [els.mobileMenuToggle, els.mobileQuickNavButton].forEach((button) => {
+      if (button) {
+        button.addEventListener("click", toggleMobileNav);
+      }
+    });
+
+    mobileNavLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        setMobileNavOpen(false);
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setMobileNavOpen(false);
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.matchMedia("(min-width: 821px)").matches) {
+        setMobileNavOpen(false);
+      }
+    });
+  }
+
   function bindEvents() {
     controlsPanel.bindEvents();
     els.nextExerciseButton.addEventListener("click", generateNextExercise);
     els.resetStatsButton.addEventListener("click", resetStats);
     els.derivationButton.addEventListener("click", toggleDerivation);
+    bindMobileNavigation();
   }
 
   function init() {
