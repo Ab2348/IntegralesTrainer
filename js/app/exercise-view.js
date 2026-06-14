@@ -38,7 +38,10 @@
       const family = exercise.family;
       els.familyLabel.innerHTML = `Familia ${Core.familyLabelHtml(family)}`;
       els.difficultyLabel.textContent = `Nivel ${settings.difficulty}`;
-      els.exerciseDisplay.innerHTML = exercise.integrandHtml;
+      els.exerciseDisplay.innerHTML =
+        exercise.integralShown && exercise.integralShown.html
+          ? exercise.integralShown.html
+          : exercise.integrandHtml;
       els.optionsContainer.innerHTML = "";
       els.feedbackZone.innerHTML = "";
       els.feedbackZone.className = "feedback-zone";

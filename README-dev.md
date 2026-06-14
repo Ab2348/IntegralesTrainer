@@ -10,8 +10,14 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `src/styles/main.scss` es el punto de entrada de estilos SCSS.
 - `src/styles/` contiene los parciales SCSS separados por abstracts, base, layout, components, features y utilities.
 - `styles.css` es el CSS de salida que carga `index.html`.
+- `js/core/taxonomia.js` define familias matemáticas, métodos y tipos de error de la arquitectura v1.3.
+- `js/core/modelo-ejercicio.js` normaliza el contrato universal de ejercicio.
+- `js/core/opciones.js` construye conjuntos de opción correcta y distractores.
+- `js/core/validacion.js` centraliza la validación de opción múltiple.
+- `js/core/retroalimentacion.js` orquesta la retroalimentación desde el resultado de validación.
+- `js/core/generador.js` registra plantillas y genera ejercicios desde plantillas compatibles.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
-- `js/core/integraleslineales.js` contiene la lógica matemática, generación de ejercicios y HTML matemático para integrales con argumento lineal.
+- `js/core/integraleslineales.js` registra las plantillas trigonométricas actuales y conserva sus reglas matemáticas/renderizado.
 - `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
@@ -23,6 +29,31 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `tests/` contiene pruebas manuales/de núcleo para validar casos matemáticos.
 
 No hay llamadas a servidor, cookies, autenticación ni almacenamiento remoto. El progreso del usuario se guarda localmente en el navegador mediante `localStorage`.
+
+## Arquitectura v1.3
+
+La versión 1.3 separa el núcleo del entrenador en capas para que las integrales trigonométricas actuales sean solo el primer conjunto de plantillas registradas.
+
+El contrato universal de un ejercicio incluye:
+
+- identificador, familia concreta y familia matemática;
+- método, submétodo, plantilla, variante y dificultad;
+- integral mostrada, respuesta correcta, opciones y distractores;
+- tipo de error por distractor;
+- metadatos de generación y datos para estadísticas.
+
+La generación estándar queda así:
+
+1. La app lee la configuración.
+2. `js/core/generador.js` filtra plantillas por familia, método y dificultad.
+3. La plantilla trigonométrica registrada en `integraleslineales.js` crea una instancia matemática.
+4. `js/core/opciones.js` arma opción correcta y distractores tipados.
+5. `js/core/modelo-ejercicio.js` normaliza la instancia al modelo universal.
+6. `js/core/validacion.js` valida la opción elegida.
+7. `js/core/retroalimentacion.js` entrega el feedback usando el resultado de validación.
+8. `stats-panel.js` registra familia, método, submétodo, dificultad, plantilla y tipo de error.
+
+Para agregar una familia futura, la ruta esperada es registrar nuevas plantillas compatibles con `js/core/generador.js`, no modificar el flujo principal de `app.js`.
 
 ## Mapa de estilos SCSS
 
@@ -96,16 +127,17 @@ Utilidades pequeñas y globales.
 
 Al cargar la página:
 
-1. `index.html` carga `js/core/registro.js`.
-2. `index.html` carga `js/core/integraleslineales.js`.
-3. El módulo matemático se registra como `integrales-lineales`.
-4. `index.html` carga `core.js`.
-5. `core.js` publica la API activa en `window.TrigCore`.
-6. `index.html` carga los módulos de `js/app/`.
-7. `index.html` carga `app.js`.
-8. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
-9. Se genera el primer ejercicio con `Core.generateExercise`.
-10. La respuesta del usuario actualiza estadísticas y guarda el estado.
+1. `index.html` carga los módulos base de v1.3: taxonomía, modelo, opciones, validación, retroalimentación y generador.
+2. `index.html` carga `js/core/registro.js`.
+3. `index.html` carga `js/core/integraleslineales.js`.
+4. El módulo matemático registra sus plantillas y el módulo activo `integrales-lineales`.
+5. `index.html` carga `core.js`.
+6. `core.js` publica la API activa en `window.TrigCore`.
+7. `index.html` carga los módulos de `js/app/`.
+8. `index.html` carga `app.js`.
+9. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
+10. Se genera el primer ejercicio con `Core.generateExercise`.
+11. La respuesta del usuario pasa por `Core.validateAnswer`, actualiza estadísticas y guarda el estado.
 
 El flujo principal queda distribuido así:
 
@@ -133,14 +165,28 @@ El estado base tiene esta forma:
   errorCountsByTag: {},
   familyCounts: {},
   familyErrorCounts: {},
+  mathFamilyCounts: {},
+  mathFamilyErrorCounts: {},
+  methodCounts: {},
+  methodErrorCounts: {},
+  submethodCounts: {},
+  submethodErrorCounts: {},
+  difficultyCounts: {},
+  difficultyErrorCounts: {},
+  templateCounts: {},
+  templateErrorCounts: {},
   errorExamplesByTag: {},
+  recentErrorHistory: [],
   settings: {
     mode: "basic",
+    practiceMode: "practice",
     difficulty: "1",
     rangeMin: -10,
     rangeMax: 10,
     optionCount: 4,
-    activeFamilyIds: ["sin", "cos"]
+    activeFamilyIds: ["sin", "cos"],
+    activeMethodIds: ["directa"],
+    includePendingMethods: false
   },
   recentExercises: []
 }

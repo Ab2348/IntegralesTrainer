@@ -5,6 +5,9 @@ node_modules/
 .dev/
 tests/
 URS-SRS/
+alcancegeneral.txt
+.txt
+
 
 # Generated documents
 *.pdf
@@ -23,3 +26,5 @@ coverage/
 # OS / editor
 .DS_Store
 .vscode/
+
+V1.3.txt

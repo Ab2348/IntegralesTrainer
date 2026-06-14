@@ -1,6 +1,13 @@
 (function (root) {
   "use strict";
 
+  const Taxonomy = root.TrigExerciseTaxonomy || {};
+  const ExerciseModel = root.TrigExerciseModel || {};
+  const OptionEngine = root.TrigOptionEngine || {};
+  const Validation = root.TrigValidation || {};
+  const FeedbackEngine = root.TrigFeedbackEngine || {};
+  const ExerciseGenerator = root.TrigExerciseGenerator || {};
+
   const ERROR_TAGS = [
     "wrong-family",
     "wrong-base-sign",
@@ -197,6 +204,10 @@
     mixed: FAMILY_DEFINITIONS.map((family) => family.id),
     custom: ["sin", "cos"],
   };
+
+  const DEFAULT_MATH_FAMILY_ID = "trigonometrica-directa";
+  const DEFAULT_METHOD_ID = "directa";
+  const DEFAULT_SUBMETHOD_ID = "argumento-lineal";
 
   const ANSWER_CORES = [
     "sin",
@@ -849,10 +860,12 @@
       id: params.id || `opt-${Math.random().toString(36).slice(2)}`,
       isCorrect: Boolean(params.isCorrect),
       errorTag: params.errorTag,
+      errorType: params.errorType || params.errorTag,
       coefficient: params.coefficient,
       core: params.core,
       argument: params.argument,
       debugData: params.debugData || {},
+      metadata: params.metadata || {},
     };
     option.displayExpression = expressionPlain(option);
     option.displayHtml = expressionHtml(option);
@@ -1109,25 +1122,33 @@
 
   function buildOptions(exercise, optionCount, rng) {
     const correct = buildCorrectOption(exercise);
+    const candidates = buildDistractorCandidates(exercise, rng);
+    if (OptionEngine.buildOptionSet) {
+      const optionSet = OptionEngine.buildOptionSet({
+        correctOption: correct,
+        candidates,
+        correctKey: correct.key,
+        optionCount,
+        rng,
+        shuffle,
+      });
+      return optionSet ? optionSet.options : null;
+    }
+
     const distractors = [];
     const seen = new Set();
-    const candidates = buildDistractorCandidates(exercise, rng);
-
     for (const candidate of candidates) {
       addUniqueOption(distractors, seen, candidate, correct.key);
       if (distractors.length >= optionCount - 1) {
         break;
       }
     }
-
-    if (distractors.length < optionCount - 1) {
-      return null;
-    }
-
-    return shuffle([correct].concat(distractors), rng);
+    return distractors.length < optionCount - 1
+      ? null
+      : shuffle([correct].concat(distractors), rng);
   }
 
-  function buildExerciseFromParams(params, optionCount, rng) {
+  function buildExerciseFromParams(params, optionCount, rng, metadata) {
     const family = FAMILY_MAP[params.familyId];
     if (!family) {
       throw new Error(`Unknown family: ${params.familyId}`);
@@ -1142,6 +1163,9 @@
 
     const argument = createArgument(k, b);
     const coefficient = correctCoefficient(A, family, k);
+    const meta = metadata || {};
+    const templateId = meta.templateId || `trig-linear-${family.id}`;
+    const difficulty = String(meta.difficulty || params.difficulty || "1");
     const exercise = {
       id: `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       A,
@@ -1149,6 +1173,14 @@
       b,
       familyId: family.id,
       family,
+      mathFamilyId: meta.mathFamilyId || DEFAULT_MATH_FAMILY_ID,
+      methodId: meta.methodId || DEFAULT_METHOD_ID,
+      submethodId: meta.submethodId || DEFAULT_SUBMETHOD_ID,
+      templateId,
+      variantId: meta.variantId || "lineal",
+      difficulty,
+      generatorId: meta.generatorId || "integrales-lineales",
+      generationParams: { A: params.A, k: params.k, b: params.b },
       argument,
       correctCoefficient: coefficient,
       signature: exerciseSignature(params),
@@ -1163,6 +1195,9 @@
     );
     if (!exercise.options) {
       return null;
+    }
+    if (ExerciseModel.createUniversalExercise) {
+      return ExerciseModel.createUniversalExercise(exercise);
     }
     return exercise;
   }
@@ -1228,6 +1263,57 @@
     return valid.length ? valid : MODE_FAMILIES.basic.slice();
   }
 
+  function normalizeMethodIds(ids) {
+    const methodMap = Taxonomy.METHOD_MAP || { [DEFAULT_METHOD_ID]: true };
+    const valid = Array.isArray(ids)
+      ? ids.filter((id, index) => methodMap[id] && ids.indexOf(id) === index)
+      : [];
+    return valid.length ? valid : [DEFAULT_METHOD_ID];
+  }
+
+  function registerLinearTemplates() {
+    if (!ExerciseGenerator.registerTemplate) {
+      return;
+    }
+    FAMILY_DEFINITIONS.forEach((family) => {
+      ExerciseGenerator.registerTemplate({
+        id: `trig-linear-${family.id}`,
+        name: `Integral directa de ${family.name}`,
+        familyId: family.id,
+        mathFamilyId: DEFAULT_MATH_FAMILY_ID,
+        methodId: DEFAULT_METHOD_ID,
+        submethodId: DEFAULT_SUBMETHOD_ID,
+        difficultyMin: 1,
+        difficultyMax: 5,
+        parameters: ["A", "k", "b"],
+        restrictions: ["A != 0", "k != 0"],
+        generate(context) {
+          const template = context.template || {};
+          const settings = context.settings || {};
+          const params = paramsForDifficulty(
+            settings.difficulty,
+            [family.id],
+            context.range || sanitizeRange(settings.rangeMin, settings.rangeMax),
+            context.rng || Math.random,
+          );
+          return buildExerciseFromParams(
+            params,
+            context.optionCount || 4,
+            context.rng || Math.random,
+            {
+              templateId: template.id || `trig-linear-${family.id}`,
+              mathFamilyId: template.mathFamilyId || DEFAULT_MATH_FAMILY_ID,
+              methodId: template.methodId || DEFAULT_METHOD_ID,
+              submethodId: template.submethodId || DEFAULT_SUBMETHOD_ID,
+              difficulty: settings.difficulty,
+              generatorId: "integrales-lineales",
+            },
+          );
+        },
+      });
+    });
+  }
+
   function generateExercise(settings, recentSignatures, rng) {
     const random = rng || Math.random;
     const optionCount = Math.max(
@@ -1237,10 +1323,29 @@
     const familyIds = normalizeFamilyIds(
       settings.activeFamilyIds || MODE_FAMILIES[settings.mode],
     );
+    const methodIds = normalizeMethodIds(settings.activeMethodIds);
     const range = sanitizeRange(settings.rangeMin, settings.rangeMax);
     const recent = new Set(
       Array.isArray(recentSignatures) ? recentSignatures : [],
     );
+
+    if (ExerciseGenerator.generateExercise) {
+      const generated = ExerciseGenerator.generateExercise({
+        settings,
+        recentSignatures,
+        rng: random,
+        familyIds,
+        methodIds,
+        range,
+        optionCount,
+      });
+      if (generated) {
+        return generated;
+      }
+      throw new Error(
+        "No hay plantillas compatibles con la configuracion actual.",
+      );
+    }
 
     for (let attempt = 0; attempt < 300; attempt += 1) {
       const params = paramsForDifficulty(
@@ -1252,7 +1357,9 @@
       if (recent.has(exerciseSignature(params)) && attempt < 250) {
         continue;
       }
-      const exercise = buildExerciseFromParams(params, optionCount, random);
+      const exercise = buildExerciseFromParams(params, optionCount, random, {
+        difficulty: settings.difficulty,
+      });
       if (exercise) {
         return exercise;
       }
@@ -1343,30 +1450,65 @@
   }
 
   function feedbackHtml(exercise, chosen) {
-    const vars = feedbackVariables(exercise, chosen);
-    if (!chosen || chosen.isCorrect) {
+    function renderCorrect(context) {
+      const vars = feedbackVariables(exercise, context.chosen || chosen);
       return `
         <div class="feedback-title">Correcto</div>
         <p>Identificaste la antiderivada base F(u) = <span class="math-inline">${vars.FUHtml}</span> y compensaste la derivada del argumento u' = <span class="math-inline">${vars.kHtml}</span>.</p>
         <p><strong class="math-inline">${vars.correctExpressionHtml}</strong></p>`;
     }
 
-    const templates = {
-      "wrong-family": `Usaste una familia incorrecta como antiderivada. En este ejercicio el integrando usa f(u) = <span class="math-inline">${vars.fUHtml}</span>, cuya antiderivada base es F(u) = <span class="math-inline">${vars.FUHtml}</span>. Por eso la respuesta debe usar F(u), no la familia que elegiste.`,
-      "wrong-base-sign": `Recordaste la familia correcta, pero fallaste el signo base de la integral. Para esta familia se cumple que <span class="math-inline">${vars.baseRuleHtml}</span>. Ese signo debe aplicarse antes de dividir entre k.`,
-      "forgot-chain-factor": `Usaste la antiderivada base correcta, pero olvidaste compensar la derivada del argumento. El argumento es u = <span class="math-inline">${vars.uHtml}</span>, por lo tanto u' = <span class="math-inline">${vars.kHtml}</span>. Por eso la antiderivada debe multiplicarse por <span class="math-inline">${fracHtml(numHtml(1), vars.kHtml)}</span>.`,
-      "ignored-negative-k": `Compensaste la derivada del argumento, pero ignoraste su signo. El argumento es u = <span class="math-inline">${vars.uHtml}</span>, asi que u' = <span class="math-inline">${vars.kHtml}</span>, no ${vars.absK}. Debias dividir entre <span class="math-inline">${vars.kHtml}</span>, no solamente entre su valor positivo.`,
-      "lost-external-sign": `Perdiste el signo del coeficiente externo. El integrando completo esta multiplicado por A = <span class="math-inline">${vars.AHtml}</span>. Ese valor debe entrar completo en el coeficiente A/k, incluyendo su signo.`,
-      "copied-integrand": `Tu respuesta conserva demasiado la forma del integrando. Integrar significa buscar una funcion que, al derivarse, regrese al integrando original. Aqui el integrando usa f(u) = <span class="math-inline">${vars.fUHtml}</span>, pero la antiderivada base debe ser F(u) = <span class="math-inline">${vars.FUHtml}</span>.`,
-      "lost-argument-shift": `Usaste la estructura correcta, pero cambiaste el argumento. El argumento original es u = <span class="math-inline">${vars.uHtml}</span>. La antiderivada debe conservar exactamente ese argumento, porque al derivarlo aparece el factor u' = <span class="math-inline">${vars.kHtml}</span>.`,
-      "generic-coefficient-error": `El tipo de funcion es correcto, pero el coeficiente no coincide. El coeficiente correcto se obtiene con A por el signo base, dividido entre k. En este ejercicio eso da <span class="math-inline">${vars.correctCoefficientHtml}</span>.`,
-    };
+    function renderIncorrect(context) {
+      const activeChoice = context.chosen || chosen;
+      const vars = feedbackVariables(exercise, activeChoice);
+      const errorTag =
+        (context.validation && context.validation.errorTag) ||
+        (activeChoice && activeChoice.errorTag) ||
+        "generic-coefficient-error";
+      const templates = {
+        "wrong-family": `Usaste una familia incorrecta como antiderivada. En este ejercicio el integrando usa f(u) = <span class="math-inline">${vars.fUHtml}</span>, cuya antiderivada base es F(u) = <span class="math-inline">${vars.FUHtml}</span>. Por eso la respuesta debe usar F(u), no la familia que elegiste.`,
+        "wrong-base-sign": `Recordaste la familia correcta, pero fallaste el signo base de la integral. Para esta familia se cumple que <span class="math-inline">${vars.baseRuleHtml}</span>. Ese signo debe aplicarse antes de dividir entre k.`,
+        "forgot-chain-factor": `Usaste la antiderivada base correcta, pero olvidaste compensar la derivada del argumento. El argumento es u = <span class="math-inline">${vars.uHtml}</span>, por lo tanto u' = <span class="math-inline">${vars.kHtml}</span>. Por eso la antiderivada debe multiplicarse por <span class="math-inline">${fracHtml(numHtml(1), vars.kHtml)}</span>.`,
+        "ignored-negative-k": `Compensaste la derivada del argumento, pero ignoraste su signo. El argumento es u = <span class="math-inline">${vars.uHtml}</span>, asi que u' = <span class="math-inline">${vars.kHtml}</span>, no ${vars.absK}. Debias dividir entre <span class="math-inline">${vars.kHtml}</span>, no solamente entre su valor positivo.`,
+        "lost-external-sign": `Perdiste el signo del coeficiente externo. El integrando completo esta multiplicado por A = <span class="math-inline">${vars.AHtml}</span>. Ese valor debe entrar completo en el coeficiente A/k, incluyendo su signo.`,
+        "copied-integrand": `Tu respuesta conserva demasiado la forma del integrando. Integrar significa buscar una funcion que, al derivarse, regrese al integrando original. Aqui el integrando usa f(u) = <span class="math-inline">${vars.fUHtml}</span>, pero la antiderivada base debe ser F(u) = <span class="math-inline">${vars.FUHtml}</span>.`,
+        "lost-argument-shift": `Usaste la estructura correcta, pero cambiaste el argumento. El argumento original es u = <span class="math-inline">${vars.uHtml}</span>. La antiderivada debe conservar exactamente ese argumento, porque al derivarlo aparece el factor u' = <span class="math-inline">${vars.kHtml}</span>.`,
+        "generic-coefficient-error": `El tipo de funcion es correcto, pero el coeficiente no coincide. El coeficiente correcto se obtiene con A por el signo base, dividido entre k. En este ejercicio eso da <span class="math-inline">${vars.correctCoefficientHtml}</span>.`,
+      };
 
-    return `
-      <div class="feedback-title">Incorrecto: ${errorLabelHtml(chosen.errorTag)}</div>
-      <p>${templates[chosen.errorTag] || templates["generic-coefficient-error"]}</p>
-      <div class="divider"></div>
-      ${reconstructionHtml(exercise, vars)}`;
+      return `
+        <div class="feedback-title">Incorrecto: ${errorLabelHtml(errorTag)}</div>
+        <p>${templates[errorTag] || templates["generic-coefficient-error"]}</p>
+        <div class="divider"></div>
+        ${reconstructionHtml(exercise, vars)}`;
+    }
+
+    if (FeedbackEngine.buildFeedbackHtml) {
+      return FeedbackEngine.buildFeedbackHtml(exercise, chosen, {
+        validation: chosen ? validateAnswer(exercise, chosen.id) : null,
+        correct: renderCorrect,
+        incorrect: renderIncorrect,
+      });
+    }
+
+    return !chosen || chosen.isCorrect
+      ? renderCorrect({ chosen })
+      : renderIncorrect({ chosen });
+  }
+
+  function validateAnswer(exercise, optionId) {
+    if (Validation.validateMultipleChoice) {
+      return Validation.validateMultipleChoice(exercise, optionId);
+    }
+    const chosen = exercise.options.find((option) => option.id === optionId);
+    return {
+      isValid: Boolean(chosen),
+      isCorrect: Boolean(chosen && chosen.isCorrect),
+      selectedOption: chosen || null,
+      errorTag: chosen ? chosen.errorTag : "invalid-option",
+      errorType: chosen ? chosen.errorType || chosen.errorTag : "invalid-option",
+      stats: exercise.statsInfo || {},
+    };
   }
 
   function derivativeBaseHtml(family, argument) {
@@ -1420,12 +1562,21 @@
       <p>El resultado coincide con el integrando.</p>`;
   }
 
+  registerLinearTemplates();
+
   const api = {
     moduleId: "integrales-lineales",
     moduleName: "Integrales con argumento lineal",
+    modelVersion: "1.3",
     ERROR_TAGS,
     ERROR_LABELS,
     ERROR_LABELS_HTML,
+    MATH_FAMILIES: Taxonomy.MATH_FAMILIES || [],
+    MATH_FAMILY_MAP: Taxonomy.MATH_FAMILY_MAP || {},
+    METHODS: Taxonomy.METHODS || [],
+    METHOD_MAP: Taxonomy.METHOD_MAP || {},
+    ERROR_TYPES: Taxonomy.ERROR_TYPES || [],
+    ERROR_TYPE_MAP: Taxonomy.ERROR_TYPE_MAP || {},
     FAMILIES: FAMILY_DEFINITIONS,
     FAMILY_MAP,
     MODE_FAMILIES,
@@ -1448,6 +1599,7 @@
     correctCoefficient,
     buildExerciseFromParams,
     generateExercise,
+    validateAnswer,
     sanitizeRange,
     exerciseSnapshot,
     optionSnapshot,
@@ -1459,6 +1611,7 @@
     formulaCatalog,
     familyLabelHtml,
     errorLabelHtml,
+    normalizeMethodIds,
     shuffle,
   };
 

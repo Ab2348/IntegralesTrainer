@@ -23,9 +23,20 @@
         return;
       }
 
+      const validation = root.TrigCore.validateAnswer
+        ? root.TrigCore.validateAnswer(currentExercise, optionId)
+        : {
+            isValid: true,
+            isCorrect: Boolean(chosen.isCorrect),
+            selectedOption: chosen,
+            errorTag: chosen.errorTag,
+            errorType: chosen.errorType || chosen.errorTag,
+            stats: currentExercise.statsInfo || {},
+          };
+
       setAnswered(true);
-      statsPanel.recordAnswer(currentExercise, chosen);
-      exerciseView.renderAnsweredState(currentExercise, chosen);
+      statsPanel.recordAnswer(currentExercise, validation);
+      exerciseView.renderAnsweredState(currentExercise, chosen, validation);
       statsPanel.render();
       stateStore.saveState();
     }

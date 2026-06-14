@@ -188,7 +188,29 @@
       );
     }
 
-    function pushErrorExample(exercise, chosen) {
+    function incrementCounter(map, key) {
+      if (!key) {
+        return;
+      }
+      map[key] = (map[key] || 0) + 1;
+    }
+
+    function normalizeValidation(exercise, resultOrOption) {
+      if (resultOrOption && resultOrOption.selectedOption) {
+        return resultOrOption;
+      }
+      const chosen = resultOrOption;
+      return {
+        isValid: Boolean(chosen),
+        isCorrect: Boolean(chosen && chosen.isCorrect),
+        selectedOption: chosen || null,
+        errorTag: chosen ? chosen.errorTag : "",
+        errorType: chosen ? chosen.errorType || chosen.errorTag : "",
+        stats: exercise.statsInfo || {},
+      };
+    }
+
+    function pushErrorExample(exercise, chosen, validation) {
       const state = stateStore.getState();
       if (
         !chosen ||
@@ -211,29 +233,58 @@
         correctPlain: exercise.correctAnswer.displayExpression,
         exerciseMath: Core.exerciseSnapshot(exercise),
         chosenMath: Core.optionSnapshot(chosen),
+        methodId: validation.methodId || validation.stats.methodId || "",
+        submethodId:
+          validation.submethodId || validation.stats.submethodId || "",
+        difficulty: validation.difficulty || validation.stats.difficulty || "",
+        templateId: validation.templateId || validation.stats.templateId || "",
       };
       state.errorExamplesByTag[tag] = [example]
         .concat(examples)
         .slice(0, stateStore.constants.ERROR_EXAMPLES_PER_TAG_LIMIT);
+      state.recentErrorHistory = [example]
+        .concat(Array.isArray(state.recentErrorHistory) ? state.recentErrorHistory : [])
+        .slice(0, 20);
     }
 
-    function recordAnswer(exercise, chosen) {
+    function recordAnswer(exercise, resultOrOption) {
       const state = stateStore.getState();
-      const familyId = exercise.familyId;
+      const validation = normalizeValidation(exercise, resultOrOption);
+      const chosen = validation.selectedOption;
+      const stats = validation.stats || exercise.statsInfo || {};
+      const familyId = stats.familyId || validation.familyId || exercise.familyId;
+      const mathFamilyId =
+        stats.mathFamilyId || validation.mathFamilyId || exercise.mathFamilyId;
+      const methodId =
+        stats.methodId || validation.methodId || exercise.methodId;
+      const submethodId =
+        stats.submethodId || validation.submethodId || exercise.submethodId;
+      const difficulty =
+        String(stats.difficulty || validation.difficulty || exercise.difficulty || "");
+      const templateId =
+        stats.templateId || validation.templateId || exercise.templateId;
       state.totalAnswered += 1;
-      state.familyCounts[familyId] = (state.familyCounts[familyId] || 0) + 1;
+      incrementCounter(state.familyCounts, familyId);
+      incrementCounter(state.mathFamilyCounts, mathFamilyId);
+      incrementCounter(state.methodCounts, methodId);
+      incrementCounter(state.submethodCounts, submethodId);
+      incrementCounter(state.difficultyCounts, difficulty);
+      incrementCounter(state.templateCounts, templateId);
 
-      if (chosen.isCorrect) {
+      if (validation.isCorrect) {
         state.totalCorrect += 1;
         return;
       }
 
       state.totalIncorrect += 1;
-      state.errorCountsByTag[chosen.errorTag] =
-        (state.errorCountsByTag[chosen.errorTag] || 0) + 1;
-      state.familyErrorCounts[familyId] =
-        (state.familyErrorCounts[familyId] || 0) + 1;
-      pushErrorExample(exercise, chosen);
+      incrementCounter(state.errorCountsByTag, validation.errorTag);
+      incrementCounter(state.familyErrorCounts, familyId);
+      incrementCounter(state.mathFamilyErrorCounts, mathFamilyId);
+      incrementCounter(state.methodErrorCounts, methodId);
+      incrementCounter(state.submethodErrorCounts, submethodId);
+      incrementCounter(state.difficultyErrorCounts, difficulty);
+      incrementCounter(state.templateErrorCounts, templateId);
+      pushErrorExample(exercise, chosen, validation);
     }
 
     return {
