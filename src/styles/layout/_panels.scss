@@ -1,40 +1,221 @@
-@use "../abstracts/breakpoints";
 @use "../abstracts/mixins";
 
-.controls,
-.practice,
-.stats,
-.formula-sidebar {
-  min-width: 0;
-  scroll-margin-top: 16px;
-  background: rgba(42, 49, 56, 0.88);
-  border: 1px solid rgba(86, 98, 107, 0.82);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(14px);
+.panel {
+  background: linear-gradient(
+    180deg,
+    rgba(31, 39, 46, 0.94),
+    rgba(19, 25, 31, 0.96)
+  );
+  border: 1px solid rgba(68, 81, 92, 0.72);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
 
-.controls,
-.practice,
-.stats,
-.formula-sidebar {
-  position: sticky;
-  top: 18px;
+.sidebar {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  padding: 22px 18px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 2px 8px 24px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(68, 81, 92, 0.55);
+}
+
+.logo {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  color: #16110b;
+  background: linear-gradient(135deg, #f5d6ab, #d9a76e);
+  border-radius: 15px;
+  box-shadow: 0 12px 30px rgba(232, 198, 154, 0.18);
+  font-family: "Cambria Math", "Times New Roman", serif;
+  font-size: 2.55rem;
+}
+
+.brand h1 span {
+  color: var(--gold);
+}
+
+.nav-section {
+  padding: 4px 0 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(68, 81, 92, 0.42);
+}
+
+.nav-title {
+  margin: 0 10px 10px;
+  color: var(--faint);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nav-item,
+.nav-sub {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.nav-item {
+  min-height: 44px;
+  padding: 0 12px;
+  font-weight: 750;
+}
+
+.nav-item span:first-child {
+  width: 22px;
+  color: var(--gold);
+  text-align: center;
+}
+
+.nav-item.active,
+.nav-sub.active {
+  color: #ffe0b9;
+  background: rgba(232, 198, 154, 0.11);
+}
+
+.nav-item .chev {
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform 160ms ease;
+}
+
+.nav-item[aria-expanded="false"] .chev {
+  transform: rotate(-90deg);
+}
+
+.nav-sub {
+  min-height: 36px;
+  padding: 0 10px 0 45px;
+  color: #c9cfcb;
+  font-size: 0.9rem;
+}
+
+.nav-subgroup {
+  display: grid;
+  gap: 4px;
+}
+
+.nav-sub:hover,
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.sidebar-formula-catalog {
+  min-width: 0;
+  padding: 6px 0 0 34px;
+}
+
+.sidebar-footer {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.small-card {
+  padding: 14px;
+  background: rgba(15, 20, 25, 0.44);
+  border: 1px solid rgba(68, 81, 92, 0.65);
+  border-radius: 16px;
+}
+
+.small-card strong {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.small-card p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.main {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+}
+
+.exercise-card,
+.settings-card,
+.right-card {
+  background: linear-gradient(
+    180deg,
+    rgba(32, 40, 47, 0.88),
+    rgba(17, 23, 29, 0.9)
+  );
+  border: 1px solid rgba(68, 81, 92, 0.72);
+  border-radius: 20px;
+}
+
+.exercise-card {
+  padding: 22px;
+}
+
+.settings-card {
+  display: grid;
+  gap: 14px;
   padding: 18px;
 }
 
-.practice {
-  padding: 22px;
-  box-shadow: var(--shadow);
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
 }
 
-.formula-sidebar {
-  height: calc(100vh - 36px);
-  max-height: calc(100vh - 36px);
-  overflow: hidden;
+.compact-head,
+.right-card .card-head {
+  margin-bottom: 0;
+}
+
+.right {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 18px;
+  padding: 22px 18px;
+}
+
+.right-card {
+  padding: 18px;
+}
+
+.right-card-content {
+  margin-top: 18px;
+}
+
+.card-toggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+.card-toggle .pill {
+  margin-left: auto;
 }
 
 .panel-title {
@@ -42,31 +223,24 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 18px;
-  color: #f4efe7;
+  color: var(--text);
   font-weight: 800;
-  letter-spacing: 0;
 }
 
-@include mixins.media-max(breakpoints.$desktop-narrow) {
-  .stats,
-  .formula-sidebar {
-    position: static;
+@include mixins.media-max(1500px) {
+  .right {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
   }
 }
 
-@include mixins.media-max(breakpoints.$mobile) {
-  .controls,
-  .practice,
-  .stats,
-  .formula-sidebar {
-    position: static;
-    min-width: 0;
+@include mixins.media-max(980px) {
+  .sidebar {
+    display: none;
   }
 
-  .formula-sidebar {
-    display: flex;
-    height: auto;
-    max-height: none;
-    overflow: visible;
+  .right {
+    grid-template-columns: 1fr;
   }
 }

@@ -23,8 +23,17 @@
   max-width: 100%;
 }
 
+.katex,
+.math-inline,
+.option-math,
+.math-display {
+  font-feature-settings: "kern" 1;
+}
+
 .option-math .katex,
 .feedback-values .katex,
+.centered-formula .katex,
+.math-display .katex,
 .family-math-label .katex,
 .error-tooltip-value .katex {
   white-space: nowrap;

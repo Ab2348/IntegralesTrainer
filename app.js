@@ -137,7 +137,7 @@
     });
 
     window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 821px)").matches) {
+      if (window.matchMedia("(min-width: 981px)").matches) {
         setMobileNavOpen(false);
       }
     });

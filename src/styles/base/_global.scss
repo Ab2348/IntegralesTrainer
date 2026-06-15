@@ -2,22 +2,21 @@ body {
   min-height: 100vh;
   margin: 0;
   color: var(--text);
-  font-size: 17px;
   background:
     radial-gradient(
-      circle at top left,
-      rgba(139, 184, 176, 0.13),
-      transparent 34rem
-    ),
-    radial-gradient(
-      circle at 85% 20%,
-      rgba(177, 160, 122, 0.08),
+      circle at 16% 8%,
+      rgba(232, 198, 154, 0.13),
       transparent 30rem
     ),
-    linear-gradient(180deg, #252b31 0%, #1d2227 100%);
+    radial-gradient(
+      circle at 82% 18%,
+      rgba(120, 184, 168, 0.08),
+      transparent 34rem
+    ),
+    linear-gradient(145deg, #0d1217, #151b20 45%, #0e1318);
 }
 
 :focus-visible {
-  outline: 3px solid rgba(139, 184, 176, 0.86);
+  outline: 3px solid rgba(232, 198, 154, 0.78);
   outline-offset: 3px;
 }

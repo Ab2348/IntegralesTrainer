@@ -4,9 +4,9 @@ input {
   min-height: 42px;
   padding: 0 12px;
   color: var(--text);
-  background: #22282e;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
+  background: rgba(13, 18, 23, 0.58);
+  border: 1px solid rgba(68, 81, 92, 0.86);
+  border-radius: 12px;
   outline: none;
   transition:
     border-color 160ms ease,
@@ -16,12 +16,17 @@ input {
 
 select:hover,
 input:hover {
-  border-color: #6a767e;
-  background: #252b31;
+  border-color: rgba(232, 198, 154, 0.48);
+  background: rgba(15, 20, 25, 0.72);
 }
 
 select:focus,
 input:focus {
-  border-color: rgba(139, 184, 176, 0.85);
-  box-shadow: 0 0 0 4px rgba(139, 184, 176, 0.14);
+  border-color: rgba(232, 198, 154, 0.78);
+  box-shadow: 0 0 0 4px rgba(232, 198, 154, 0.12);
+}
+
+.field {
+  display: grid;
+  gap: 7px;
 }

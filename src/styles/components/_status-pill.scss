@@ -1,13 +1,14 @@
+.pill,
 .status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 30px;
+  min-height: 32px;
   padding: 0 12px;
-  color: #d7ddd9;
-  background: #252b31;
-  border: 1px solid var(--line);
+  color: #d9dfdb;
+  background: rgba(15, 20, 25, 0.45);
+  border: 1px solid rgba(68, 81, 92, 0.78);
   border-radius: 999px;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 850;
   white-space: nowrap;
 }
