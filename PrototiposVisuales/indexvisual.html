@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Maqueta escritorio V1.5 - Entrenador de integrales</title>
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="stylesvisual.css" />
   </head>
   <body>
@@ -27,7 +28,9 @@
             <button class="nav-item" type="button">
               <span>◉</span>Entrenar <span class="chev">⌃</span>
             </button>
-            <button class="nav-sub active" type="button">Ejercicio aleatorio</button>
+            <button class="nav-sub active" type="button">
+              Ejercicio aleatorio
+            </button>
             <button class="nav-sub" type="button">Por tema</button>
             <button class="nav-sub" type="button">Por técnica</button>
             <button class="nav-sub" type="button">Modo examen</button>
@@ -38,10 +41,11 @@
             <button class="nav-item" type="button">
               <span>▣</span>Fórmulas <span class="chev">⌄</span>
             </button>
-            <button class="nav-sub" type="button">Todas las fórmulas</button>
-            <button class="nav-sub" type="button">Por tipo de integral</button>
-            <button class="nav-sub" type="button">Por familia</button>
-            <button class="nav-sub" type="button">Sustituciones útiles</button>
+            <div
+              class="sidebar-formula-catalog"
+              id="sidebarFormulaAccordion"
+              aria-label="Catálogo de fórmulas"
+            ></div>
           </section>
 
           <section class="nav-section">
@@ -55,7 +59,9 @@
           </section>
 
           <div class="sidebar-footer">
-            <button class="nav-item" type="button"><span>⚙</span>Ajustes</button>
+            <button class="nav-item" type="button">
+              <span>⚙</span>Ajustes
+            </button>
             <div class="small-card">
               <strong>V1.5 preview</strong>
               <p>
@@ -68,7 +74,9 @@
 
         <section class="panel main">
           <header class="topbar">
-            <div class="path">Inicio / Entrenar / <b>Ejercicio aleatorio</b></div>
+            <div class="path">
+              Inicio / Entrenar / <b>Ejercicio aleatorio</b>
+            </div>
             <div class="top-actions">
               <button
                 class="icon-btn"
@@ -123,10 +131,9 @@
                   ></div>
                 </div>
 
-                <div class="answer-area">
-                  <div class="answer">Elige una opción para verificarla.</div>
+                <div class="exercise-actions">
                   <button class="verify" data-next-exercise-proxy type="button">
-                    Cambiar ejercicio
+                    Siguiente ejercicio
                   </button>
                 </div>
 
@@ -158,7 +165,11 @@
               </article>
             </section>
 
-            <aside class="settings-card" id="controlsPanel" aria-label="Configuración">
+            <aside
+              class="settings-card"
+              id="controlsPanel"
+              aria-label="Configuración"
+            >
               <div class="card-head compact-head">
                 <div>
                   <div class="kicker">Configuración rápida</div>
@@ -203,14 +214,22 @@
                 <div class="checks" id="familyChecklist"></div>
               </fieldset>
 
-              <button class="btn primary" data-next-exercise-proxy type="button">
+              <button
+                class="btn primary"
+                data-next-exercise-proxy
+                type="button"
+              >
                 Aplicar cambios
               </button>
             </aside>
           </div>
         </section>
 
-        <aside class="panel right" id="statsPanel" aria-label="Panel de estadísticas">
+        <aside
+          class="panel right"
+          id="statsPanel"
+          aria-label="Panel de estadísticas"
+        >
           <section class="right-card">
             <div class="card-head">
               <div>
@@ -253,18 +272,22 @@
             <ol class="list" id="familyErrorList"></ol>
           </section>
 
-          <section class="right-card" id="formulaPanel" aria-label="Panel de fórmulas">
+          <section
+            class="right-card"
+            id="formulaPanel"
+            aria-label="Fórmula aplicable"
+          >
             <div class="card-head">
               <div>
-                <div class="kicker">Fórmulas</div>
-                <h2>Por tipo de integral</h2>
+                <div class="kicker">Fórmula aplicable</div>
+                <h2>Ejercicio actual</h2>
               </div>
             </div>
 
             <div
-              class="formula-list"
+              class="formula-list current-formula-list"
               id="formulaAccordion"
-              aria-label="Fórmulas por familia"
+              aria-label="Fórmula del ejercicio actual"
             ></div>
           </section>
         </aside>
@@ -284,6 +307,7 @@
 
     <script src="../js/core/taxonomia.js"></script>
     <script src="../js/core/contratos.js"></script>
+    <script src="../vendor/katex/katex.min.js"></script>
     <script src="../js/core/math-renderer.js"></script>
     <script src="../js/core/modelo-ejercicio.js"></script>
     <script src="../js/core/opciones.js"></script>
@@ -300,13 +324,16 @@
     <script src="../js/app/formula-panel.js"></script>
     <script src="../js/app/answer.js"></script>
     <script src="../js/app/page-warning.js"></script>
+    <script src="prototype-visual.js"></script>
     <script src="../app.js"></script>
     <script>
-      document.querySelectorAll("[data-next-exercise-proxy]").forEach((button) => {
-        button.addEventListener("click", () => {
-          document.getElementById("nextExerciseButton").click();
+      document
+        .querySelectorAll("[data-next-exercise-proxy]")
+        .forEach((button) => {
+          button.addEventListener("click", () => {
+            document.getElementById("nextExerciseButton").click();
+          });
         });
-      });
     </script>
   </body>
 </html>
