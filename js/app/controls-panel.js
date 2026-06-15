@@ -16,7 +16,11 @@
 
     function renderFamilyChecklist() {
       const state = stateStore.getState();
-      els.familyChecklist.innerHTML = "";
+      if (els.familyChecklist.replaceChildren) {
+        els.familyChecklist.replaceChildren();
+      } else {
+        els.familyChecklist.textContent = "";
+      }
       Core.FAMILIES.forEach((family) => {
         const label = document.createElement("label");
         label.className = "family-check";
@@ -33,7 +37,17 @@
 
         const span = document.createElement("span");
         span.className = "family-check-label";
-        span.innerHTML = Core.familyLabelHtml(family);
+        if (Core.renderInto) {
+          Core.renderInto(
+            span,
+            Core.familyLabelExpression
+              ? Core.familyLabelExpression(family)
+              : { latex: Core.familyLabelLatex ? Core.familyLabelLatex(family) : "" },
+            { className: "family-math-label" },
+          );
+        } else {
+          span.textContent = family.name;
+        }
 
         label.append(input, span);
         els.familyChecklist.appendChild(label);

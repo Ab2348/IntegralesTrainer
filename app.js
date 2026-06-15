@@ -49,6 +49,7 @@
   const statsPanel = App.createStatsPanel({ Core, els, stateStore });
   const formulaPanel = App.createFormulaPanel({ Core, els });
   const answerController = App.createAnswerController({
+    Core,
     exerciseView,
     getCurrentExercise: () => currentExercise,
     getAnswered: () => answered,

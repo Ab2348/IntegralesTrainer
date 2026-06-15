@@ -12,7 +12,7 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `styles.css` es el CSS de salida que carga `index.html`.
 - `js/core/taxonomia.js` define familias matemáticas, métodos y tipos de error de la arquitectura v1.3.
 - `js/core/contratos.js` normaliza los contratos de plantilla, variante, dificultad, parámetros, restricciones, feedback y distractores.
-- `js/core/math-renderer.js` registra renderizadores matemáticos y estandariza expresiones `plain`, `latex` y `html`.
+- `js/core/math-renderer.js` registra renderizadores matemáticos, normaliza expresiones `plain`/`latex` y renderiza el contenido visual.
 - `js/core/modelo-ejercicio.js` normaliza el contrato universal de ejercicio.
 - `js/core/opciones.js` construye conjuntos de opción correcta y distractores.
 - `js/core/validacion.js` centraliza la validación de opción múltiple.
@@ -59,7 +59,7 @@ Para agregar una familia futura, la ruta esperada es registrar nuevas plantillas
 
 ## Arquitectura v1.4
 
-La versión 1.4 convierte los contratos de v1.3 en un motor real de plantillas paramétricas. El modelo universal de ejercicio se conserva como `modelVersion: "1.3"` para no romper la interfaz, estadísticas ni renderizado, pero la generación ahora agrega metadatos de motor con `generation.engineVersion: "1.4"`.
+La versión 1.4 convierte los contratos de v1.3 en un motor real de plantillas paramétricas. El modelo universal de ejercicio usa `modelVersion: "1.4"` y la generación agrega metadatos de motor con `generation.engineVersion: "1.4"`.
 
 El objetivo de v1.4 es que el núcleo pueda construir ejercicios distintos, válidos, controlados y reproducibles sin añadir lógica nueva en `app.js` cada vez que aparezca una familia matemática.
 
@@ -85,7 +85,7 @@ La generación v1.4 mantiene esta separación:
 4. La plantilla construye integral, respuesta correcta y distractores.
 5. `modelo-ejercicio.js` conserva el contrato universal y agrega `generation` y `answer`.
 6. `generador.js` valida que la instancia tenga integral, respuesta correcta única, opciones no duplicadas, distractores tipados y dificultad compatible.
-7. La app renderiza con los mismos hooks de siempre: `Core.renderIntegral()`, `Core.renderOption()`, `Core.feedbackHtml()` y `Core.derivationHtml()`.
+7. La app entrega expresiones y contenido estructurado al renderer central: `Core.renderIntegral()`, `Core.renderOption()`, `Core.feedbackContent()`, `Core.derivationContent()` y `Core.renderContentInto()`.
 
 Las integrales trigonométricas directas ya están migradas a este motor. Cada familia actual (`sin`, `cos`, `tan`, `cot`, `sec`, `csc`, etc.) se registra como plantilla `trig-linear-<familia>` y declara variantes para los niveles de dificultad:
 
@@ -110,7 +110,7 @@ Antes de iniciar v1.5, el núcleo debe considerarse estable bajo estas condicion
 - `validateAnswer()` devuelve opción elegida, distractor elegido, `errorType`, familia, familia matemática, método, submétodo, plantilla, variante y dificultad.
 - Las estadísticas internas guardan conteos por método, submétodo, plantilla y variante, además de errores por esos mismos ejes. La UI no muestra todo todavía.
 - El generador sigue filtrando por familia, familia matemática, método y dificultad, usa semilla reproducible y conserva límite de intentos.
-- `math-renderer.js` permanece desacoplado: recibe expresiones `plain`, `latex` y `html`, y los renderizadores específicos son registrables por módulo.
+- `math-renderer.js` permanece desacoplado: recibe expresiones `plain`/`latex` y contenido estructurado; es la unica capa que convierte matemáticas a HTML visible.
 - El estado interno puede conservar familias matemáticas, métodos activos, plantillas deshabilitadas e inclusión de plantillas pendientes/experimentales, aunque la UI visual completa llegue en v1.5.
 
 Con estos puntos cerrados, v1.5 debe enfocarse en contenido: nuevas familias, nuevas plantillas, distractores, mensajes específicos, configuración visual, estadísticas visibles por método y fórmulas auxiliares.
@@ -124,14 +124,13 @@ Las expresiones matemáticas deben poder viajar con esta forma:
 ```js
 {
   plain: "int 2 sin(3x - 1) dx",
-  latex: "\\int 2\\sin\\left(3x - 1\\right)\\,dx",
-  html: "..."
+  latex: "\\int 2\\sin\\left(3x - 1\\right)\\,dx"
 }
 ```
 
-`plain` sirve para estadísticas, ejemplos y depuración. `latex` es la representación portable preferida para futuros renderizadores. `html` queda como salida visual compatible con la interfaz actual.
+`plain` sirve para estadísticas, ejemplos y depuración. `latex` es la representación matemática normalizada y la fuente primaria para la presentación visual. El HTML no debe nacer en las familias/generadores: se deriva en `math-renderer.js`.
 
-Las opciones conservan compatibilidad con `displayExpression` y `displayHtml`, pero el contrato nuevo es:
+Las opciones conservan compatibilidad con `displayExpression`, pero el contrato nuevo no almacena HTML visual:
 
 ```js
 {
@@ -139,7 +138,6 @@ Las opciones conservan compatibilidad con `displayExpression` y `displayHtml`, p
   value: "...",
   displayPlain: "...",
   displayLatex: "...",
-  displayHtml: "...",
   isCorrect: false,
   errorType: "wrong-family",
   errorTag: "wrong-family",
@@ -222,16 +220,16 @@ Una plantilla completa debe incluir `feedbackRules`. Cada regla se enlaza por `e
   id: "basic-missing-coefficient",
   errorType: "forgot-chain-factor",
   errorTag: "forgot-chain-factor",
-  titleHtml: "Incorrecto: Factor de cadena olvidado",
-  messageHtml: "Revisa la derivada interna de {uHtml}.",
-  hintHtml: "",
-  detailsHtml(context) {
-    return "";
+  title: "Incorrecto: Factor de cadena olvidado",
+  message: ["Revisa la derivada interna de ", { var: "uMath" }, "."],
+  hint: "",
+  details(context) {
+    return [];
   }
 }
 ```
 
-Los mensajes pueden usar placeholders con llaves, por ejemplo `{uHtml}` o `{correctExpressionHtml}`. Las variables disponibles dependen de cada módulo o plantilla.
+Los mensajes pueden usar texto y referencias de contenido, por ejemplo `{ var: "uMath" }` o `{ var: "correctExpressionMath" }`. Las variables disponibles dependen de cada módulo o plantilla y el render visual final siempre pasa por `MathRenderer`.
 
 ### VariantModel
 
@@ -552,9 +550,9 @@ Si se agrega una familia nueva, normalmente también hay que revisar:
 - `MODE_FAMILIES`
 - `ANSWER_CORES`
 - `WRONG_CORE_MAP`
-- `coreHtml()`
 - `corePlain()`
-- `derivativeBaseHtml()`
+- `coreLatex()`
+- `derivativeBaseLatex()`
 - pruebas en `tests/core.test.js`
 
 ## Generación de ejercicios
@@ -707,15 +705,15 @@ La función `correctCoefficient(A, family, k)` calcula:
 - sustitución concreta;
 - resultado correcto simplificado.
 
-`feedbackHtml()` usa esos datos para alimentar `feedbackRules`. La capa de app solo inserta el HTML generado por el núcleo; no reconstruye fórmulas matemáticas propias.
+`feedbackContent()` usa esos datos para alimentar `feedbackRules` y devuelve contenido estructurado. La capa de app lo monta con `Core.renderContentInto()`, de modo que cualquier matemática dentro de la retroalimentación vuelve a pasar por `MathRenderer`.
 
 El flujo recomendado es:
 
 1. La plantilla declara reglas por `errorType`.
 2. El distractor declara `errorType`, `errorTag` y `sourceStrategy`.
 3. `validateAnswer()` identifica la opción y el distractor elegido.
-4. `TrigFeedbackEngine.buildFeedbackHtml()` busca la regla correspondiente.
-5. El renderer o módulo aporta variables matemáticas y detalles visuales si los necesita.
+4. `TrigFeedbackEngine.buildFeedbackContent()` busca la regla correspondiente.
+5. El módulo aporta variables matemáticas como LaTeX/contenido, y `MathRenderer` produce la representación visual final.
 
 Esto evita que el núcleo tenga que conocer casos especiales de cada familia. Para agregar mensajes de una familia nueva, se agregan reglas a su plantilla o método, no ramas nuevas en `retroalimentacion.js`.
 
@@ -748,11 +746,9 @@ Cada opción tiene esta forma aproximada:
   displayLatex: "...",
   display: {
     plain: "...",
-    latex: "...",
-    html: "..."
+    latex: "..."
   },
   displayExpression: "...",
-  displayHtml: "...",
   key: "..."
 }
 ```
@@ -772,17 +768,23 @@ Los distractores se generan con errores didácticos:
 
 ## Renderizado matemático
 
-El renderizado matemático se concentra en `js/core/math-renderer.js`. El renderer activo convierte datos matemáticos internos a:
+El renderizado matemático se concentra en `js/core/math-renderer.js`. LaTeX es el formato estándar; `MathRenderer` es el responsable arquitectónico de convertirlo en contenido visible.
 
-- texto plano;
-- LaTeX;
-- HTML confiable para la interfaz actual.
+Flujo oficial:
 
-El módulo trigonométrico actual registra `trig-linear-renderer`. Sus funciones internas como `rationalHtml()`, `coreHtml()`, `expressionHtml()`, `integralHtml()`, `feedbackHtml()` y `derivationHtml()` siguen existiendo por compatibilidad, pero la app debe preferir `Core.renderIntegral()` y `Core.renderOption()` cuando estén disponibles.
+```text
+Template -> ExerciseModel -> LaTeX/datos estructurados -> MathRenderer -> UI
+```
 
-La app usa `innerHTML` solo para HTML generado internamente por el renderer. No debe insertarse HTML proveniente de usuarios o de estado persistido sin validación.
+Reglas:
 
-Las estadísticas usan renderizado con DOM y solo aceptan labels previamente validados. Si no se puede confiar en el texto, debe usarse `textContent`.
+- plantillas y generadores producen datos, `plain` y `latex`;
+- el modelo universal expone `promptLatex`, `optionsLatex`, `correctAnswerLatex`, `feedbackLatex`, `formulaRefs` y `distractorErrorTypes`;
+- feedback y derivación devuelven contenido estructurado, no HTML;
+- `FormulaSidebar`, `ExerciseView`, `OptionsView`, `FeedbackView` y `StatsPanel` solo llaman `renderInto()` o `renderContentInto()`;
+- `innerHTML` queda encapsulado en `math-renderer.js` como punto de montaje del HTML generado por el renderer central.
+
+El módulo trigonométrico actual registra `trig-linear-renderer`, pero sus hooks de módulo son de serialización (`serializeIntegral`, `serializeOption`) o contenido (`renderFeedbackContent`, `renderDerivationContent`). No debe exponer funciones `*Html` propias.
 
 ## Cómo agregar una nueva familia matemática
 
@@ -794,7 +796,7 @@ Las estadísticas usan renderizado con DOM y solo aceptan labels previamente val
 6. Definir `status`, `familyId`, `mathFamilyId`, `methodId`, `submethodId`, dificultad y tags.
 7. Declarar `parameters` y `restrictions`.
 8. Declarar variantes con rango de dificultad y `parameterOverrides` si aplica.
-9. Definir la representación matemática estándar de la integral: `plain`, `latex` y `html`.
+9. Definir la representación matemática estándar de la integral: `plain` y `latex`.
 10. Definir la respuesta correcta como opción normalizada.
 11. Definir distractores tipados con `errorType`, `errorTag` y `sourceStrategy`.
 12. Definir reglas o hooks de feedback para los errores esperados.
@@ -905,8 +907,9 @@ node tests/core.test.js
 - Mantener `core.js` como fachada publica sin logica matematica especifica.
 - Mantener los tipos de integrales dentro de módulos registrables en `js/core/`.
 - Mantener `app.js` como orquestador de interacción, no como dueño de estado o render pesado.
+- Mantener LaTeX como fuente de verdad visual: generadores producen datos/LaTeX y `math-renderer.js` es la unica capa que produce HTML matemático.
 - No guardar ejercicios completos si solo se necesita evitar repetición.
 - Validar cualquier valor que venga de `localStorage`.
-- Usar `textContent` salvo que el HTML venga de funciones internas confiables.
+- Usar `textContent` para texto plano y `MathRenderer.renderInto()`/`renderContentInto()` para matemáticas.
 - Si agregas una familia, declara plantillas, distractores, renderer y pruebas dentro de su módulo.
 - Si cambias la forma del estado, considera subir la versión de `STORAGE_KEY` o agregar migración.

@@ -4,6 +4,7 @@
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
 
   App.createAnswerController = function createAnswerController({
+    Core,
     exerciseView,
     getCurrentExercise,
     getAnswered,
@@ -23,8 +24,8 @@
         return;
       }
 
-      const validation = root.TrigCore.validateAnswer
-        ? root.TrigCore.validateAnswer(currentExercise, optionId)
+      const validation = Core && Core.validateAnswer
+        ? Core.validateAnswer(currentExercise, optionId)
         : {
             isValid: true,
             isCorrect: Boolean(chosen.isCorrect),

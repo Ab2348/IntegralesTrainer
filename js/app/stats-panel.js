@@ -4,19 +4,27 @@
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
 
   App.createStatsPanel = function createStatsPanel({ Core, els, stateStore }) {
-    function trustedHtml(html) {
-      return { type: "html", value: html };
-    }
-
-    function plainText(text) {
-      return { type: "text", value: String(text) };
-    }
-
-    function appendLabel(label, target) {
-      if (label.type === "html") {
-        target.innerHTML = label.value;
+    function clearElement(element) {
+      if (element.replaceChildren) {
+        element.replaceChildren();
       } else {
-        target.textContent = label.value;
+        element.textContent = "";
+      }
+    }
+
+    function renderContentInto(target, content, fallbackText) {
+      if (Core.renderContentInto && content) {
+        Core.renderContentInto(target, content);
+      } else {
+        target.textContent = fallbackText || "";
+      }
+    }
+
+    function renderMathInto(target, expression, fallbackText, options) {
+      if (Core.renderInto && expression) {
+        Core.renderInto(target, expression, options || {});
+      } else {
+        target.textContent = fallbackText || "";
       }
     }
 
@@ -33,7 +41,7 @@
       );
     }
 
-    function appendTooltipRow(container, labelText, valueText, valueHtml) {
+    function appendTooltipRow(container, labelText, valueText, expression) {
       const row = document.createElement("div");
       row.className = "error-tooltip-row";
 
@@ -43,11 +51,7 @@
 
       const value = document.createElement("span");
       value.className = "error-tooltip-value";
-      if (valueHtml) {
-        value.innerHTML = valueHtml;
-      } else {
-        value.textContent = valueText || "Sin datos";
-      }
+      renderMathInto(value, expression, valueText || "Sin datos");
 
       row.append(label, value);
       container.appendChild(row);
@@ -62,26 +66,38 @@
 
       const example = latestErrorExample(tag);
       if (example) {
-        const math = Core.errorExampleMathHtml
-          ? Core.errorExampleMathHtml(example)
+        const math = Core.errorExampleMath
+          ? Core.errorExampleMath(example)
           : null;
         appendTooltipRow(
           tooltip,
           "Ejercicio",
           example.exercisePlain,
-          math ? math.exerciseHtml : Core.plainMathHtml(example.exercisePlain),
+          math
+            ? math.exercise
+            : Core.plainMathExpression
+              ? Core.plainMathExpression(example.exercisePlain)
+              : null,
         );
         appendTooltipRow(
           tooltip,
           "Elegiste",
           example.chosenPlain,
-          math ? math.chosenHtml : Core.plainMathHtml(example.chosenPlain),
+          math
+            ? math.chosen
+            : Core.plainMathExpression
+              ? Core.plainMathExpression(example.chosenPlain)
+              : null,
         );
         appendTooltipRow(
           tooltip,
           "Correcta",
           example.correctPlain,
-          math ? math.correctHtml : Core.plainMathHtml(example.correctPlain),
+          math
+            ? math.correct
+            : Core.plainMathExpression
+              ? Core.plainMathExpression(example.correctPlain)
+              : null,
         );
       } else {
         const fallback = document.createElement("p");
@@ -101,7 +117,7 @@
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
 
-      els.errorList.innerHTML = "";
+      clearElement(els.errorList);
       if (!entries.length) {
         const item = document.createElement("li");
         item.className = "empty-stat";
@@ -120,7 +136,11 @@
 
         const label = document.createElement("span");
         label.className = "stat-item-label";
-        appendLabel(trustedHtml(Core.errorLabelHtml(tag)), label);
+        renderContentInto(
+          label,
+          Core.errorLabelContent ? Core.errorLabelContent(tag) : [tag],
+          tag,
+        );
 
         const count = document.createElement("span");
         count.className = "stat-item-count";
@@ -133,13 +153,13 @@
       });
     }
 
-    function renderRankedList(container, data, labelFn) {
+    function renderRankedList(container, data, renderLabel) {
       const entries = Object.entries(data || {})
         .filter((entry) => entry[1] > 0)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
 
-      container.innerHTML = "";
+      clearElement(container);
       if (!entries.length) {
         const item = document.createElement("li");
         item.className = "empty-stat";
@@ -152,7 +172,7 @@
         const item = document.createElement("li");
         const label = document.createElement("span");
         label.className = "stat-item-label";
-        appendLabel(labelFn(key), label);
+        renderLabel(label, key);
 
         const count = document.createElement("span");
         count.className = "stat-item-count";
@@ -179,11 +199,20 @@
       renderRankedList(
         els.familyErrorList,
         state.familyErrorCounts,
-        (familyId) => {
+        (label, familyId) => {
           const family = Core.FAMILY_MAP[familyId];
-          return family
-            ? trustedHtml(Core.familyLabelHtml(family))
-            : plainText(familyId);
+          if (family) {
+            renderMathInto(
+              label,
+              Core.familyLabelExpression
+                ? Core.familyLabelExpression(family)
+                : { latex: Core.familyLabelLatex ? Core.familyLabelLatex(family) : "" },
+              family.name,
+              { className: "family-math-label" },
+            );
+            return;
+          }
+          label.textContent = familyId;
         },
       );
     }
