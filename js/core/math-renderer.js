@@ -15,6 +15,7 @@
     "em",
     "small",
   ]);
+  let missingKatexWarningShown = false;
 
   function escapeHtml(value) {
     return String(value)
@@ -37,189 +38,61 @@
     return safe ? ` class="${safe}"` : "";
   }
 
-  function mathExpression(content, options) {
+  function latexDisplayMode(options) {
     const settings = options || {};
-    const classes = ["math-expression"];
-    if (settings.display === "inline" || settings.inline) {
-      classes.push("math-inline");
-    }
-    if (settings.display === "block" || settings.block) {
-      classes.push("math-block");
-    }
+    return settings.display === "block" || settings.block === true;
+  }
+
+  function fallbackLatex(source, options) {
+    const settings = options || {};
+    const classes = [
+      "math-render-error",
+      latexDisplayMode(settings) ? "math-block" : "math-inline",
+    ];
     const extraClasses = escapeClassName(settings.className);
     if (extraClasses) {
       classes.push(extraClasses);
     }
-    return `<span${classAttribute(classes.join(" "))}>${content}</span>`;
-  }
-
-  function mathClass(className, content) {
-    return `<span class="${className}">${content}</span>`;
-  }
-
-  function normalizeLatexSource(value) {
-    return String(value || "")
-      .replace(/\\left/g, "")
-      .replace(/\\right/g, "")
-      .replace(/\\,/g, "\\thinspace ")
-      .trim();
+    return `<span${classAttribute(classes.join(" "))}>${escapeHtml(source)}</span>`;
   }
 
   function renderLatex(latex, options) {
-    const source = normalizeLatexSource(latex);
+    const source = String(latex || "").trim();
     const settings = options || {};
-    let index = 0;
-
-    function peek(length) {
-      return source.slice(index, index + (length || 1));
+    if (!source) {
+      return "";
+    }
+    if (!root.katex || typeof root.katex.renderToString !== "function") {
+      if (!missingKatexWarningShown && root.console && typeof root.console.warn === "function") {
+        root.console.warn("KaTeX no esta disponible; se usara fallback textual.");
+        missingKatexWarningShown = true;
+      }
+      return fallbackLatex(source, settings);
     }
 
-    function consume(length) {
-      const value = source.slice(index, index + (length || 1));
-      index += length || 1;
-      return value;
+    const displayMode = latexDisplayMode(settings);
+    let html = "";
+    try {
+      html = root.katex.renderToString(source, {
+        displayMode,
+        throwOnError: false,
+        trust: false,
+        strict: "warn",
+        output: "htmlAndMathml",
+      });
+    } catch (error) {
+      if (root.console && typeof root.console.warn === "function") {
+        root.console.warn("No se pudo renderizar LaTeX con KaTeX.", error);
+      }
+      return fallbackLatex(source, settings);
     }
 
-    function consumeCommand() {
-      consume(1);
-      const match = /^[a-zA-Z]+/.exec(source.slice(index));
-      if (match) {
-        index += match[0].length;
-        return match[0];
-      }
-      return consume(1);
-    }
-
-    function consumeGroup() {
-      while (/\s/.test(peek())) {
-        consume(1);
-      }
-      if (peek() !== "{") {
-        return consume(1);
-      }
-      consume(1);
-      const start = index;
-      let depth = 1;
-      while (index < source.length && depth > 0) {
-        const char = consume(1);
-        if (char === "{") {
-          depth += 1;
-        } else if (char === "}") {
-          depth -= 1;
-        }
-      }
-      return source.slice(start, index - 1);
-    }
-
-    function renderNested(value) {
-      return renderLatex(value, { bare: true });
-    }
-
-    function renderCommand(command) {
-      if (command === "frac") {
-        const numerator = consumeGroup();
-        const denominator = consumeGroup();
-        return `<span class="math-frac" aria-label="${escapeHtml(`${numerator}/${denominator}`)}"><span>${renderNested(numerator)}</span><span>${renderNested(denominator)}</span></span>`;
-      }
-      if (command === "sqrt") {
-        const radicand = consumeGroup();
-        return `<span class="math-sqrt"><span class="math-radical">&radic;</span><span class="math-radicand">${renderNested(radicand)}</span></span>`;
-      }
-      if (command === "int") {
-        return '<span class="math-integral">&int;</span>';
-      }
-      if (command === "thinspace") {
-        return '<span class="math-thin-space"></span>';
-      }
-      if (
-        [
-          "sin",
-          "cos",
-          "tan",
-          "cot",
-          "sec",
-          "csc",
-          "ln",
-          "arctan",
-          "arcsin",
-          "arccos",
-        ].includes(command)
-      ) {
-        return mathClass("math-func", command);
-      }
-      return escapeHtml(`\\${command}`);
-    }
-
-    function renderUntil(stopChar) {
-      let html = "";
-      while (index < source.length && (!stopChar || peek() !== stopChar)) {
-        const char = peek();
-        if (char === "\\") {
-          html += renderCommand(consumeCommand());
-          continue;
-        }
-        if (char === "{") {
-          consume(1);
-          html += renderUntil("}");
-          if (peek() === "}") {
-            consume(1);
-          }
-          continue;
-        }
-        if (char === "^") {
-          consume(1);
-          const exponent = consumeGroup();
-          html += `<sup class="math-sup">${renderNested(exponent)}</sup>`;
-          continue;
-        }
-        if (char === "(" || char === ")") {
-          html += mathClass("math-paren", escapeHtml(consume(1)));
-          continue;
-        }
-        if (char === "[" || char === "]") {
-          html += mathClass("math-bracket", escapeHtml(consume(1)));
-          continue;
-        }
-        if (char === "|") {
-          html += mathClass("math-bar", consume(1));
-          continue;
-        }
-        if (char === "+" || char === "=") {
-          html += mathClass("math-op", consume(1));
-          continue;
-        }
-        if (char === "-") {
-          html += mathClass("math-op", "&minus;");
-          consume(1);
-          continue;
-        }
-        if (/\d/.test(char)) {
-          const match = /^\d+/.exec(source.slice(index));
-          consume(match[0].length);
-          html += mathClass("math-num", match[0]);
-          continue;
-        }
-        if (/[A-Za-z]/.test(char)) {
-          const letter = consume(1);
-          if (letter === "d" && /[A-Za-z]/.test(peek())) {
-            html += mathClass("math-d", "d");
-            continue;
-          }
-          html += mathClass("math-var", escapeHtml(letter));
-          continue;
-        }
-        if (/\s/.test(char)) {
-          consume(1);
-          html += " ";
-          continue;
-        }
-        html += escapeHtml(consume(1));
-      }
+    const extraClasses = escapeClassName(settings.className);
+    if (!extraClasses) {
       return html;
     }
-
-    const html = renderUntil("");
-    return settings.bare ? html : mathExpression(html, settings);
+    const modeClass = displayMode ? "math-block" : "math-inline";
+    return `<span class="${modeClass} ${extraClasses}">${html}</span>`;
   }
 
   function standardExpression(value) {
