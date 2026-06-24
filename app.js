@@ -106,23 +106,30 @@
 
     const open = Boolean(isOpen);
     els.mobileSectionNav.hidden = !open;
-    [els.mobileMenuToggle, els.mobileQuickNavButton].forEach((button) => {
-      if (button) {
-        button.setAttribute("aria-expanded", String(open));
-      }
-    });
+    if (els.mobileMenuToggle) {
+      els.mobileMenuToggle.setAttribute("aria-expanded", String(open));
+    }
   }
 
   function toggleMobileNav() {
     setMobileNavOpen(els.mobileSectionNav.hidden);
   }
 
-  function bindMobileNavigation() {
-    [els.mobileMenuToggle, els.mobileQuickNavButton].forEach((button) => {
-      if (button) {
-        button.addEventListener("click", toggleMobileNav);
-      }
+  function scrollToTop() {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
     });
+  }
+
+  function bindMobileNavigation() {
+    if (els.mobileMenuToggle) {
+      els.mobileMenuToggle.addEventListener("click", toggleMobileNav);
+    }
+
+    if (els.mobileQuickNavButton) {
+      els.mobileQuickNavButton.addEventListener("click", scrollToTop);
+    }
 
     mobileNavLinks.forEach((link) => {
       link.addEventListener("click", () => {

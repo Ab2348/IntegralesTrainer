@@ -1,6 +1,7 @@
 @use "../abstracts/mixins";
 
 .topbar {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -10,8 +11,10 @@
 }
 
 .path {
+  min-width: 0;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   color: var(--muted);
   font-size: 0.9rem;
@@ -23,14 +26,47 @@
 
 .top-actions,
 .topbar-actions {
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+.top-actions .btn,
+.topbar-actions .btn {
+  white-space: nowrap;
+}
+
 @include mixins.media-max(980px) {
-  .topbar,
-  .top-actions {
+  .topbar {
     flex-wrap: wrap;
+  }
+
+  .top-actions,
+  .topbar-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@include mixins.media-max(560px) {
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .top-actions,
+  .topbar-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 42px 42px minmax(0, max-content);
+    align-items: center;
+  }
+
+  .top-actions .btn.primary,
+  .topbar-actions .btn.primary {
+    grid-column: 1 / -1;
+    justify-self: start;
+    max-width: 100%;
+    white-space: normal;
   }
 }
