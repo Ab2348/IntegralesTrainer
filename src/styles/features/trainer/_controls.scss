@@ -1,52 +1,30 @@
-.control-block {
-  display: grid;
-  gap: 7px;
-  margin-bottom: 14px;
-}
-
-.control-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.control-row .control-block {
-  margin-bottom: 0;
-}
-
 .family-fieldset {
   min-width: 0;
-  margin: 6px 0 20px;
+  margin: 0;
   padding: 0;
   border: 0;
 }
 
+.checks,
 .family-list {
   display: grid;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 10px;
 }
 
 .family-check {
   display: flex;
   align-items: center;
   gap: 9px;
-  min-height: 28px;
-  color: #9ba5a2;
-  font-size: 0.92rem;
-}
-
-.family-check:has(input:checked) {
-  color: #e3e5df;
+  color: #d7ddd9;
+  font-size: 0.9rem;
 }
 
 .family-check input {
   width: 16px;
-  min-height: 16px;
   height: 16px;
+  min-height: 16px;
   margin: 0;
-  accent-color: var(--accent);
+  accent-color: var(--gold);
 }
 
 .family-check-label {
@@ -56,16 +34,95 @@
   line-height: 1.2;
 }
 
-.family-check-label .math-expression,
+.family-check-label .katex,
 .family-math-label {
-  font-family: var(--math-font);
   font-size: 1.05em;
   line-height: 1;
 }
 
-.eyebrow .family-math-label {
-  margin-left: 0.18em;
-  color: #f3efe7;
-  font-size: 1.05em;
-  text-transform: none;
+.family-root > .collapsible-content {
+  padding-left: 0;
+}
+
+.family-group-list {
+  display: grid;
+  gap: 8px;
+  padding: 2px 0 2px 4px;
+}
+
+.collapsible {
+  min-width: 0;
+}
+
+.collapsible + .collapsible {
+  margin-top: 8px;
+}
+
+.collapsible-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  color: #e8ede8;
+  text-align: left;
+  background: rgba(15, 20, 25, 0.28);
+  border: 1px solid rgba(68, 81, 92, 0.56);
+  border-radius: 13px;
+  font-weight: 850;
+}
+
+.collapsible[data-level="2"] > .collapsible-trigger {
+  min-height: 38px;
+  color: #d9e1dc;
+  background: rgba(15, 20, 25, 0.22);
+}
+
+.collapsible[data-level="3"] > .collapsible-trigger,
+.collapsible[data-level="4"] > .collapsible-trigger {
+  min-height: 36px;
+  color: #d5ddd8;
+  background: rgba(15, 20, 25, 0.2);
+  border-color: rgba(68, 81, 92, 0.48);
+}
+
+.collapsible-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.collapsible-badge {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  color: #ffdcb1;
+  background: rgba(232, 198, 154, 0.13);
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.collapsible-chevron {
+  flex: 0 0 auto;
+  color: var(--gold);
+  transition: transform 160ms ease;
+}
+
+[aria-expanded="false"] > .collapsible-chevron,
+[aria-expanded="false"] .collapsible-chevron {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  display: grid;
+  gap: 8px;
+  padding: 9px 0 0 10px;
+}
+
+.static-collapsible-header {
+  cursor: default;
+}
+
+.static-collapsible-header:hover {
+  background: rgba(15, 20, 25, 0.28);
 }

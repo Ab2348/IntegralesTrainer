@@ -1,34 +1,36 @@
-@use "../abstracts/breakpoints";
 @use "../abstracts/mixins";
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding-bottom: 24px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--line);
+  gap: 18px;
+  padding: 22px 24px;
+  border-bottom: 1px solid rgba(68, 81, 92, 0.55);
 }
 
+.path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.path b {
+  color: var(--text);
+}
+
+.top-actions,
 .topbar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-@include mixins.media-max(breakpoints.$mobile) {
-  .topbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .topbar-actions {
-    justify-content: space-between;
-    width: 100%;
-  }
-
-  h1 {
-    font-size: 2rem;
+@include mixins.media-max(980px) {
+  .topbar,
+  .top-actions {
+    flex-wrap: wrap;
   }
 }

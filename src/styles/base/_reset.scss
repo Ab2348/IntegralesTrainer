@@ -13,7 +13,7 @@ button {
 }
 
 button:disabled {
-  cursor: not-allowed;
+  cursor: default;
 }
 
 h1,
@@ -21,6 +21,22 @@ h2,
 h3,
 p,
 dl,
-dd {
+dd,
+ol,
+fieldset {
   margin: 0;
+}
+
+fieldset {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+a {
+  color: inherit;
+}
+
+[hidden] {
+  display: none !important;
 }

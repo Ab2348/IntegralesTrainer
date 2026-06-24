@@ -49,6 +49,7 @@
   const statsPanel = App.createStatsPanel({ Core, els, stateStore });
   const formulaPanel = App.createFormulaPanel({ Core, els });
   const answerController = App.createAnswerController({
+    Core,
     exerciseView,
     getCurrentExercise: () => currentExercise,
     getAnswered: () => answered,
@@ -136,7 +137,7 @@
     });
 
     window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 821px)").matches) {
+      if (window.matchMedia("(min-width: 981px)").matches) {
         setMobileNavOpen(false);
       }
     });

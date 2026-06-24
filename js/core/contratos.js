@@ -162,15 +162,16 @@
       familyId: source.familyId || "",
       templateId: source.templateId || "",
       variantId: source.variantId || "",
-      title: source.title || "",
-      titleHtml: source.titleHtml || "",
-      message: source.message || "",
-      messageHtml: source.messageHtml || "",
-      hint: source.hint || "",
-      hintHtml: source.hintHtml || "",
+      title: source.title || source.titleContent || "",
+      message: source.message || source.messageContent || "",
+      hint: source.hint || source.hintContent || "",
       severity: source.severity || "basic",
-      detailsHtml:
-        typeof source.detailsHtml === "function" ? source.detailsHtml : null,
+      details:
+        typeof source.details === "function"
+          ? source.details
+          : typeof source.detailsContent === "function"
+            ? source.detailsContent
+            : null,
       metadata: cloneObject(source.metadata),
     };
   }

@@ -1,287 +1,339 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Entrenador de integrales trigonométricas</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Maqueta escritorio V1.5 - Entrenador de integrales</title>
+    <link rel="stylesheet" href="../vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="stylesvisual.css" />
-
-    <!-- Solo para renderizar fórmulas, no contiene lógica del entrenador -->
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
-    ></script>
   </head>
-
   <body>
-    <div class="app">
-      <header class="topbar">
-        <div>
-          <span class="eyebrow">Práctica local</span>
-          <h1>Entrenador de integrales trigonométricas</h1>
-        </div>
-
-        <button class="ghost-button">Reiniciar progreso</button>
-      </header>
-
-      <section class="layout">
-        <!-- Panel izquierdo -->
-        <aside class="panel controls">
-          <div class="panel-title">
-            <span>Configuración</span>
+    <main class="app">
+      <section class="shell">
+        <aside class="panel sidebar">
+          <div class="brand">
+            <div class="logo">∫</div>
+            <h1><span>Entrenador de</span><br />integrales trigonométricas</h1>
           </div>
 
-          <label class="field">
-            <span>Modo</span>
-            <select>
-              <option>Intermedio</option>
-            </select>
-          </label>
+          <section class="nav-section">
+            <p class="nav-title">Principal</p>
+            <button class="nav-item active" type="button">
+              <span>⌂</span>Inicio
+            </button>
+          </section>
 
-          <label class="field">
-            <span>Dificultad</span>
-            <select>
-              <option>Nivel 1</option>
-            </select>
-          </label>
+          <section class="nav-section">
+            <p class="nav-title">Entrenar</p>
+            <button class="nav-item" type="button">
+              <span>◉</span>Entrenar <span class="chev">⌃</span>
+            </button>
+            <button class="nav-sub active" type="button">
+              Ejercicio aleatorio
+            </button>
+            <button class="nav-sub" type="button">Por tema</button>
+            <button class="nav-sub" type="button">Por técnica</button>
+            <button class="nav-sub" type="button">Modo examen</button>
+          </section>
 
-          <div class="field-grid">
-            <label class="field">
-              <span>Min</span>
-              <input type="text" value="-10" />
-            </label>
+          <section class="nav-section">
+            <p class="nav-title">Consulta</p>
+            <button class="nav-item" type="button">
+              <span>▣</span>Fórmulas <span class="chev">⌄</span>
+            </button>
+            <div
+              class="sidebar-formula-catalog"
+              id="sidebarFormulaAccordion"
+              aria-label="Catálogo de fórmulas"
+            ></div>
+          </section>
 
-            <label class="field">
-              <span>Max</span>
-              <input type="text" value="10" />
-            </label>
+          <section class="nav-section">
+            <p class="nav-title">Seguimiento</p>
+            <button class="nav-item" type="button">
+              <span>◷</span>Progreso <span class="chev">⌄</span>
+            </button>
+            <button class="nav-sub" type="button">Estadísticas</button>
+            <button class="nav-sub" type="button">Historial</button>
+            <button class="nav-sub" type="button">Errores frecuentes</button>
+          </section>
+
+          <div class="sidebar-footer">
+            <button class="nav-item" type="button">
+              <span>⚙</span>Ajustes
+            </button>
+            <div class="small-card">
+              <strong>V1.5 preview</strong>
+              <p>
+                Maqueta visual conectada a la lógica local del entrenador para
+                probar flujo, respuestas, retroalimentación y progreso.
+              </p>
+            </div>
           </div>
-
-          <label class="field">
-            <span>Opciones</span>
-            <select>
-              <option>4</option>
-            </select>
-          </label>
-
-          <div class="family-block">
-            <span class="group-label">Familias</span>
-
-            <label class="check-row checked">
-              <input type="checkbox" checked />
-              <span>sin</span>
-            </label>
-
-            <label class="check-row checked">
-              <input type="checkbox" checked />
-              <span>cos</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>tan</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>cot</span>
-            </label>
-
-            <label class="check-row checked">
-              <input type="checkbox" checked />
-              <span>sec²</span>
-            </label>
-
-            <label class="check-row checked">
-              <input type="checkbox" checked />
-              <span>csc²</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>sec tan</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>csc cot</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>sec</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>csc</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>arctan</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>arcsin</span>
-            </label>
-
-            <label class="check-row">
-              <input type="checkbox" />
-              <span>arccos</span>
-            </label>
-          </div>
-
-          <button class="primary-button">Siguiente ejercicio</button>
         </aside>
 
-        <!-- Centro -->
-        <main class="practice">
-          <div class="practice-header">
-            <div>
-              <span class="eyebrow">Familia sec²</span>
-              <h2>Integral actual</h2>
+        <section class="panel main">
+          <header class="topbar">
+            <div class="path">
+              Inicio / Entrenar / <b>Ejercicio aleatorio</b>
+            </div>
+            <div class="top-actions">
+              <button
+                class="icon-btn"
+                id="mobileMenuToggle"
+                type="button"
+                aria-controls="mobileSectionNav"
+                aria-expanded="false"
+                aria-label="Abrir navegación móvil"
+              >
+                ☰
+              </button>
+              <button class="icon-btn" type="button" aria-label="Tema oscuro">
+                ☾
+              </button>
+              <button class="btn" id="resetStatsButton" type="button">
+                Reiniciar
+              </button>
+              <button class="btn primary" id="nextExerciseButton" type="button">
+                Nuevo ejercicio
+              </button>
+            </div>
+          </header>
+
+          <nav
+            class="mobile-section-nav"
+            id="mobileSectionNav"
+            aria-label="Navegación móvil"
+            hidden
+          >
+            <a href="#practicePanel">Ejercicio</a>
+            <a href="#controlsPanel">Configuración</a>
+            <a href="#statsPanel">Estadísticas</a>
+            <a href="#formulaPanel">Fórmulas</a>
+          </nav>
+
+          <div class="workspace">
+            <section id="practicePanel" aria-label="Práctica">
+              <article class="exercise-card">
+                <div class="card-head">
+                  <div>
+                    <div class="kicker" id="familyLabel">Integral actual</div>
+                    <h2 id="exerciseTitle">Ejercicio aleatorio</h2>
+                  </div>
+                  <span class="pill" id="difficultyLabel">Nivel 1</span>
+                </div>
+
+                <div class="mathbox">
+                  <div
+                    class="math math-display"
+                    id="exerciseDisplay"
+                    aria-live="polite"
+                  ></div>
+                </div>
+
+                <div class="exercise-actions">
+                  <button class="verify" data-next-exercise-proxy type="button">
+                    Siguiente ejercicio
+                  </button>
+                </div>
+
+                <div
+                  class="options"
+                  id="optionsContainer"
+                  aria-label="Opciones de respuesta"
+                ></div>
+
+                <section
+                  class="feedback feedback-zone"
+                  id="feedbackZone"
+                  aria-live="polite"
+                ></section>
+
+                <button
+                  class="btn derivation-toggle hidden"
+                  id="derivationButton"
+                  type="button"
+                  aria-expanded="false"
+                >
+                  Ver derivación
+                </button>
+                <section
+                  class="derivation-zone hidden"
+                  id="derivationZone"
+                  aria-label="Derivación"
+                ></section>
+              </article>
+            </section>
+
+            <aside
+              class="settings-card"
+              id="controlsPanel"
+              aria-label="Configuración"
+            >
+              <div class="card-head compact-head">
+                <div>
+                  <div class="kicker">Configuración rápida</div>
+                  <h2>Sesión</h2>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="modeSelect">Modo</label>
+                <select id="modeSelect">
+                  <option value="basic">Básico</option>
+                  <option value="intermediate">Intermedio</option>
+                  <option value="products">Productos</option>
+                  <option value="logarithmic">Logarítmico</option>
+                  <option value="inverse">Inversas</option>
+                  <option value="mixed">Mixto</option>
+                  <option value="custom">Personalizado</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label class="label" for="difficultySelect">Nivel</label>
+                <select id="difficultySelect">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+
+              <input id="rangeMinInput" type="hidden" value="-10" />
+              <input id="rangeMaxInput" type="hidden" value="10" />
+              <select id="optionCountSelect" hidden>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+
+              <fieldset class="field family-fieldset">
+                <legend class="label">Familias activas</legend>
+                <div class="checks" id="familyChecklist"></div>
+              </fieldset>
+
+              <button
+                class="btn primary"
+                data-next-exercise-proxy
+                type="button"
+              >
+                Aplicar cambios
+              </button>
+            </aside>
+          </div>
+        </section>
+
+        <aside
+          class="panel right"
+          id="statsPanel"
+          aria-label="Panel de estadísticas"
+        >
+          <section class="right-card">
+            <div class="card-head">
+              <div>
+                <div class="kicker">Progreso</div>
+                <h2>Resumen</h2>
+              </div>
+              <span class="pill">Hoy</span>
             </div>
 
-            <span class="level-pill">Nivel 1</span>
-          </div>
-
-          <section class="integral-card">
-            <div class="formula">\[ \int -\sec^2(x)\,dx \]</div>
+            <dl class="statgrid">
+              <div class="stat">
+                <dt>Respondidas</dt>
+                <dd id="totalAnswered">0</dd>
+              </div>
+              <div class="stat">
+                <dt>Acierto</dt>
+                <dd id="accuracyRate">0%</dd>
+              </div>
+              <div class="stat">
+                <dt>Correctas</dt>
+                <dd id="totalCorrect">0</dd>
+              </div>
+              <div class="stat">
+                <dt>Errores</dt>
+                <dd id="totalIncorrect">0</dd>
+              </div>
+            </dl>
           </section>
 
-          <section class="options-grid">
-            <button class="option-card">
-              <span class="option-label">Opción 1</span>
-              <span class="option-formula">\(-\sin(x)+C\)</span>
-            </button>
+          <section class="right-card">
+            <div class="card-head">
+              <div>
+                <div class="kicker">Errores frecuentes</div>
+                <h2>Diagnóstico</h2>
+              </div>
+            </div>
 
-            <button class="option-card">
-              <span class="option-label">Opción 2</span>
-              <span class="option-formula">\(-\ln|\sec(x)+\tan(x)|+C\)</span>
-            </button>
-
-            <button class="option-card selected-wrong">
-              <span class="option-label">Opción 3</span>
-              <span class="option-formula">\(-\arccos(x)+C\)</span>
-            </button>
-
-            <button class="option-card correct">
-              <span class="option-label">Opción 4</span>
-              <span class="option-formula">\(-\tan(x)+C\)</span>
-            </button>
+            <ol class="list" id="errorList"></ol>
+            <h3 class="mini-title">Familias con errores</h3>
+            <ol class="list" id="familyErrorList"></ol>
           </section>
 
-          <section class="feedback-card error">
-            <div class="feedback-heading">
-              <span class="status-dot"></span>
+          <section
+            class="right-card"
+            id="formulaPanel"
+            aria-label="Fórmula aplicable"
+          >
+            <div class="card-head">
               <div>
-                <h3>Incorrecto: familia incorrecta</h3>
-                <p>Usaste una familia incorrecta como antiderivada.</p>
+                <div class="kicker">Fórmula aplicable</div>
+                <h2>Ejercicio actual</h2>
               </div>
             </div>
 
-            <p>
-              En este ejercicio el integrando usa
-              <strong>\(f(u)=\sec^2(u)\)</strong>, cuya antiderivada base es
-              <strong>\(F(u)=\tan(u)\)</strong>. Por eso la respuesta debe usar
-              <strong>\(F(u)\)</strong>, no la familia que elegiste.
-            </p>
-
-            <div class="divider"></div>
-
-            <span class="section-label">Para este ejercicio</span>
-
-            <div class="data-strip">
-              <div>
-                <span>A</span>
-                <strong>-1</strong>
-              </div>
-
-              <div>
-                <span>u</span>
-                <strong>x</strong>
-              </div>
-
-              <div>
-                <span>u'</span>
-                <strong>1</strong>
-              </div>
-            </div>
-
-            <div class="rule-box">
-              <p>La regla base es:</p>
-              <div>\[ \int \sec^2(u)\,du=\tan(u)+C \]</div>
-
-              <p>Por lo tanto:</p>
-              <div>\[ \int A\,f(kx+b)\,dx=\frac{A}{k}F(kx+b)+C \]</div>
-
-              <p>En este caso:</p>
-              <div>\[ -\tan(x)+C \]</div>
-            </div>
+            <div
+              class="formula-list current-formula-list"
+              id="formulaAccordion"
+              aria-label="Fórmula del ejercicio actual"
+            ></div>
           </section>
-
-          <button class="secondary-button">Ver derivación</button>
-        </main>
-
-        <!-- Panel derecho -->
-        <aside class="panel stats">
-          <div class="panel-title">
-            <span>Estadísticas</span>
-          </div>
-
-          <div class="stat-grid">
-            <article class="stat-card">
-              <span>Respondidas</span>
-              <strong>8</strong>
-            </article>
-
-            <article class="stat-card">
-              <span>Correctas</span>
-              <strong>3</strong>
-            </article>
-
-            <article class="stat-card">
-              <span>Incorrectas</span>
-              <strong>5</strong>
-            </article>
-
-            <article class="stat-card">
-              <span>Acierto</span>
-              <strong>38%</strong>
-            </article>
-          </div>
-
-          <div class="metric-section">
-            <h3>Errores</h3>
-
-            <div class="metric-row">
-              <span>Familia incorrecta</span>
-              <strong>3</strong>
-            </div>
-
-            <div class="metric-row">
-              <span>Signo base incorrecto</span>
-              <strong>2</strong>
-            </div>
-          </div>
-
-          <div class="metric-section">
-            <h3>Familias</h3>
-
-            <div class="metric-row">
-              <span>cos</span>
-              <strong>3</strong>
-            </div>
-
-            <div class="metric-row">
-              <span>sec²</span>
-              <strong>2</strong>
-            </div>
-          </div>
         </aside>
       </section>
-    </div>
+    </main>
+
+    <button
+      class="mobile-quick-nav"
+      id="mobileQuickNavButton"
+      type="button"
+      aria-controls="mobileSectionNav"
+      aria-expanded="false"
+      aria-label="Abrir menú de secciones"
+    >
+      ☰
+    </button>
+
+    <script src="../js/core/taxonomia.js"></script>
+    <script src="../js/core/contratos.js"></script>
+    <script src="../vendor/katex/katex.min.js"></script>
+    <script src="../js/core/math-renderer.js"></script>
+    <script src="../js/core/modelo-ejercicio.js"></script>
+    <script src="../js/core/opciones.js"></script>
+    <script src="../js/core/validacion.js"></script>
+    <script src="../js/core/retroalimentacion.js"></script>
+    <script src="../js/core/generador.js"></script>
+    <script src="../js/core/registro.js"></script>
+    <script src="../js/core/integraleslineales.js"></script>
+    <script src="../core.js"></script>
+    <script src="../js/app/state.js"></script>
+    <script src="../js/app/controls-panel.js"></script>
+    <script src="../js/app/exercise-view.js"></script>
+    <script src="../js/app/stats-panel.js"></script>
+    <script src="../js/app/formula-panel.js"></script>
+    <script src="../js/app/answer.js"></script>
+    <script src="../js/app/page-warning.js"></script>
+    <script src="prototype-visual.js"></script>
+    <script src="../app.js"></script>
+    <script>
+      document
+        .querySelectorAll("[data-next-exercise-proxy]")
+        .forEach((button) => {
+          button.addEventListener("click", () => {
+            document.getElementById("nextExerciseButton").click();
+          });
+        });
+    </script>
   </body>
 </html>

@@ -34,19 +34,6 @@
     correct: "Correcto",
   };
 
-  const ERROR_LABELS_HTML = {
-    "wrong-family": "Familia incorrecta",
-    "wrong-base-sign": "Signo base incorrecto",
-    "forgot-chain-factor": "Factor de cadena olvidado",
-    "ignored-negative-k":
-      'Signo de <span class="math-inline"><span class="math-var">k</span></span> ignorado',
-    "lost-external-sign": "Signo externo perdido",
-    "copied-integrand": "Forma del integrando copiada",
-    "lost-argument-shift": "Desplazamiento perdido",
-    "generic-coefficient-error": "Coeficiente incorrecto",
-    correct: "Correcto",
-  };
-
   const FAMILY_DEFINITIONS = [
     {
       id: "sin",
@@ -465,66 +452,6 @@
     return `${sign}\\frac{${Math.abs(value.n)}}{${value.d}}`;
   }
 
-  function minusHtml() {
-    return "&minus;";
-  }
-
-  function intHtml(value) {
-    return value < 0 ? `${minusHtml()}${Math.abs(value)}` : String(value);
-  }
-
-  function rationalHtml(value) {
-    if (value.d === 1) {
-      return `<span class="math-num">${intHtml(value.n)}</span>`;
-    }
-    const sign = value.n < 0 ? `${minusHtml()}` : "";
-    const absNum = Math.abs(value.n);
-    return `${sign}<span class="math-frac" aria-label="${rationalPlain(value)}"><span>${absNum}</span><span>${value.d}</span></span>`;
-  }
-
-  function varHtml(name) {
-    return `<span class="math-var">${name}</span>`;
-  }
-
-  function numHtml(value) {
-    return `<span class="math-num">${value}</span>`;
-  }
-
-  function opHtml(value) {
-    return `<span class="math-op">${value}</span>`;
-  }
-
-  function signHtml(value) {
-    return `<span class="math-sign">${value}</span>`;
-  }
-
-  function parensHtml(content) {
-    return `<span class="math-paren">(</span>${content}<span class="math-paren">)</span>`;
-  }
-
-  function funcHtml(name, argument, power) {
-    const exponent = power ? `<sup class="math-sup">${power}</sup>` : "";
-    const className = name.length === 1 ? "math-var" : "math-func";
-    return `<span class="${className}">${name}</span>${exponent}${parensHtml(argument)}`;
-  }
-
-  function absHtml(content) {
-    return `<span class="math-bar">|</span>${content}<span class="math-bar">|</span>`;
-  }
-
-  function sqrtHtml(content) {
-    return `<span class="math-sqrt"><span class="math-radical">&radic;</span><span class="math-radicand">${content}</span></span>`;
-  }
-
-  function fracHtml(numerator, denominator, label) {
-    const aria = label ? ` aria-label="${label}"` : "";
-    return `<span class="math-frac"${aria}><span>${numerator}</span><span>${denominator}</span></span>`;
-  }
-
-  function mathExpression(content) {
-    return `<span class="math-expression">${content}</span>`;
-  }
-
   function parensLatex(content) {
     return `\\left(${content}\\right)`;
   }
@@ -533,55 +460,38 @@
     return `\\left|${content}\\right|`;
   }
 
-  function escapeHtml(value) {
-    return String(value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
+  function mathInline(latex, plain) {
+    return MathRenderer.inlineMath
+      ? MathRenderer.inlineMath(latex, { plain })
+      : { type: "math", latex, plain: plain || "", display: "inline" };
   }
 
-  function plainMathHtml(value) {
-    const source = String(value || "").slice(0, 500);
-    const tokenPattern =
-      /\b(arctan|arcsin|arccos|sin|cos|tan|cot|sec|csc|sqrt|ln)\b|\bint\b|\bdx\b|\bC\b|\bx\b|-?\d+\/\d+/g;
-    let result = "";
-    let cursor = 0;
-    let match = tokenPattern.exec(source);
-    while (match) {
-      result += escapeHtml(source.slice(cursor, match.index));
-      const token = match[0];
-      if (token === "int") {
-        result += '<span class="math-integral small">&int;</span>';
-      } else if (token === "dx") {
-        result += differentialHtml("x");
-      } else if (token === "x" || token === "C") {
-        result += varHtml(token);
-      } else if (/^-?\d+\/\d+$/.test(token)) {
-        const parts = token.split("/");
-        result += rationalHtml(
-          rational(
-            Number.parseInt(parts[0], 10),
-            Number.parseInt(parts[1], 10),
-          ),
-        );
-      } else {
-        result += `<span class="math-func">${escapeHtml(token)}</span>`;
-      }
-      cursor = match.index + token.length;
-      match = tokenPattern.exec(source);
-    }
-    result += escapeHtml(source.slice(cursor));
-    return mathExpression(result);
+  function mathBlock(latex, plain) {
+    return MathRenderer.blockMath
+      ? MathRenderer.blockMath(latex, { plain })
+      : { type: "math", latex, plain: plain || "", display: "block" };
   }
 
-  function differentialHtml(variableName) {
-    return `<span class="math-d">d</span>${varHtml(variableName)}`;
+  function contentNode(type, className, children) {
+    return { type, className: className || "", children: children || [] };
   }
 
-  function plusCHtml() {
-    return `${opHtml("+")} ${varHtml("C")}`;
+  function plainMathLatex(value) {
+    return String(value || "")
+      .replace(/\bint\b/g, "\\int")
+      .replace(/\bdx\b/g, "\\,dx")
+      .replace(
+        /\b(arctan|arcsin|arccos|sin|cos|tan|cot|sec|csc|sqrt|ln)\b/g,
+        "\\$1",
+      );
+  }
+
+  function plainMathExpression(value) {
+    const plain = String(value || "");
+    return {
+      plain,
+      latex: plainMathLatex(plain),
+    };
   }
 
   function randomInt(min, max, rng) {
@@ -657,26 +567,6 @@
     return `${xPart} - ${Math.abs(b)}`;
   }
 
-  function formatArgumentHtml(kValue, bValue) {
-    const k = kValue.n;
-    const b = bValue.n;
-    let xPart;
-    if (k === 1) {
-      xPart = varHtml("x");
-    } else if (k === -1) {
-      xPart = `${signHtml(minusHtml())}${varHtml("x")}`;
-    } else {
-      xPart = `${intHtml(k)}${varHtml("x")}`;
-    }
-    if (b === 0) {
-      return xPart;
-    }
-    if (b > 0) {
-      return `${xPart} ${opHtml("+")} ${numHtml(b)}`;
-    }
-    return `${xPart} ${opHtml(minusHtml())} ${numHtml(Math.abs(b))}`;
-  }
-
   function formatArgumentLatex(kValue, bValue) {
     const k = kValue.n;
     const b = bValue.n;
@@ -705,7 +595,6 @@
       b,
       display: formatArgumentPlain(k, b),
       displayLatex: formatArgumentLatex(k, b),
-      displayHtml: formatArgumentHtml(k, b),
       key: `${rationalKey(k)}|${rationalKey(b)}`,
     };
   }
@@ -716,17 +605,8 @@
       b: rational(0, 1),
       display: symbol,
       displayLatex: symbol,
-      displayHtml: varHtml(symbol),
       key: symbol,
     };
-  }
-
-  function denominatorOnePlusUSquared(argumentHtml) {
-    return `${numHtml(1)} ${opHtml("+")} ${parensHtml(argumentHtml)}<sup class="math-sup">2</sup>`;
-  }
-
-  function denominatorOneMinusUSquared(argumentHtml) {
-    return `${numHtml(1)} ${opHtml(minusHtml())} ${parensHtml(argumentHtml)}<sup class="math-sup">2</sup>`;
   }
 
   function denominatorOnePlusUSquaredPlain(argumentPlain) {
@@ -735,54 +615,6 @@
 
   function denominatorOneMinusUSquaredPlain(argumentPlain) {
     return `1 - (${argumentPlain})^2`;
-  }
-
-  function coreHtml(core, argument) {
-    const u = argument.displayHtml;
-    switch (core) {
-      case "sin":
-      case "cos":
-      case "tan":
-      case "cot":
-      case "sec":
-      case "csc":
-      case "arctan":
-      case "arcsin":
-      case "arccos":
-        return funcHtml(core, u);
-      case "sec2":
-        return funcHtml("sec", u, 2);
-      case "csc2":
-        return funcHtml("csc", u, 2);
-      case "secTan":
-        return `${funcHtml("sec", u)}<span class="math-thin-space"></span>${funcHtml("tan", u)}`;
-      case "cscCot":
-        return `${funcHtml("csc", u)}<span class="math-thin-space"></span>${funcHtml("cot", u)}`;
-      case "lnAbsCos":
-        return `<span class="math-func">ln</span><span class="math-thin-space"></span>${absHtml(funcHtml("cos", u))}`;
-      case "lnAbsSin":
-        return `<span class="math-func">ln</span><span class="math-thin-space"></span>${absHtml(funcHtml("sin", u))}`;
-      case "lnAbsSecPlusTan":
-        return `<span class="math-func">ln</span><span class="math-thin-space"></span>${absHtml(`${funcHtml("sec", u)} ${opHtml("+")} ${funcHtml("tan", u)}`)}`;
-      case "lnAbsCscMinusCot":
-        return `<span class="math-func">ln</span><span class="math-thin-space"></span>${absHtml(`${funcHtml("csc", u)} ${opHtml(minusHtml())} ${funcHtml("cot", u)}`)}`;
-      case "atanDerivative":
-        return fracHtml(
-          numHtml(1),
-          denominatorOnePlusUSquared(u),
-          `1 / (${denominatorOnePlusUSquaredPlain(argument.display)})`,
-        );
-      case "asinDerivative":
-        return fracHtml(
-          numHtml(1),
-          sqrtHtml(denominatorOneMinusUSquared(u)),
-          `1 / sqrt(${denominatorOneMinusUSquaredPlain(argument.display)})`,
-        );
-      case "acosDerivative":
-        return `${signHtml(minusHtml())}${fracHtml(numHtml(1), sqrtHtml(denominatorOneMinusUSquared(u)), `-1 / sqrt(${denominatorOneMinusUSquaredPlain(argument.display)})`)}`;
-      default:
-        throw new Error(`Unknown core: ${core}`);
-    }
   }
 
   function corePlain(core, argument) {
@@ -867,23 +699,6 @@
     }
   }
 
-  function termHtml(coefficient, core, argument) {
-    const body = coreHtml(core, argument);
-    if (
-      NEGATIVE_CORES.has(core) &&
-      !(coefficient.n === 1 && coefficient.d === 1)
-    ) {
-      return `<span class="math-term">${rationalHtml(coefficient)}<span class="math-thin-space"></span>${parensHtml(body)}</span>`;
-    }
-    if (coefficient.n === 1 && coefficient.d === 1) {
-      return body;
-    }
-    if (coefficient.n === -1 && coefficient.d === 1) {
-      return `<span class="math-term">${signHtml(minusHtml())}<span class="math-thin-space"></span>${body}</span>`;
-    }
-    return `<span class="math-term">${rationalHtml(coefficient)}<span class="math-thin-space"></span>${body}</span>`;
-  }
-
   function termPlain(coefficient, core, argument) {
     const body = corePlain(core, argument);
     if (
@@ -918,35 +733,12 @@
     return `${rationalLatex(coefficient)} ${body}`;
   }
 
-  function expressionHtml(option) {
-    return mathExpression(
-      `${termHtml(option.coefficient, option.core, option.argument)} ${plusCHtml()}`,
-    );
-  }
-
   function expressionPlain(option) {
     return `${termPlain(option.coefficient, option.core, option.argument)} + C`;
   }
 
   function expressionLatex(option) {
     return `${termLatex(option.coefficient, option.core, option.argument)} + C`;
-  }
-
-  function integralTermHtml(family, coefficient, argument) {
-    if (family.integrandCore === "atanDerivative") {
-      const denominator = denominatorOnePlusUSquared(argument.displayHtml);
-      return fracHtml(rationalHtml(coefficient), denominator);
-    }
-    if (family.integrandCore === "asinDerivative") {
-      const denominator = sqrtHtml(
-        denominatorOneMinusUSquared(argument.displayHtml),
-      );
-      return fracHtml(rationalHtml(coefficient), denominator);
-    }
-    if (family.integrandCore === "acosDerivative") {
-      return termHtml(coefficient, "acosDerivative", argument);
-    }
-    return termHtml(coefficient, family.integrandCore, argument);
   }
 
   function integralTermPlain(family, coefficient, argument) {
@@ -975,30 +767,12 @@
     return termLatex(coefficient, family.integrandCore, argument);
   }
 
-  function integralHtml(exercise) {
-    return mathExpression(
-      `<span class="math-integral">&int;</span>${integralTermHtml(exercise.family, exercise.A, exercise.argument)}<span class="math-thin-space"></span>${differentialHtml("x")}`,
-    );
-  }
-
   function integralPlain(exercise) {
     return `int ${integralTermPlain(exercise.family, exercise.A, exercise.argument)} dx`;
   }
 
   function integralLatex(exercise) {
     return `\\int ${integralTermLatex(exercise.family, exercise.A, exercise.argument)}\\,dx`;
-  }
-
-  function familyIntegrandHtml(family) {
-    return coreHtml(family.integrandCore, createSymbolArgument("u"));
-  }
-
-  function familyAntiderivativeHtml(family) {
-    return termHtml(
-      rational(family.baseSign, 1),
-      family.baseCore,
-      createSymbolArgument("u"),
-    );
   }
 
   function familyAntiderivativePlain(family) {
@@ -1009,27 +783,25 @@
     );
   }
 
-  function antiderivativeWithArgumentHtml(family, argument) {
-    return termHtml(rational(family.baseSign, 1), family.baseCore, argument);
+  function familyAntiderivativeLatex(family) {
+    return termLatex(
+      rational(family.baseSign, 1),
+      family.baseCore,
+      createSymbolArgument("u"),
+    );
   }
 
   function antiderivativeWithArgumentPlain(family, argument) {
     return termPlain(rational(family.baseSign, 1), family.baseCore, argument);
   }
 
-  function baseRuleHtml(family) {
-    return mathExpression(
-      `<span class="math-integral small">&int;</span>${familyIntegrandHtml(family)}<span class="math-thin-space"></span>${differentialHtml("u")} ${opHtml("=")} ${familyAntiderivativeHtml(family)} ${plusCHtml()}`,
-    );
+  function baseRuleLatex(family) {
+    return `\\int ${coreLatex(family.integrandCore, createSymbolArgument("u"))}\\,du = ${familyAntiderivativeLatex(family)} + C`;
   }
 
-  function generalRuleHtml() {
-    const kxPlusB = `${varHtml("k")}${varHtml("x")} ${opHtml("+")} ${varHtml("b")}`;
-    const left = `${varHtml("A")} ${funcHtml("f", kxPlusB)}`;
-    const right = `${fracHtml(varHtml("A"), varHtml("k"))}<span class="math-thin-space"></span>${funcHtml("F", kxPlusB)} ${plusCHtml()}`;
-    return mathExpression(
-      `<span class="math-integral small">&int;</span>${left}<span class="math-thin-space"></span>${differentialHtml("x")} ${opHtml("=")} ${right}`,
-    );
+  function generalRuleLatex() {
+    const argument = "kx + b";
+    return `\\int A f\\left(${argument}\\right)\\,dx = \\frac{A}{k} F\\left(${argument}\\right) + C`;
   }
 
   function symbolicLinearArgument() {
@@ -1038,19 +810,14 @@
       b: rational(0, 1),
       display: "kx + b",
       displayLatex: "kx + b",
-      displayHtml: `${varHtml("k")}${varHtml("x")} ${opHtml("+")} ${varHtml("b")}`,
       key: "kx+b",
     };
   }
 
-  function linearFormulaHtml(family) {
+  function linearFormulaLatex(family) {
     const argument = symbolicLinearArgument();
-    const left = coreHtml(family.integrandCore, argument);
-    const sign = family.baseSign < 0 ? `${signHtml(minusHtml())}` : "";
-    const right = `${sign}${fracHtml(numHtml(1), varHtml("k"))}<span class="math-thin-space"></span>${coreHtml(family.baseCore, argument)} ${plusCHtml()}`;
-    return mathExpression(
-      `<span class="math-integral small">&int;</span>${left}<span class="math-thin-space"></span>${differentialHtml("x")} ${opHtml("=")} ${right}`,
-    );
+    const coefficient = family.baseSign < 0 ? "-\\frac{1}{k}" : "\\frac{1}{k}";
+    return `\\int ${coreLatex(family.integrandCore, argument)}\\,dx = ${coefficient} ${coreLatex(family.baseCore, argument)} + C`;
   }
 
   function linearFormulaPlain(family) {
@@ -1063,47 +830,52 @@
     return FAMILY_DEFINITIONS.map((family) => ({
       id: family.id,
       name: family.name,
-      labelHtml: familyLabelHtml(family),
+      labelLatex: familyLabelLatex(family),
       basePlain: `int ${family.fDisplay} du = ${family.FDisplay} + C`,
-      baseHtml: baseRuleHtml(family),
+      baseLatex: baseRuleLatex(family),
       linearPlain: linearFormulaPlain(family),
-      linearHtml: linearFormulaHtml(family),
+      linearLatex: linearFormulaLatex(family),
     }));
   }
 
-  function familyLabelHtml(familyOrId) {
+  function familyLabelLatex(familyOrId) {
     const family =
       typeof familyOrId === "string" ? FAMILY_MAP[familyOrId] : familyOrId;
     if (!family) {
       return "";
     }
-
-    const func = (name, power) => {
-      const exponent = power ? `<sup class="math-sup">${power}</sup>` : "";
-      return `<span class="math-func">${name}</span>${exponent}`;
-    };
-
     const labels = {
-      sin: func("sin"),
-      cos: func("cos"),
-      tan: func("tan"),
-      cot: func("cot"),
-      sec2: func("sec", 2),
-      csc2: func("csc", 2),
-      secTan: `${func("sec")}<span class="math-thin-space"></span>${func("tan")}`,
-      cscCot: `${func("csc")}<span class="math-thin-space"></span>${func("cot")}`,
-      sec: func("sec"),
-      csc: func("csc"),
-      arctan: func("arctan"),
-      arcsin: func("arcsin"),
-      arccos: func("arccos"),
+      sin: "\\sin",
+      cos: "\\cos",
+      tan: "\\tan",
+      cot: "\\cot",
+      sec2: "\\sec^2",
+      csc2: "\\csc^2",
+      secTan: "\\sec\\tan",
+      cscCot: "\\csc\\cot",
+      sec: "\\sec",
+      csc: "\\csc",
+      arctan: "\\arctan",
+      arcsin: "\\arcsin",
+      arccos: "\\arccos",
     };
-
-    return `<span class="math-expression family-math-label">${labels[family.id] || family.name}</span>`;
+    return labels[family.id] || family.name;
   }
 
-  function errorLabelHtml(errorTag) {
-    return ERROR_LABELS_HTML[errorTag] || ERROR_LABELS[errorTag] || errorTag;
+  function familyLabelExpression(familyOrId) {
+    return {
+      plain:
+        (typeof familyOrId === "string" ? FAMILY_MAP[familyOrId] : familyOrId)
+          ?.name || "",
+      latex: familyLabelLatex(familyOrId),
+    };
+  }
+
+  function errorLabelContent(errorTag) {
+    if (errorTag === "ignored-negative-k") {
+      return ["Signo de ", mathInline("k"), " ignorado"];
+    }
+    return [ERROR_LABELS[errorTag] || errorTag];
   }
 
   function optionKey(coefficient, core, argument) {
@@ -1113,7 +885,6 @@
   function createOption(params) {
     const displayPlain = expressionPlain(params);
     const displayLatex = expressionLatex(params);
-    const displayHtml = expressionHtml(params);
     const option = {
       id: params.id || `opt-${Math.random().toString(36).slice(2)}`,
       value: displayPlain,
@@ -1128,12 +899,10 @@
       rendererId: TRIG_LINEAR_RENDERER_ID,
       displayPlain,
       displayLatex,
-      displayHtml,
       displayExpression: displayPlain,
       display: {
         plain: displayPlain,
         latex: displayLatex,
-        html: displayHtml,
       },
       debugData: params.debugData || {},
       metadata: params.metadata || {},
@@ -1215,7 +984,7 @@
     };
   }
 
-  function errorExampleMathHtml(example) {
+  function errorExampleMath(example) {
     try {
       if (!example || !example.exerciseMath || !example.chosenMath) {
         return null;
@@ -1242,9 +1011,18 @@
         argument,
       };
       return {
-        exerciseHtml: integralHtml(exercise),
-        chosenHtml: expressionHtml(restoreOptionSnapshot(example.chosenMath)),
-        correctHtml: expressionHtml(correctOption),
+        exercise: {
+          plain: integralPlain(exercise),
+          latex: integralLatex(exercise),
+        },
+        chosen: {
+          plain: expressionPlain(restoreOptionSnapshot(example.chosenMath)),
+          latex: expressionLatex(restoreOptionSnapshot(example.chosenMath)),
+        },
+        correct: {
+          plain: expressionPlain(correctOption),
+          latex: expressionLatex(correctOption),
+        },
       };
     } catch (error) {
       return null;
@@ -1257,7 +1035,6 @@
       : {
           plain: exercise.integrandExpression || "",
           latex: exercise.integrandLatex || "",
-          html: exercise.integrandHtml || "",
         };
   }
 
@@ -1267,7 +1044,6 @@
       : {
           plain: option.displayPlain || option.displayExpression || "",
           latex: option.displayLatex || "",
-          html: option.displayHtml || "",
         };
   }
 
@@ -1519,11 +1295,9 @@
     };
     exercise.integrandExpression = integralPlain(exercise);
     exercise.integrandLatex = integralLatex(exercise);
-    exercise.integrandHtml = integralHtml(exercise);
     exercise.integralShown = {
       plain: exercise.integrandExpression,
       latex: exercise.integrandLatex,
-      html: exercise.integrandHtml,
     };
     const optionSet = buildOptions(
       exercise,
@@ -1701,7 +1475,6 @@
           return {
             plain: integralPlain(exercise),
             latex: integralLatex(exercise),
-            html: integralHtml(exercise),
           };
         },
         buildCorrectAnswer: buildCorrectOption,
@@ -1767,34 +1540,32 @@
     }
     MathRenderer.registerRenderer({
       id: TRIG_LINEAR_RENDERER_ID,
-      renderIntegral(exercise) {
+      serializeIntegral(exercise) {
         return {
           plain: integralPlain(exercise),
           latex: integralLatex(exercise),
-          html: integralHtml(exercise),
         };
       },
-      renderOption(option) {
+      serializeOption(option) {
         return {
           plain: option.displayPlain || expressionPlain(option),
           latex: option.displayLatex || expressionLatex(option),
-          html: option.displayHtml || expressionHtml(option),
         };
       },
-      renderFeedbackHtml(exercise, chosen) {
-        return feedbackHtml(exercise, chosen);
+      renderFeedbackContent(exercise, chosen) {
+        return feedbackContent(exercise, chosen);
       },
-      renderDerivationHtml(exercise) {
-        return derivationHtml(exercise);
+      renderDerivationContent(exercise) {
+        return derivationContent(exercise);
       },
-      renderFamilyLabelHtml(family) {
-        return familyLabelHtml(family);
+      renderFamilyLabel(family) {
+        return familyLabelExpression(family);
       },
       renderFormulaCatalog() {
         return formulaCatalog();
       },
-      renderErrorExampleMathHtml(example) {
-        return errorExampleMathHtml(example);
+      renderErrorExampleMath(example) {
+        return errorExampleMath(example);
       },
     });
   }
@@ -1862,87 +1633,133 @@
 
   function feedbackVariables(exercise, chosen) {
     const aOverK = divide(exercise.A, exercise.k);
-    const substitutionRightHtml = `${termHtml(exercise.correctCoefficient, exercise.family.baseCore, exercise.argument)} ${plusCHtml()}`;
+    const substitutionRightLatex = `${termLatex(exercise.correctCoefficient, exercise.family.baseCore, exercise.argument)} + C`;
     const substitutionRightPlain = `${termPlain(exercise.correctCoefficient, exercise.family.baseCore, exercise.argument)} + C`;
+    const fULatex = coreLatex(exercise.family.integrandCore, createSymbolArgument("u"));
+    const FULatex = familyAntiderivativeLatex(exercise.family);
+    const FWithArgumentLatex = termLatex(
+      rational(exercise.family.baseSign, 1),
+      exercise.family.baseCore,
+      exercise.argument,
+    );
+    const baseRule = `int ${exercise.family.fDisplay} du = ${exercise.family.FDisplay} + C`;
+    const baseRuleLatexValue = baseRuleLatex(exercise.family);
+    const generalRuleLatexValue = generalRuleLatex();
+    const substitutionExpression = `${exercise.integrandExpression} = ${substitutionRightPlain}`;
+    const substitutionExpressionLatex = `${integralLatex(exercise)} = ${substitutionRightLatex}`;
+    const correctExpressionLatex =
+      exercise.correctAnswer.displayLatex || expressionLatex(exercise.correctAnswer);
+    const chosenExpressionLatex = chosen
+      ? chosen.displayLatex || expressionLatex(chosen)
+      : "";
     return {
       A: rationalPlain(exercise.A),
-      AHtml: rationalHtml(exercise.A),
+      ALatex: rationalLatex(exercise.A),
+      AMath: mathInline(rationalLatex(exercise.A), rationalPlain(exercise.A)),
       k: rationalPlain(exercise.k),
-      kHtml: rationalHtml(exercise.k),
+      kLatex: rationalLatex(exercise.k),
+      kMath: mathInline(rationalLatex(exercise.k), rationalPlain(exercise.k)),
       b: rationalPlain(exercise.b),
-      bHtml: rationalHtml(exercise.b),
+      bLatex: rationalLatex(exercise.b),
+      bMath: mathInline(rationalLatex(exercise.b), rationalPlain(exercise.b)),
       u: exercise.argument.display,
-      uHtml: exercise.argument.displayHtml,
+      uLatex: exercise.argument.displayLatex,
+      uMath: mathInline(exercise.argument.displayLatex, exercise.argument.display),
       fU: exercise.family.fDisplay,
-      fUHtml: familyIntegrandHtml(exercise.family),
+      fULatex,
+      fUMath: mathInline(fULatex, exercise.family.fDisplay),
       FU: exercise.family.FDisplay,
-      FUHtml: familyAntiderivativeHtml(exercise.family),
+      FULatex,
+      FUMath: mathInline(FULatex, exercise.family.FDisplay),
       FWithArgument: antiderivativeWithArgumentPlain(
         exercise.family,
         exercise.argument,
       ),
-      FWithArgumentHtml: antiderivativeWithArgumentHtml(
-        exercise.family,
-        exercise.argument,
-      ),
-      baseRule: `int ${exercise.family.fDisplay} du = ${exercise.family.FDisplay} + C`,
-      baseRuleHtml: baseRuleHtml(exercise.family),
+      FWithArgumentLatex,
+      FWithArgumentMath: mathInline(FWithArgumentLatex),
+      baseRule,
+      baseRuleLatex: baseRuleLatexValue,
+      baseRuleMath: mathBlock(baseRuleLatexValue, baseRule),
       generalRule: "int A f(kx + b) dx = (A/k) F(kx + b) + C",
-      generalRuleHtml: generalRuleHtml(),
+      generalRuleLatex: generalRuleLatexValue,
+      generalRuleMath: mathBlock(generalRuleLatexValue),
       AOverK: rationalPlain(aOverK),
-      AOverKHtml: rationalHtml(aOverK),
+      AOverKLatex: rationalLatex(aOverK),
+      AOverKMath: mathInline(rationalLatex(aOverK), rationalPlain(aOverK)),
       currentIntegral: exercise.integrandExpression,
-      currentIntegralHtml: exercise.integrandHtml,
-      substitutionExpression: `${exercise.integrandExpression} = ${substitutionRightPlain}`,
-      substitutionExpressionHtml: mathExpression(
-        `${integralHtml(exercise)} ${opHtml("=")} ${substitutionRightHtml}`,
+      currentIntegralLatex: exercise.integrandLatex,
+      currentIntegralMath: mathInline(exercise.integrandLatex, exercise.integrandExpression),
+      substitutionExpression,
+      substitutionExpressionLatex,
+      substitutionExpressionMath: mathBlock(
+        substitutionExpressionLatex,
+        substitutionExpression,
       ),
       correctCoefficient: rationalPlain(exercise.correctCoefficient),
-      correctCoefficientHtml: rationalHtml(exercise.correctCoefficient),
+      correctCoefficientLatex: rationalLatex(exercise.correctCoefficient),
+      correctCoefficientMath: mathInline(
+        rationalLatex(exercise.correctCoefficient),
+        rationalPlain(exercise.correctCoefficient),
+      ),
       chosenExpression: chosen ? chosen.displayExpression : "",
-      chosenExpressionHtml: chosen ? chosen.displayHtml : "",
+      chosenExpressionLatex,
+      chosenExpressionMath: chosenExpressionLatex
+        ? mathInline(chosenExpressionLatex, chosen ? chosen.displayExpression : "")
+        : "",
       correctExpression: exercise.correctAnswer.displayExpression,
-      correctExpressionHtml: exercise.correctAnswer.displayHtml,
+      correctExpressionLatex,
+      correctExpressionMath: mathInline(
+        correctExpressionLatex,
+        exercise.correctAnswer.displayExpression,
+      ),
       familyName: exercise.family.name,
       baseCore: exercise.family.baseCore,
       baseSign: String(exercise.family.baseSign),
       absK: rationalPlain(absRational(exercise.k)),
+      absKMath: mathInline(rationalLatex(absRational(exercise.k))),
     };
   }
 
-  function htmlLine(label, value) {
-    return `<div><strong>${label}</strong><span>${value}</span></div>`;
+  function valueLine(label, value) {
+    return contentNode("div", "", [
+      contentNode("strong", "", [label]),
+      contentNode("span", "", [value]),
+    ]);
   }
 
-  function reconstructionHtml(exercise, vars) {
-    return `
-      <div class="reconstruction">
-        <span class="section-label">Para este ejercicio</span>
-        <div class="feedback-values">
-          ${htmlLine("A", vars.AHtml)}
-          ${htmlLine("k", vars.kHtml)}
-          ${htmlLine("b", vars.bHtml)}
-          ${htmlLine("u", vars.uHtml)}
-          ${htmlLine("f(u)", vars.fUHtml)}
-          ${htmlLine("F(u)", vars.FUHtml)}
-        </div>
-        <div class="rule-box">
-          <p>La regla base es:</p>
-          <div class="centered-formula">${vars.baseRuleHtml}</div>
-          <p>Regla general:</p>
-          <div class="centered-formula">${vars.generalRuleHtml}</div>
-          <p>Sustituyendo:</p>
-          <div class="centered-formula">${vars.substitutionExpressionHtml}</div>
-          <p>Resultado simplificado:</p>
-          <div class="centered-formula">${vars.correctExpressionHtml}</div>
-        </div>
-      </div>`;
+  function centeredFormula(value) {
+    return contentNode("div", "centered-formula", [value]);
   }
 
-  function incorrectDetailsHtml(context) {
-    return `
-      <div class="divider"></div>
-      ${reconstructionHtml(context.exercise, context.variables || {})}`;
+  function reconstructionContent(exercise, vars) {
+    return contentNode("div", "reconstruction", [
+      contentNode("span", "section-label", ["Para este ejercicio"]),
+      contentNode("div", "feedback-values", [
+        valueLine("A", vars.AMath),
+        valueLine("k", vars.kMath),
+        valueLine("b", vars.bMath),
+        valueLine("u", vars.uMath),
+        valueLine("f(u)", vars.fUMath),
+        valueLine("F(u)", vars.FUMath),
+      ]),
+      contentNode("div", "rule-box", [
+        contentNode("p", "", ["La regla base es:"]),
+        centeredFormula(vars.baseRuleMath),
+        contentNode("p", "", ["Regla general:"]),
+        centeredFormula(vars.generalRuleMath),
+        contentNode("p", "", ["Sustituyendo:"]),
+        centeredFormula(vars.substitutionExpressionMath),
+        contentNode("p", "", ["Resultado simplificado:"]),
+        centeredFormula(mathBlock(vars.correctExpressionLatex, vars.correctExpression)),
+      ]),
+    ]);
+  }
+
+  function incorrectDetailsContent(context) {
+    return [
+      contentNode("div", "divider", []),
+      reconstructionContent(context.exercise, context.variables || {}),
+    ];
   }
 
   function buildTrigFeedbackRules() {
@@ -1951,104 +1768,162 @@
         id: "trig-linear-correct",
         errorType: "correct",
         errorTag: "correct",
-        titleHtml: "Correcto",
-        messageHtml:
-          "Identificaste la antiderivada base F(u) = <span class=\"math-inline\">{FUHtml}</span> y compensaste la derivada del argumento u' = <span class=\"math-inline\">{kHtml}</span>.",
-        hintHtml:
-          "<strong class=\"math-inline\">{correctExpressionHtml}</strong>",
+        title: "Correcto",
+        message: [
+          "Identificaste la antiderivada base F(u) = ",
+          { var: "FUMath" },
+          " y compensaste la derivada del argumento u' = ",
+          { var: "kMath" },
+          ".",
+        ],
+        hint: [contentNode("strong", "math-inline", [{ var: "correctExpressionMath" }])],
       },
       {
         id: "trig-linear-wrong-family",
         errorType: "wrong-family",
         errorTag: "wrong-family",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Usaste una familia incorrecta como antiderivada. En este ejercicio el integrando usa f(u) = <span class=\"math-inline\">{fUHtml}</span>, cuya antiderivada base es F(u) = <span class=\"math-inline\">{FUHtml}</span>. Por eso la respuesta debe usar F(u), no la familia que elegiste.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Usaste una familia incorrecta como antiderivada. En este ejercicio el integrando usa f(u) = ",
+          { var: "fUMath" },
+          ", cuya antiderivada base es F(u) = ",
+          { var: "FUMath" },
+          ". Por eso la respuesta debe usar F(u), no la familia que elegiste.",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-wrong-base-sign",
         errorType: "wrong-base-sign",
         errorTag: "wrong-base-sign",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Recordaste la familia correcta, pero fallaste el signo base de la integral. Para esta familia se cumple que <span class=\"math-inline\">{baseRuleHtml}</span>. Ese signo debe aplicarse antes de dividir entre k.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Recordaste la familia correcta, pero fallaste el signo base de la integral. Para esta familia se cumple que ",
+          { var: "baseRuleMath" },
+          ". Ese signo debe aplicarse antes de dividir entre k.",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-forgot-chain-factor",
         errorType: "forgot-chain-factor",
         errorTag: "forgot-chain-factor",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Usaste la antiderivada base correcta, pero olvidaste compensar la derivada del argumento. El argumento es u = <span class=\"math-inline\">{uHtml}</span>, por lo tanto u' = <span class=\"math-inline\">{kHtml}</span>. Por eso la antiderivada debe multiplicarse por <span class=\"math-inline\">{inverseKHtml}</span>.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Usaste la antiderivada base correcta, pero olvidaste compensar la derivada del argumento. El argumento es u = ",
+          { var: "uMath" },
+          ", por lo tanto u' = ",
+          { var: "kMath" },
+          ". Por eso la antiderivada debe multiplicarse por ",
+          { var: "inverseKMath" },
+          ".",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-ignored-negative-k",
         errorType: "ignored-negative-k",
         errorTag: "ignored-negative-k",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Compensaste la derivada del argumento, pero ignoraste su signo. El argumento es u = <span class=\"math-inline\">{uHtml}</span>, asi que u' = <span class=\"math-inline\">{kHtml}</span>, no {absK}. Debias dividir entre <span class=\"math-inline\">{kHtml}</span>, no solamente entre su valor positivo.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Compensaste la derivada del argumento, pero ignoraste su signo. El argumento es u = ",
+          { var: "uMath" },
+          ", asi que u' = ",
+          { var: "kMath" },
+          ", no ",
+          { var: "absKMath" },
+          ". Debias dividir entre ",
+          { var: "kMath" },
+          ", no solamente entre su valor positivo.",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-lost-external-sign",
         errorType: "lost-external-sign",
         errorTag: "lost-external-sign",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Perdiste el signo del coeficiente externo. El integrando completo esta multiplicado por A = <span class=\"math-inline\">{AHtml}</span>. Ese valor debe entrar completo en el coeficiente A/k, incluyendo su signo.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Perdiste el signo del coeficiente externo. El integrando completo esta multiplicado por A = ",
+          { var: "AMath" },
+          ". Ese valor debe entrar completo en el coeficiente A/k, incluyendo su signo.",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-copied-integrand",
         errorType: "copied-integrand",
         errorTag: "copied-integrand",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Tu respuesta conserva demasiado la forma del integrando. Integrar significa buscar una funcion que, al derivarse, regrese al integrando original. Aqui el integrando usa f(u) = <span class=\"math-inline\">{fUHtml}</span>, pero la antiderivada base debe ser F(u) = <span class=\"math-inline\">{FUHtml}</span>.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Tu respuesta conserva demasiado la forma del integrando. Integrar significa buscar una funcion que, al derivarse, regrese al integrando original. Aqui el integrando usa f(u) = ",
+          { var: "fUMath" },
+          ", pero la antiderivada base debe ser F(u) = ",
+          { var: "FUMath" },
+          ".",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-lost-argument-shift",
         errorType: "lost-argument-shift",
         errorTag: "lost-argument-shift",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "Usaste la estructura correcta, pero cambiaste el argumento. El argumento original es u = <span class=\"math-inline\">{uHtml}</span>. La antiderivada debe conservar exactamente ese argumento, porque al derivarlo aparece el factor u' = <span class=\"math-inline\">{kHtml}</span>.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "Usaste la estructura correcta, pero cambiaste el argumento. El argumento original es u = ",
+          { var: "uMath" },
+          ". La antiderivada debe conservar exactamente ese argumento, porque al derivarlo aparece el factor u' = ",
+          { var: "kMath" },
+          ".",
+        ],
+        details: incorrectDetailsContent,
       },
       {
         id: "trig-linear-generic-coefficient-error",
         errorType: "generic-coefficient-error",
         errorTag: "generic-coefficient-error",
-        titleHtml: "Incorrecto: {errorLabelHtml}",
-        messageHtml:
-          "El tipo de funcion es correcto, pero el coeficiente no coincide. El coeficiente correcto se obtiene con A por el signo base, dividido entre k. En este ejercicio eso da <span class=\"math-inline\">{correctCoefficientHtml}</span>.",
-        detailsHtml: incorrectDetailsHtml,
+        title: ["Incorrecto: ", { var: "errorLabelContent" }],
+        message: [
+          "El tipo de funcion es correcto, pero el coeficiente no coincide. El coeficiente correcto se obtiene con A por el signo base, dividido entre k. En este ejercicio eso da ",
+          { var: "correctCoefficientMath" },
+          ".",
+        ],
+        details: incorrectDetailsContent,
       },
     ];
   }
 
-  function defaultFallbackFeedbackHtml(exercise, chosen) {
+  function defaultFallbackFeedbackContent(exercise, chosen) {
     const vars = feedbackVariables(exercise, chosen);
     if (!chosen || chosen.isCorrect) {
-      return `
-        <div class="feedback-title">Correcto</div>
-        <p>Identificaste la antiderivada base F(u) = <span class="math-inline">${vars.FUHtml}</span> y compensaste la derivada del argumento u' = <span class="math-inline">${vars.kHtml}</span>.</p>
-        <p><strong class="math-inline">${vars.correctExpressionHtml}</strong></p>`;
+      return [
+        contentNode("div", "feedback-title", ["Correcto"]),
+        contentNode("p", "", [
+          "Identificaste la antiderivada base F(u) = ",
+          vars.FUMath,
+          " y compensaste la derivada del argumento u' = ",
+          vars.kMath,
+          ".",
+        ]),
+        contentNode("p", "", [
+          contentNode("strong", "math-inline", [vars.correctExpressionMath]),
+        ]),
+      ];
     }
-    return `
-      <div class="feedback-title">Incorrecto: ${errorLabelHtml(chosen.errorTag)}</div>
-      <p>Revisa la regla general y el tipo de error asociado a la opcion elegida.</p>
-      <div class="divider"></div>
-      ${reconstructionHtml(exercise, vars)}`;
+    return [
+      contentNode("div", "feedback-title", [
+        "Incorrecto: ",
+        ...errorLabelContent(chosen.errorTag),
+      ]),
+      contentNode("p", "", [
+        "Revisa la regla general y el tipo de error asociado a la opcion elegida.",
+      ]),
+      ...incorrectDetailsContent({ exercise, variables: vars }),
+    ];
   }
 
-  function feedbackHtml(exercise, chosen) {
-    if (FeedbackEngine.buildFeedbackHtml) {
+  function feedbackContent(exercise, chosen) {
+    if (FeedbackEngine.buildFeedbackContent) {
       const validation = chosen ? validateAnswer(exercise, chosen.id) : null;
       const variables = feedbackVariables(
         exercise,
@@ -2056,20 +1931,23 @@
           ? validation.selectedOption
           : chosen,
       );
-      variables.errorLabelHtml = errorLabelHtml(
+      const errorTag =
         (validation && validation.errorTag) ||
-          (chosen && chosen.errorTag) ||
-          "generic-coefficient-error",
+        (chosen && chosen.errorTag) ||
+        "generic-coefficient-error";
+      variables.errorLabelContent = errorLabelContent(errorTag);
+      variables.inverseKMath = mathInline(
+        `\\frac{1}{${variables.kLatex}}`,
+        `1/${variables.k}`,
       );
-      variables.inverseKHtml = fracHtml(numHtml(1), variables.kHtml);
-      return FeedbackEngine.buildFeedbackHtml(exercise, chosen, {
+      return FeedbackEngine.buildFeedbackContent(exercise, chosen, {
         validation,
         variables,
         rules: exercise.feedbackRules || buildTrigFeedbackRules(),
       });
     }
 
-    return defaultFallbackFeedbackHtml(exercise, chosen);
+    return defaultFallbackFeedbackContent(exercise, chosen);
   }
 
   function validateAnswer(exercise, optionId) {
@@ -2087,55 +1965,66 @@
     };
   }
 
-  function derivativeBaseHtml(family, argument) {
+  function derivativeBaseLatex(family, argument) {
     switch (family.baseCore) {
       case "cos":
-        return termHtml(rational(-1, 1), "sin", argument);
+        return termLatex(rational(-1, 1), "sin", argument);
       case "sin":
-        return coreHtml("cos", argument);
+        return coreLatex("cos", argument);
       case "lnAbsCos":
-        return termHtml(rational(-1, 1), "tan", argument);
+        return termLatex(rational(-1, 1), "tan", argument);
       case "lnAbsSin":
-        return coreHtml("cot", argument);
+        return coreLatex("cot", argument);
       case "tan":
-        return coreHtml("sec2", argument);
+        return coreLatex("sec2", argument);
       case "cot":
-        return termHtml(rational(-1, 1), "csc2", argument);
+        return termLatex(rational(-1, 1), "csc2", argument);
       case "sec":
-        return coreHtml("secTan", argument);
+        return coreLatex("secTan", argument);
       case "csc":
-        return termHtml(rational(-1, 1), "cscCot", argument);
+        return termLatex(rational(-1, 1), "cscCot", argument);
       case "lnAbsSecPlusTan":
-        return coreHtml("sec", argument);
+        return coreLatex("sec", argument);
       case "lnAbsCscMinusCot":
-        return coreHtml("csc", argument);
+        return coreLatex("csc", argument);
       case "arctan":
-        return coreHtml("atanDerivative", argument);
+        return coreLatex("atanDerivative", argument);
       case "arcsin":
-        return coreHtml("asinDerivative", argument);
+        return coreLatex("asinDerivative", argument);
       case "arccos":
-        return coreHtml("acosDerivative", argument);
+        return coreLatex("acosDerivative", argument);
       default:
         return family.derivativeCore.replaceAll("u", argument.display);
     }
   }
 
-  function derivationHtml(exercise) {
-    const correctBody = termHtml(
+  function derivationContent(exercise) {
+    const correctBodyLatex = termLatex(
       exercise.correctCoefficient,
       exercise.family.baseCore,
       exercise.argument,
     );
-    const derivativeCore = derivativeBaseHtml(
+    const derivativeCoreLatex = derivativeBaseLatex(
       exercise.family,
       exercise.argument,
     );
-    return `
-      <p><strong>Verificación por derivada</strong></p>
-      <p><span class="math-inline">${mathExpression(`${fracHtml('<span class="math-d">d</span>', differentialHtml("x"))}<span class="math-bracket">[</span>${correctBody}<span class="math-bracket">]</span>`)}</span></p>
-      <p><span class="math-inline">${mathExpression(`${opHtml("=")} ${rationalHtml(exercise.correctCoefficient)}<span class="math-thin-space"></span>${parensHtml(derivativeCore)}<span class="math-thin-space"></span>${rationalHtml(exercise.k)}`)}</span></p>
-      <p><span class="math-inline">${mathExpression(`${opHtml("=")} ${integralTermHtml(exercise.family, exercise.A, exercise.argument)}`)}</span></p>
-      <p>El resultado coincide con el integrando.</p>`;
+    return [
+      contentNode("p", "", [contentNode("strong", "", ["Verificación por derivada"])]),
+      contentNode("p", "", [
+        mathInline(`\\frac{d}{dx}\\left[${correctBodyLatex}\\right]`),
+      ]),
+      contentNode("p", "", [
+        mathInline(
+          `= ${rationalLatex(exercise.correctCoefficient)}\\left(${derivativeCoreLatex}\\right)${rationalLatex(exercise.k)}`,
+        ),
+      ]),
+      contentNode("p", "", [
+        mathInline(
+          `= ${integralTermLatex(exercise.family, exercise.A, exercise.argument)}`,
+        ),
+      ]),
+      contentNode("p", "", ["El resultado coincide con el integrando."]),
+    ];
   }
 
   registerLinearRenderer();
@@ -2144,11 +2033,10 @@
   const api = {
     moduleId: "integrales-lineales",
     moduleName: "Integrales con argumento lineal",
-    modelVersion: "1.3",
+    modelVersion: "1.4",
     generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.4",
     ERROR_TAGS,
     ERROR_LABELS,
-    ERROR_LABELS_HTML,
     MATH_FAMILIES: Taxonomy.MATH_FAMILIES || [],
     MATH_FAMILY_MAP: Taxonomy.MATH_FAMILY_MAP || {},
     METHODS: Taxonomy.METHODS || [],
@@ -2162,21 +2050,17 @@
     rational,
     rationalPlain,
     rationalLatex,
-    rationalHtml,
     rationalKey,
     equals,
     createArgument,
     formatArgumentPlain,
-    formatArgumentHtml,
     corePlain,
-    coreHtml,
+    coreLatex,
     expressionPlain,
     expressionLatex,
-    expressionHtml,
     integralPlain,
     integralLatex,
-    integralHtml,
-    plainMathHtml,
+    plainMathExpression,
     correctCoefficient,
     buildExerciseFromParams,
     generateExercise,
@@ -2190,16 +2074,22 @@
     sanitizeRange,
     exerciseSnapshot,
     optionSnapshot,
-    errorExampleMathHtml,
+    errorExampleMath,
+    renderLatex: MathRenderer.renderLatex,
+    renderExpression: MathRenderer.renderExpression,
+    renderInto: MathRenderer.renderInto,
+    renderContent: MathRenderer.renderContent,
+    renderContentInto: MathRenderer.renderContentInto,
     renderIntegral,
     renderOption,
-    feedbackHtml,
-    derivationHtml,
+    feedbackContent,
+    derivationContent,
     feedbackVariables,
-    generalRuleHtml,
+    generalRuleLatex,
     formulaCatalog,
-    familyLabelHtml,
-    errorLabelHtml,
+    familyLabelLatex,
+    familyLabelExpression,
+    errorLabelContent,
     normalizeMethodIds,
     normalizeMathFamilyIds,
     shuffle,

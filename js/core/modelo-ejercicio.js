@@ -2,10 +2,27 @@
   "use strict";
 
   const Taxonomy = root.TrigExerciseTaxonomy || {};
-  const MathRenderer = root.TrigMathRenderer || {};
 
   function cloneArray(value) {
     return Array.isArray(value) ? value.slice() : [];
+  }
+
+  function normalizeExpression(source, fallbackPlain, fallbackLatex) {
+    const value = source && typeof source === "object" ? source : {};
+    const plain =
+      value.plain ||
+      value.displayPlain ||
+      value.displayExpression ||
+      value.value ||
+      fallbackPlain ||
+      "";
+    const latex =
+      value.latex ||
+      value.displayLatex ||
+      value.promptLatex ||
+      fallbackLatex ||
+      plain;
+    return { plain, latex };
   }
 
   function normalizeOption(option) {
@@ -13,7 +30,7 @@
     const displayPlain =
       source.displayPlain || source.displayExpression || source.value || "";
     const displayLatex = source.displayLatex || source.latex || displayPlain;
-    const displayHtml = source.displayHtml || source.html || displayLatex;
+    const display = normalizeExpression(source.display, displayPlain, displayLatex);
     return {
       ...source,
       id: source.id || `opt-${Math.random().toString(36).slice(2)}`,
@@ -27,13 +44,8 @@
         source.errorType || source.errorTag || (source.isCorrect ? "correct" : "unknown"),
       displayPlain,
       displayLatex,
-      displayHtml,
       displayExpression: source.displayExpression || displayPlain,
-      display: {
-        plain: displayPlain,
-        latex: displayLatex,
-        html: displayHtml,
-      },
+      display,
       sourceStrategy: source.sourceStrategy || source.errorType || source.errorTag || "",
       explanation: source.explanation || "",
       metadata: source.metadata || source.debugData || {},
@@ -56,17 +68,15 @@
     const mathFamilyId = source.mathFamilyId || "trigonometrica-directa";
     const difficulty = String(source.difficulty || "1");
     const templateId = source.templateId || source.familyId || "";
-    const integralShown = MathRenderer.integralForExercise
-      ? MathRenderer.integralForExercise(source)
-      : source.integralShown || {
-          plain: source.integrandExpression || "",
-          html: source.integrandHtml || "",
-          latex: source.integrandLatex || source.integrandExpression || "",
-        };
+    const integralShown = normalizeExpression(
+      source.integralShown,
+      source.integrandExpression || "",
+      source.integrandLatex || source.integrandExpression || "",
+    );
 
     return {
       ...source,
-      modelVersion: "1.3",
+      modelVersion: "1.4",
       id: source.id || `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       familyId: source.familyId || "",
       mathFamilyId,
@@ -82,12 +92,20 @@
         source.method ||
         (Taxonomy.getMethod ? Taxonomy.getMethod(methodId) : null),
       integralShown,
+      promptLatex: source.promptLatex || integralShown.latex || "",
+      optionsLatex: options.map((option) => option.displayLatex || ""),
+      correctAnswerLatex: correctAnswer ? correctAnswer.displayLatex : "",
+      feedbackLatex: source.feedbackLatex || "",
+      formulaRefs: cloneArray(source.formulaRefs),
+      distractorErrorTypes: distractors.map(
+        (option) => option.errorType || option.errorTag || "",
+      ),
       correctAnswer,
       options,
       distractors,
       explanation: source.explanation || "",
       generation: {
-        engineVersion: source.engineVersion || "1.3",
+        engineVersion: source.engineVersion || "1.4",
         generatorId: source.generatorId || "",
         templateId,
         seed: source.seed || null,
@@ -100,9 +118,8 @@
           ? {
               plain: correctAnswer.displayPlain,
               latex: correctAnswer.displayLatex,
-              html: correctAnswer.displayHtml,
             }
-          : { plain: "", latex: "", html: "" },
+          : { plain: "", latex: "" },
         equivalenceKey:
           (correctAnswer && (correctAnswer.equivalenceKey || correctAnswer.key)) ||
           "",
@@ -113,10 +130,8 @@
       render: {
         integralPlain: integralShown.plain || source.integrandExpression || "",
         integralLatex: integralShown.latex || source.integrandLatex || "",
-        integralHtml: integralShown.html || source.integrandHtml || "",
         correctAnswerPlain: correctAnswer ? correctAnswer.displayPlain : "",
         correctAnswerLatex: correctAnswer ? correctAnswer.displayLatex : "",
-        correctAnswerHtml: correctAnswer ? correctAnswer.displayHtml : "",
         ...(source.render || {}),
       },
       statsInfo: {

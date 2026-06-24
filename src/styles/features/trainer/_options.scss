@@ -1,67 +1,80 @@
-@use "../../abstracts/breakpoints";
 @use "../../abstracts/mixins";
 
+.options,
 .option-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  min-width: 0;
   margin-bottom: 18px;
 }
 
 .option-button {
-  display: grid;
-  gap: 8px;
   width: 100%;
+  min-width: 0;
   min-height: 84px;
-  padding: 15px 16px;
+  padding: 14px;
+  overflow: hidden;
   color: var(--text);
+  background: rgba(15, 20, 25, 0.47);
+  border: 1px solid rgba(68, 81, 92, 0.82);
+  border-radius: 16px;
   text-align: left;
-  background: #252b31;
-  border-color: var(--line-strong);
-  border-radius: var(--radius-md);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
 }
 
 .option-button:hover:not(:disabled) {
-  background: #303840;
-  border-color: #6a767e;
-}
-
-.option-button[disabled] {
-  opacity: 1;
-}
-
-.option-button.is-selected,
-.option-button.is-incorrect {
-  background: var(--danger-soft);
-  border-color: var(--danger-line);
-  box-shadow: inset 4px 0 0 var(--danger);
+  border-color: rgba(232, 198, 154, 0.64);
+  background: rgba(232, 198, 154, 0.07);
 }
 
 .option-button.is-correct {
-  background: var(--success-soft);
-  border-color: var(--success-line);
-  box-shadow: inset 4px 0 0 var(--success);
+  background: rgba(43, 70, 63, 0.32);
+  border-color: rgba(120, 184, 168, 0.7);
+  box-shadow: inset 4px 0 0 var(--green);
+}
+
+.option-button.is-selected,
+.option-button.is-selected.is-incorrect {
+  background: rgba(80, 48, 45, 0.34);
+  border-color: rgba(215, 143, 133, 0.72);
+  box-shadow: inset 4px 0 0 var(--red);
+}
+
+.option-button.is-correct.is-selected {
+  background: rgba(43, 70, 63, 0.32);
+  border-color: rgba(120, 184, 168, 0.7);
+  box-shadow: inset 4px 0 0 var(--green);
 }
 
 .option-index {
   display: block;
-  margin: 0;
+  margin-bottom: 8px;
+  color: var(--gold);
+  font-size: 0.76rem;
+  font-weight: 850;
   text-transform: uppercase;
 }
 
 .option-math {
   display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
   color: #f1ece3;
   font-family: var(--math-font);
   font-size: 1.12rem;
-  font-weight: 650;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  line-height: 1.45;
+  scrollbar-width: thin;
 }
 
-@include mixins.media-max(breakpoints.$mobile) {
+.option-math .katex {
+  max-width: 100%;
+}
+
+@include mixins.media-max(980px) {
+  .options,
   .option-grid {
     grid-template-columns: 1fr;
   }
