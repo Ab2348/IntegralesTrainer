@@ -59,6 +59,13 @@
   text-transform: uppercase;
 }
 
+.nav-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
 .nav-item,
 .nav-sub {
   width: 100%;
@@ -105,6 +112,28 @@
   padding: 0 10px 0 45px;
   color: #c9cfcb;
   font-size: 0.9rem;
+}
+
+.nav-sub > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-status {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 3px 7px;
+  color: rgba(245, 214, 171, 0.9);
+  background: rgba(232, 198, 154, 0.08);
+  border: 1px solid rgba(232, 198, 154, 0.18);
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .nav-subgroup {
