@@ -5,8 +5,8 @@
   position: relative;
   margin: var(--feedback-margin);
   padding: var(--feedback-padding);
-  color: #4c5b80;
-  background: linear-gradient(180deg, #fbfcff, #f6f8ff);
+  color: var(--text);
+  background: var(--surface-soft);
   border: 1px solid var(--line2);
   border-radius: 10px;
   line-height: 1.45;
@@ -67,13 +67,53 @@
 }
 
 .practice-tip-title .katex {
-  color: #46577f;
+  color: var(--text);
   font-weight: 500;
 }
 
 .practice-tip-copy {
-  color: #66769c;
+  color: var(--muted);
   font-size: var(--font-path);
+}
+
+.practice-tip-cues {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.practice-tip-cue {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.practice-tip-cue-label {
+  color: var(--muted);
+  font-size: var(--font-micro);
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.practice-tip-cue-value {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: var(--text-strong);
+  font-family: var(--math-font);
+  font-size: var(--font-base);
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.practice-tip-cue-value::-webkit-scrollbar {
+  display: none;
 }
 
 .diagnostic-feedback {
@@ -82,7 +122,7 @@
 }
 
 .diagnostic-copy {
-  color: #4c5b80;
+  color: var(--text);
 }
 
 .diagnostic-values {
@@ -96,7 +136,7 @@
   padding: 8px 10px;
   overflow-x: auto;
   color: var(--text-strong);
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
   white-space: nowrap;
@@ -118,14 +158,14 @@
   margin: 0;
   padding: 10px;
   overflow-x: auto;
-  background: #fbf8ff;
-  border: 1px solid #ece6ff;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-line);
   border-radius: 8px;
 }
 
 .centered-formula {
   margin: 6px 0;
-  color: #3e4c75;
+  color: var(--text);
   font-family: var(--math-font);
   font-size: var(--formula-size);
   overflow-x: auto;
@@ -139,6 +179,10 @@
 
 @include mixins.media-max(980px) {
   .diagnostic-values {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-tip-cues {
     grid-template-columns: 1fr;
   }
 

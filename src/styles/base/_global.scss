@@ -5,13 +5,13 @@ body {
   background:
     radial-gradient(
       circle at 46% 0%,
-      rgba(105, 92, 238, 0.055),
+      var(--primary-soft),
       transparent 32rem
     ),
-    linear-gradient(180deg, #ffffff 0%, #f7f8fc 100%);
+    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
 }
 
 :focus-visible {
-  outline: 3px solid rgba(101, 87, 237, 0.45);
+  outline: 3px solid var(--primary-line);
   outline-offset: 3px;
 }

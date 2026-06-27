@@ -37,7 +37,7 @@
     background:
       linear-gradient(
         90deg,
-        #111a32 0 var(--sidebar-width-narrow),
+        var(--sidebar-bg) 0 var(--sidebar-width-narrow),
         transparent var(--sidebar-width-narrow)
       ),
       var(--bg);

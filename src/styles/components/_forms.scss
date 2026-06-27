@@ -4,10 +4,10 @@ input {
   min-height: var(--control-height);
   padding: 0 10px;
   color: var(--text-strong);
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 9px;
-  box-shadow: 0 8px 18px rgba(31, 45, 82, 0.035);
+  box-shadow: var(--shadow-soft);
   outline: none;
   transition:
     border-color 160ms ease,
@@ -17,14 +17,14 @@ input {
 
 select:hover,
 input:hover {
-  border-color: rgba(101, 87, 237, 0.35);
-  background: #ffffff;
+  border-color: var(--primary-line);
+  background: var(--surface);
 }
 
 select:focus,
 input:focus {
-  border-color: rgba(101, 87, 237, 0.68);
-  box-shadow: 0 0 0 4px rgba(101, 87, 237, 0.12);
+  border-color: var(--focus);
+  box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
 .field {

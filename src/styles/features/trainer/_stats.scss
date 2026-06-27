@@ -10,7 +10,7 @@
   position: relative;
   min-height: 70px;
   padding: 12px 42px 12px 12px;
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
   box-shadow: none;
@@ -19,7 +19,7 @@
 .stat dt,
 .stat-grid dt {
   display: block;
-  color: #637298;
+  color: var(--muted);
   font-size: var(--font-xxs);
   font-weight: 800;
 }
@@ -57,7 +57,7 @@
   height: 16px;
   display: grid;
   place-items: center;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .stat:nth-child(1) {
@@ -133,8 +133,8 @@
   width: 100%;
   min-height: 38px;
   padding: 8px 10px;
-  color: #4d5d82;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
 }
@@ -173,8 +173,8 @@
   justify-content: center !important;
   padding: 14px !important;
   text-align: center;
-  color: #7584a6 !important;
-  background: linear-gradient(180deg, #fbfcff, #f6f8fd) !important;
+  color: var(--muted) !important;
+  background: var(--surface-soft) !important;
   border: 1px solid var(--line) !important;
   border-radius: 9px !important;
 }
@@ -188,14 +188,14 @@
 
 .empty-stat-copy {
   max-width: 24rem;
-  color: #7584a6;
+  color: var(--muted);
   font-size: var(--font-xs);
   line-height: 1.4;
 }
 
 .mini-title {
   margin-top: 14px;
-  color: #5f6f9a;
+  color: var(--muted);
   font-size: var(--font-xxs);
   font-weight: 850;
   letter-spacing: 0;
@@ -211,7 +211,7 @@
   display: none;
   padding: 12px;
   color: var(--text-strong);
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--primary-line);
   border-radius: 14px;
   box-shadow: var(--shadow);

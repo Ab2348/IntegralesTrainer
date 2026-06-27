@@ -29,6 +29,39 @@
     },
   ];
 
+  const PRACTICE_TIPS = [
+    {
+      title: "Consejo antes de escoger",
+      copy: "Una respuesta puede parecer correcta y fallar por un detalle pequeño. Antes de elegir, comprueba que el argumento se conserve y que el factor externo tenga sentido.",
+    },
+    {
+      title: "Antes de elegir",
+      copy: "No respondas solo por parecido visual. Revisa el signo, el argumento interno y el coeficiente antes de elegir una opción.",
+    },
+    {
+      title: "Revisión rápida",
+      copy: "Si dos opciones se parecen demasiado, compara primero el argumento interno y después el factor externo.",
+    },
+    {
+      title: "Comprueba la estructura",
+      copy: "Primero reconoce la familia de la integral. Después revisa el signo y el ajuste por la derivada interna.",
+    },
+    {
+      title: "Último filtro",
+      copy: "Antes de escoger, pregúntate si al derivar esa respuesta regresarías exactamente al integrando original.",
+    },
+    {
+      title: "Detalle importante",
+      copy: "Muchas respuestas incorrectas no fallan por la fórmula base, sino por olvidar compensar la derivada interna.",
+    },
+    {
+      title: "Evita el error común",
+      copy: "No basta con reconocer la función trigonométrica. En integrales con argumento lineal, el coeficiente también importa.",
+    },
+  ];
+
+  let lastPracticeTipIndex = -1;
+
   function clearElement(element) {
     if (!element) {
       return;
@@ -166,6 +199,23 @@
     return `${active}/${familyIds.length}`;
   }
 
+  function randomPracticeTip() {
+    if (!PRACTICE_TIPS.length) {
+      return {
+        title: "Consejo antes de escoger",
+        copy: "Una respuesta puede parecer correcta y fallar por un detalle pequeño. Antes de elegir, comprueba que el argumento se conserve y que el factor externo tenga sentido.",
+      };
+    }
+
+    let index = Math.floor(Math.random() * PRACTICE_TIPS.length);
+    if (PRACTICE_TIPS.length > 1 && index === lastPracticeTipIndex) {
+      index = (index + 1) % PRACTICE_TIPS.length;
+    }
+
+    lastPracticeTipIndex = index;
+    return PRACTICE_TIPS[index];
+  }
+
   function groupForFamily(familyId) {
     return (
       FAMILY_GROUPS.find((group) => group.families.includes(familyId)) || null
@@ -272,18 +322,20 @@
   }
 
   function bindNextExerciseProxies() {
-    document.querySelectorAll("[data-next-exercise-proxy]").forEach((button) => {
-      if (button.dataset.nextExerciseBound === "true") {
-        return;
-      }
-      button.dataset.nextExerciseBound = "true";
-      button.addEventListener("click", () => {
-        const target = document.getElementById("nextExerciseButton");
-        if (target && target !== button) {
-          target.click();
+    document
+      .querySelectorAll("[data-next-exercise-proxy]")
+      .forEach((button) => {
+        if (button.dataset.nextExerciseBound === "true") {
+          return;
         }
+        button.dataset.nextExerciseBound = "true";
+        button.addEventListener("click", () => {
+          const target = document.getElementById("nextExerciseButton");
+          if (target && target !== button) {
+            target.click();
+          }
+        });
       });
-    });
   }
 
   App.createControlsPanel = function createStableVisualControlsPanel({
@@ -418,7 +470,10 @@
     };
   };
 
-  App.createFormulaPanel = function createStableVisualFormulaPanel({ Core, els }) {
+  App.createFormulaPanel = function createStableVisualFormulaPanel({
+    Core,
+    els,
+  }) {
     function formulaByFamilyId() {
       return Core.formulaCatalog().reduce((result, formula) => {
         result[formula.id] = formula;
@@ -607,44 +662,32 @@
           typeof root.__stableVisualFormulaPanel.renderCurrentFamily ===
             "function"
         ) {
-          root.__stableVisualFormulaPanel.renderCurrentFamily(exercise.family.id);
+          root.__stableVisualFormulaPanel.renderCurrentFamily(
+            exercise.family.id,
+          );
         }
       }
     };
 
     function renderPracticeTip(exercise) {
-      if (!exercise || !exercise.correctAnswer) {
+      if (!exercise) {
         return;
       }
 
-      const integralLatex = Core.integralLatex
-        ? Core.integralLatex(exercise)
-        : "";
-      const answerLatex = exercise.correctAnswer.displayLatex || "";
-
+      const tip = randomPracticeTip();
       clearElement(els.feedbackZone);
       els.feedbackZone.className = "feedback-zone practice-tip";
 
       const title = document.createElement("p");
       title.className = "practice-tip-title";
-      renderContentInto(Core, title, [
-        "Consejo: ",
-        {
-          type: "math",
-          latex:
-            integralLatex && answerLatex
-              ? `${integralLatex} = ${answerLatex}`
-              : answerLatex,
-          display: "inline",
-        },
-      ]);
+      renderContentInto(Core, title, [tip.title]);
 
       const copy = document.createElement("p");
       copy.className = "practice-tip-copy";
-      copy.textContent =
-        "Comprueba la respuesta derivando: debe regresar al integrando original.";
+      copy.textContent = tip.copy;
 
-      els.feedbackZone.append(title, copy);
+      els.feedbackZone.append(title);
+      els.feedbackZone.append(copy);
     }
 
     function appendDiagnosticRow(container, latex) {

@@ -35,8 +35,8 @@
 
 .formula-item,
 .formula-family {
-  background: #fbf8ff;
-  border: 1px solid #ece6ff;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-line);
   border-radius: 8px;
 }
 
@@ -50,8 +50,8 @@
 
 .formula-item[open],
 .formula-family:has([aria-expanded="true"]) {
-  background: #fbf8ff;
-  border-color: #ded4ff;
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
 }
 
 .formula-summary {
@@ -76,7 +76,7 @@
   display: grid;
   gap: 10px;
   padding: 0 11px 11px;
-  color: #4c5b80;
+  color: var(--text);
 }
 
 .formula-block {
@@ -98,28 +98,28 @@
 
 .sidebar-formula-catalog .formula-item,
 .sidebar-formula-catalog .formula-family {
-  color: #d5def7;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(143, 165, 210, 0.16);
+  color: var(--text);
+  background: var(--surface-tint);
+  border-color: var(--line);
 }
 
 .sidebar-formula-catalog .collapsible-trigger {
   min-height: var(--nav-sub-height);
   padding: 0 8px;
-  color: #d5def7;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(143, 165, 210, 0.16);
+  color: var(--text);
+  background: var(--surface-tint);
+  border-color: var(--line);
   border-radius: 10px;
   font-size: var(--font-sm);
 }
 
 .sidebar-formula-catalog .collapsible-badge {
-  color: #c8c1ff;
-  background: rgba(124, 92, 244, 0.20);
+  color: var(--primary2);
+  background: var(--primary-soft);
 }
 
 .sidebar-formula-catalog .collapsible-chevron {
-  color: #c8c1ff;
+  color: var(--primary2);
 }
 
 .sidebar-formula-catalog .collapsible-content {
@@ -132,7 +132,7 @@
 }
 
 .sidebar-formula-catalog .centered-formula {
-  color: #eef3ff;
+  color: var(--text);
   font-size: var(--sidebar-formula-size);
 }
 
@@ -141,6 +141,9 @@
   padding: 9px 10px;
   overflow-x: auto;
   overflow-y: hidden;
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   font-size: var(--current-formula-size);
   scrollbar-width: none;
 }

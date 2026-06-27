@@ -27,3 +27,4 @@ coverage/
 
 *.txt
 *.odt
+*.env

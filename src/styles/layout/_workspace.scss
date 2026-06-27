@@ -9,10 +9,10 @@
   align-items: stretch;
   margin: 0 var(--main-gutter);
   padding: var(--workspace-padding);
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--surface-soft);
   border: 1px solid var(--line);
   border-radius: 18px;
-  box-shadow: 0 18px 50px rgba(34, 48, 91, 0.055);
+  box-shadow: var(--shadow-soft);
 }
 
 #practicePanel,
@@ -33,10 +33,10 @@
   gap: 14px;
   margin: 12px var(--main-gutter);
   padding: var(--learning-padding);
-  background: #ffffff;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(31, 45, 82, 0.045);
+  box-shadow: var(--shadow-soft);
 }
 
 .learning-icon {
@@ -90,7 +90,7 @@
 
 .learning-wave path {
   fill: none;
-  stroke: #8b98ba;
+  stroke: var(--primary-line);
   stroke-width: 1.5;
   stroke-linecap: round;
 }

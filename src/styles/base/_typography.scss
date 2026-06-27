@@ -36,7 +36,7 @@ h3 {
 }
 
 dt {
-  color: #637298;
+  color: var(--muted);
 }
 
 dd {
@@ -52,14 +52,14 @@ legend,
 dt,
 .section-label,
 .option-index {
-  color: #5f6f9a;
+  color: var(--muted);
   font-size: var(--font-xxs);
   font-weight: 850;
   letter-spacing: 0;
 }
 
 .kicker {
-  color: #5f6f9a;
+  color: var(--muted);
   font-size: var(--font-xxs);
   font-weight: 850;
   letter-spacing: 0;
@@ -67,7 +67,7 @@ dt,
 }
 
 .label {
-  color: #5f6f9a;
+  color: var(--muted);
   font-size: var(--font-xxs);
   font-weight: 850;
   letter-spacing: 0;

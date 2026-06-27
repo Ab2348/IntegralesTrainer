@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Entrenador de integrales trigonométricas</title>
+    <script src="js/app/theme.js"></script>
     <link rel="stylesheet" href="vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -98,9 +99,9 @@
                 <a href="mailto:carlosmontes0983@outlook.com">Correo</a>
               </div>
             </div>
-            <div class="small-card version-card">
+            <div class="small-card version-card" title="Versión 1.4">
               <strong>v1.4</strong>
-              <span aria-hidden="true">☾</span>
+              <span class="version-icon" aria-hidden="true">☾</span>
             </div>
           </div>
         </aside>
@@ -125,8 +126,14 @@
               >
                 ☰
               </button>
-              <button class="icon-btn" type="button" aria-label="Ajustes visuales">
-                ☼
+              <button
+                class="icon-btn"
+                id="themeToggle"
+                type="button"
+                aria-label="Cambiar a modo oscuro"
+                aria-pressed="false"
+              >
+                ☀
               </button>
               <button class="btn" id="resetStatsButton" type="button">
                 Reiniciar
@@ -213,57 +220,82 @@
               aria-label="Configuración"
             >
               <div class="card-head compact-head settings-head">
-                <h2>Configuración rápida</h2>
-                <span class="settings-icon" aria-hidden="true"></span>
+                <h2 id="settingsTitle">Configuración rápida</h2>
+                <button
+                  class="settings-toggle"
+                  id="settingsToggle"
+                  type="button"
+                  aria-expanded="true"
+                  aria-controls="settingsContent"
+                  aria-labelledby="settingsTitle"
+                >
+                  <span class="settings-icon" aria-hidden="true"></span>
+                </button>
               </div>
 
-              <div class="field">
-                <label class="label" for="modeSelect">Modo</label>
-                <select id="modeSelect">
-                  <option value="basic">Básico</option>
-                  <option value="intermediate">Intermedio</option>
-                  <option value="products">Productos</option>
-                  <option value="logarithmic">Logarítmico</option>
-                  <option value="inverse">Inversas</option>
-                  <option value="mixed">Mixto</option>
-                  <option value="custom">Personalizado</option>
-                </select>
-              </div>
-
-              <div class="field">
-                <label class="label field-label-with-icon" for="difficultySelect">
-                  <span class="field-label-icon level-icon" aria-hidden="true"></span>
-                  Nivel
-                </label>
-                <select id="difficultySelect">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
-              </div>
-
-              <input id="rangeMinInput" type="hidden" value="-10" />
-              <input id="rangeMaxInput" type="hidden" value="10" />
-              <select id="optionCountSelect" hidden>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-              </select>
-
-              <fieldset class="field family-fieldset">
-                <legend class="label">Familias activas</legend>
-                <div class="checks" id="familyChecklist"></div>
-              </fieldset>
-
-              <button
-                class="btn primary"
-                data-next-exercise-proxy
-                type="button"
+              <div
+                class="settings-content"
+                id="settingsContent"
+                role="region"
+                aria-labelledby="settingsTitle"
               >
-                Aplicar cambios <span class="apply-icon" aria-hidden="true"></span>
-              </button>
+                <div class="settings-content-inner">
+                  <div class="field">
+                    <label class="label" for="modeSelect">Modo</label>
+                    <select id="modeSelect">
+                      <option value="basic">Básico</option>
+                      <option value="intermediate">Intermedio</option>
+                      <option value="products">Productos</option>
+                      <option value="logarithmic">Logarítmico</option>
+                      <option value="inverse">Inversas</option>
+                      <option value="mixed">Mixto</option>
+                      <option value="custom">Personalizado</option>
+                    </select>
+                  </div>
+
+                  <div class="field">
+                    <label
+                      class="label field-label-with-icon"
+                      for="difficultySelect"
+                    >
+                      <span
+                        class="field-label-icon level-icon"
+                        aria-hidden="true"
+                      ></span>
+                      Nivel
+                    </label>
+                    <select id="difficultySelect">
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                    </select>
+                  </div>
+
+                  <input id="rangeMinInput" type="hidden" value="-10" />
+                  <input id="rangeMaxInput" type="hidden" value="10" />
+                  <select id="optionCountSelect" hidden>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                  </select>
+
+                  <fieldset class="field family-fieldset">
+                    <legend class="label">Familias activas</legend>
+                    <div class="checks" id="familyChecklist"></div>
+                  </fieldset>
+
+                  <button
+                    class="btn primary"
+                    data-next-exercise-proxy
+                    type="button"
+                  >
+                    Aplicar cambios
+                    <span class="apply-icon" aria-hidden="true"></span>
+                  </button>
+                </div>
+              </div>
             </aside>
           </div>
 

@@ -21,7 +21,7 @@
 .btn,
 .quiet-button,
 .secondary-button {
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .icon-btn {
@@ -29,7 +29,7 @@
   height: var(--icon-button-size);
   display: inline-grid;
   place-items: center;
-  color: #263b66;
+  color: var(--text);
   padding: 0;
 }
 
@@ -48,7 +48,7 @@
 .primary-button,
 .verify {
   color: #ffffff;
-  background: linear-gradient(135deg, #7564f2, #5c57e7);
+  background: linear-gradient(135deg, var(--primary2), var(--primary));
   border-color: transparent;
   box-shadow: 0 12px 24px rgba(99, 87, 237, 0.18);
 }
@@ -70,7 +70,7 @@
 .quiet-button:hover,
 .secondary-button:hover,
 .primary-button:hover {
-  border-color: rgba(101, 87, 237, 0.35);
+  border-color: var(--primary-line);
   box-shadow: var(--shadow-soft);
 }
 

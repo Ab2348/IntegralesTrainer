@@ -33,6 +33,10 @@
     mobileMenuToggle: document.getElementById("mobileMenuToggle"),
     mobileQuickNavButton: document.getElementById("mobileQuickNavButton"),
     mobileSectionNav: document.getElementById("mobileSectionNav"),
+    settingsToggle: document.getElementById("settingsToggle"),
+    settingsContent: document.getElementById("settingsContent"),
+    settingsContentInner: document.querySelector(".settings-content-inner"),
+    controlsPanel: document.getElementById("controlsPanel"),
   };
 
   const mobileNavLinks = Array.from(
@@ -150,12 +154,123 @@
     });
   }
 
+  function setSettingsContentAvailability(isOpen) {
+    if (!els.settingsContent) {
+      return;
+    }
+
+    els.settingsContent.setAttribute("aria-hidden", String(!isOpen));
+    if ("inert" in els.settingsContent) {
+      els.settingsContent.inert = !isOpen;
+    }
+  }
+
+  function setSettingsPanelOpen(isOpen, animate = true) {
+    if (!els.settingsToggle || !els.settingsContent || !els.controlsPanel) {
+      return;
+    }
+
+    const mobile = window.matchMedia("(max-width: 980px)").matches;
+    if (!mobile) {
+      els.settingsToggle.setAttribute("aria-expanded", "true");
+      els.settingsToggle.tabIndex = -1;
+      els.controlsPanel.dataset.settingsCollapsed = "false";
+      els.settingsContent.hidden = false;
+      els.settingsContent.style.maxHeight = "";
+      setSettingsContentAvailability(true);
+      return;
+    }
+
+    const open = Boolean(isOpen);
+    els.settingsToggle.tabIndex = 0;
+    els.settingsToggle.setAttribute("aria-expanded", String(open));
+    els.controlsPanel.dataset.settingsCollapsed = String(!open);
+    setSettingsContentAvailability(open);
+
+    if (!animate) {
+      els.settingsContent.hidden = !open;
+      els.settingsContent.style.maxHeight = open
+        ? `${els.settingsContent.scrollHeight}px`
+        : "0px";
+      return;
+    }
+
+    els.settingsContent.hidden = false;
+    if (open) {
+      els.settingsContent.style.maxHeight = "0px";
+      requestAnimationFrame(() => {
+        els.settingsContent.style.maxHeight = `${els.settingsContent.scrollHeight}px`;
+      });
+      return;
+    }
+
+    els.settingsContent.style.maxHeight = `${els.settingsContent.scrollHeight}px`;
+    els.settingsContent.offsetHeight;
+    els.settingsContent.style.maxHeight = "0px";
+  }
+
+  function toggleSettingsPanel() {
+    if (!els.settingsToggle) {
+      return;
+    }
+
+    setSettingsPanelOpen(
+      els.settingsToggle.getAttribute("aria-expanded") !== "true",
+    );
+  }
+
+  function bindMobileSettingsPanel() {
+    if (!els.settingsToggle || !els.settingsContent) {
+      return;
+    }
+
+    els.settingsToggle.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 980px)").matches) {
+        toggleSettingsPanel();
+      }
+    });
+
+    els.settingsContent.addEventListener("transitionend", (event) => {
+      if (
+        event.propertyName === "max-height" &&
+        els.settingsToggle.getAttribute("aria-expanded") !== "true"
+      ) {
+        els.settingsContent.hidden = true;
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      setSettingsPanelOpen(
+        !window.matchMedia("(max-width: 980px)").matches,
+        false,
+      );
+    });
+
+    if (window.ResizeObserver && els.settingsContentInner) {
+      const settingsResizeObserver = new ResizeObserver(() => {
+        if (
+          window.matchMedia("(max-width: 980px)").matches &&
+          els.settingsToggle.getAttribute("aria-expanded") === "true"
+        ) {
+          els.settingsContent.style.maxHeight = `${els.settingsContent.scrollHeight}px`;
+        }
+      });
+      settingsResizeObserver.observe(els.settingsContentInner);
+    }
+
+    setSettingsPanelOpen(
+      !window.matchMedia("(max-width: 980px)").matches,
+      false,
+    );
+  }
+
   function bindEvents() {
     controlsPanel.bindEvents();
     els.nextExerciseButton.addEventListener("click", generateNextExercise);
     els.resetStatsButton.addEventListener("click", resetStats);
     els.derivationButton.addEventListener("click", toggleDerivation);
     bindMobileNavigation();
+    bindMobileSettingsPanel();
   }
 
   function init() {

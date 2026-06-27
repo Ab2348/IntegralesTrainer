@@ -9,8 +9,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 0 var(--main-gutter);
-  background: rgba(255, 255, 255, 0.82);
-  border-bottom: 1px solid #edf0f7;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
 }
 
 .path {
@@ -19,7 +19,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  color: #8b98ba;
+  color: var(--muted);
   font-size: var(--font-path);
   font-weight: 700;
 }
@@ -30,7 +30,7 @@
 }
 
 .path-separator {
-  color: #b7c1d9;
+  color: var(--muted);
   font-size: 1.05rem;
   line-height: 1;
 }

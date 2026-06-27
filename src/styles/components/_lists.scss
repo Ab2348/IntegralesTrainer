@@ -15,8 +15,8 @@
   gap: 12px;
   min-height: 42px;
   padding: 10px 12px;
-  color: #4d5d82;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 10px;
 }
@@ -29,7 +29,7 @@
 
 .compact-list .empty-stat {
   justify-content: center;
-  color: #7584a6;
+  color: var(--muted);
   border-style: solid;
-  background: linear-gradient(180deg, #fbfcff, #f6f8fd);
+  background: var(--surface-soft);
 }

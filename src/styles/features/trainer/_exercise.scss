@@ -111,8 +111,8 @@
   padding: var(--mathbox-padding);
   overflow-x: auto;
   overflow-y: hidden;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(21, 32, 54, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 13px;
   scrollbar-width: none;
 }
@@ -143,7 +143,7 @@
   min-height: var(--exercise-actions-height);
   margin: 0;
   padding: 0 18px;
-  background: #ffffff;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 

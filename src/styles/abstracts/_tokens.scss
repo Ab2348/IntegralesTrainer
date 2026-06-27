@@ -33,6 +33,7 @@
   --danger-line: rgba(255, 91, 102, 0.42);
   --warning: #a777ff;
   --warning-soft: #f4efff;
+  --warning-line: rgba(167, 119, 255, 0.4);
 
   --line: #e5e9f3;
   --line2: #d8deec;
@@ -136,6 +137,40 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0f1a;
+  --bg2: #0d1424;
+  --surface: #111928;
+  --surface-soft: #0e1526;
+  --surface-tint: #152036;
+
+  --sidebar-bg: #0a0f1a;
+  --sidebar-bg2: #0d1424;
+  --sidebar-active: rgba(101, 87, 237, 0.18);
+  --sidebar-active-strong: #6557ed;
+
+  --text: #e8ebf3;
+  --text-strong: #ffffff;
+  --muted: #8b98b8;
+  --faint: #6b7a9a;
+
+  --primary-soft: rgba(101, 87, 237, 0.15);
+  --primary-line: rgba(101, 87, 237, 0.35);
+  --success-soft: rgba(65, 185, 110, 0.12);
+  --success-line: rgba(65, 185, 110, 0.4);
+  --danger-soft: rgba(255, 91, 102, 0.12);
+  --danger-line: rgba(255, 91, 102, 0.4);
+  --warning-soft: rgba(167, 119, 255, 0.12);
+
+  --line: #1e2a44;
+  --line2: #253354;
+  --line-strong: #2d3d5e;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
 @media (min-width: breakpoints.$desktop-wide) and (max-height: 1179px) {
