@@ -1436,25 +1436,6 @@ input:focus {
   background: var(--surface-soft);
 }
 
-.stat-error-trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  min-height: 42px;
-  padding: 10px 12px;
-  color: inherit;
-  text-align: left;
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-sm);
-}
-
-.stat-error-trigger:hover {
-  background: var(--primary-soft);
-}
-
 .error-tooltip.stat-error-tooltip {
   position: fixed;
   z-index: 1000;
@@ -2405,6 +2386,10 @@ input:focus {
 
 .stat-error-trigger {
   text-align: left;
+}
+
+.stat-error-trigger:hover {
+  background: var(--primary-soft);
 }
 
 .stat-item-label {

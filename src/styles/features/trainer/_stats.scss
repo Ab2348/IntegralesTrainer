@@ -150,6 +150,10 @@
   text-align: left;
 }
 
+.stat-error-trigger:hover {
+  background: var(--primary-soft);
+}
+
 .stat-item-label {
   min-width: 0;
   line-height: 1.25;

@@ -202,15 +202,16 @@
         }
       });
 
-      Dom.renderContentInto(
-        Core,
-        els.feedbackZone,
-        Core.feedbackContent ? Core.feedbackContent(exercise, chosen) : [],
-      );
-      els.feedbackZone.className = `feedback-zone ${
-        chosen.isCorrect ? "correct" : "incorrect"
-      }`;
-      renderVisualFeedback(exercise, chosen, validation);
+      if (chosen.isCorrect) {
+        Dom.renderContentInto(
+          Core,
+          els.feedbackZone,
+          Core.feedbackContent ? Core.feedbackContent(exercise, chosen) : [],
+        );
+        els.feedbackZone.className = "feedback-zone correct";
+      } else {
+        renderVisualFeedback(exercise, chosen, validation);
+      }
       els.derivationButton.classList.remove("hidden");
     }
 

@@ -140,7 +140,7 @@
         items[0].before(content);
         items.forEach((item) => content.appendChild(item));
 
-        const open = trigger.textContent.includes("Entrenar");
+        const open = section.dataset.sidebarDefaultOpen === "true";
         trigger.dataset.stableAccordion = "true";
         trigger.setAttribute("aria-controls", contentId);
         CollapseAnimator.enhance({

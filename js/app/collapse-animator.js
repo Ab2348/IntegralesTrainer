@@ -97,7 +97,7 @@
 
     setExpanded(trigger, nextOpen);
     content.hidden = false;
-    setAvailability(content, true);
+    setAvailability(content, nextOpen);
     content.style.overflow = "hidden";
 
     const startHeight = nextOpen
