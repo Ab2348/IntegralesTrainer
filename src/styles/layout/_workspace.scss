@@ -100,7 +100,7 @@
   stroke-width: 2.4;
 }
 
-@container main-panel (max-width: 900px) {
+@container main-panel (max-width: 760px) {
   .workspace {
     grid-template-columns: 1fr;
   }

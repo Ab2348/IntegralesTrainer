@@ -80,27 +80,28 @@
   --verify-height: 38px;
   --settings-button-height: 38px;
 
-  --sidebar-width: 264px;
-  --sidebar-width-narrow: 250px;
-  --sidebar-padding: 30px 14px 16px;
+  --sidebar-width: clamp(260px, 14vw, 292px);
+  --sidebar-min-width: 250px;
+  --sidebar-width-narrow: clamp(224px, 20vw, 250px);
+  --sidebar-padding: clamp(24px, 1.55vw, 34px) clamp(12px, 0.9vw, 18px) 16px;
   --logo-size: 58px;
   --logo-font-size: 2.55rem;
   --nav-item-height: 42px;
   --nav-sub-height: 34px;
 
   --shell-max-width: 100%;
-  --main-min-width: 820px;
-  --right-min-width: 360px;
-  --right-max-width: 430px;
-  --main-gutter: clamp(16px, 1.15vw, 22px);
+  --main-min-width: 0px;
+  --right-min-width: clamp(310px, 18vw, 360px);
+  --right-max-width: clamp(330px, 20vw, 430px);
+  --main-gutter: clamp(14px, 1.1vw, 24px);
 
-  --workspace-column: clamp(270px, 20%, 310px);
-  --workspace-gap: 20px;
-  --workspace-padding: clamp(16px, 1vw, 20px);
-  --card-padding: 16px;
+  --workspace-column: clamp(260px, 23%, 330px);
+  --workspace-gap: clamp(14px, 1.1vw, 22px);
+  --workspace-padding: clamp(14px, 1vw, 22px);
+  --card-padding: clamp(14px, 0.95vw, 20px);
   --settings-gap: 14px;
   --right-gap: 12px;
-  --right-padding: 24px 14px 16px 16px;
+  --right-padding: clamp(18px, 1.35vw, 28px) clamp(12px, 0.85vw, 18px) 16px clamp(14px, 1vw, 20px);
 
   --hero-min-height: 252px;
   --hero-padding: 20px 22px 22px;
@@ -204,14 +205,11 @@
     --settings-button-height: 40px;
 
     --shell-max-width: 100%;
-    --main-min-width: 840px;
-    --right-min-width: 370px;
-    --right-max-width: 440px;
-    --main-gutter: clamp(17px, 1.1vw, 24px);
+    --main-gutter: clamp(16px, 1.1vw, 26px);
 
-    --workspace-column: clamp(280px, 20%, 320px);
-    --workspace-gap: 22px;
-    --workspace-padding: clamp(17px, 1vw, 22px);
+    --workspace-column: clamp(270px, 22%, 340px);
+    --workspace-gap: clamp(16px, 1.1vw, 24px);
+    --workspace-padding: clamp(16px, 1vw, 24px);
     --hero-min-height: 270px;
     --hero-padding: 21px 23px 23px;
     --hero-math-min-height: 140px;
@@ -251,23 +249,19 @@
     --verify-height: 46px;
     --settings-button-height: 46px;
 
-    --sidebar-width: 292px;
-    --sidebar-padding: 36px 18px 20px;
+    --sidebar-padding: clamp(32px, 1.6vw, 38px) clamp(16px, 0.9vw, 20px) 20px;
     --logo-size: 68px;
     --logo-font-size: 2.9rem;
     --nav-item-height: 48px;
     --nav-sub-height: 39px;
 
     --shell-max-width: 100%;
-    --main-min-width: 900px;
-    --right-min-width: 390px;
-    --right-max-width: 470px;
     --main-gutter: clamp(20px, 1.2vw, 30px);
 
-    --workspace-column: clamp(315px, 21%, 360px);
-    --workspace-gap: 26px;
+    --workspace-column: clamp(280px, 22%, 360px);
+    --workspace-gap: clamp(22px, 1.15vw, 28px);
     --workspace-padding: clamp(22px, 1.15vw, 30px);
-    --card-padding: 22px;
+    --card-padding: clamp(20px, 1vw, 22px);
     --settings-gap: 18px;
     --right-gap: 16px;
     --right-padding: 30px 18px 22px 20px;

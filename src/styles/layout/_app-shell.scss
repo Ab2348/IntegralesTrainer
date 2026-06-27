@@ -21,7 +21,7 @@
   min-height: 100vh;
   display: grid;
   grid-template-columns:
-    var(--sidebar-width)
+    minmax(var(--sidebar-min-width), var(--sidebar-width))
     minmax(var(--main-min-width), 1fr)
     minmax(var(--right-min-width), var(--right-max-width));
   align-items: stretch;

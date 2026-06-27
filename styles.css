@@ -69,25 +69,26 @@
   --control-height: 36px;
   --verify-height: 38px;
   --settings-button-height: 38px;
-  --sidebar-width: 264px;
-  --sidebar-width-narrow: 250px;
-  --sidebar-padding: 30px 14px 16px;
+  --sidebar-width: clamp(260px, 14vw, 292px);
+  --sidebar-min-width: 250px;
+  --sidebar-width-narrow: clamp(224px, 20vw, 250px);
+  --sidebar-padding: clamp(24px, 1.55vw, 34px) clamp(12px, 0.9vw, 18px) 16px;
   --logo-size: 58px;
   --logo-font-size: 2.55rem;
   --nav-item-height: 42px;
   --nav-sub-height: 34px;
   --shell-max-width: 100%;
-  --main-min-width: 820px;
-  --right-min-width: 360px;
-  --right-max-width: 430px;
-  --main-gutter: clamp(16px, 1.15vw, 22px);
-  --workspace-column: clamp(270px, 20%, 310px);
-  --workspace-gap: 20px;
-  --workspace-padding: clamp(16px, 1vw, 20px);
-  --card-padding: 16px;
+  --main-min-width: 0px;
+  --right-min-width: clamp(310px, 18vw, 360px);
+  --right-max-width: clamp(330px, 20vw, 430px);
+  --main-gutter: clamp(14px, 1.1vw, 24px);
+  --workspace-column: clamp(260px, 23%, 330px);
+  --workspace-gap: clamp(14px, 1.1vw, 22px);
+  --workspace-padding: clamp(14px, 1vw, 22px);
+  --card-padding: clamp(14px, 0.95vw, 20px);
   --settings-gap: 14px;
   --right-gap: 12px;
-  --right-padding: 24px 14px 16px 16px;
+  --right-padding: clamp(18px, 1.35vw, 28px) clamp(12px, 0.85vw, 18px) 16px clamp(14px, 1vw, 20px);
   --hero-min-height: 252px;
   --hero-padding: 20px 22px 22px;
   --hero-math-min-height: 132px;
@@ -172,13 +173,10 @@
     --verify-height: 40px;
     --settings-button-height: 40px;
     --shell-max-width: 100%;
-    --main-min-width: 840px;
-    --right-min-width: 370px;
-    --right-max-width: 440px;
-    --main-gutter: clamp(17px, 1.1vw, 24px);
-    --workspace-column: clamp(280px, 20%, 320px);
-    --workspace-gap: 22px;
-    --workspace-padding: clamp(17px, 1vw, 22px);
+    --main-gutter: clamp(16px, 1.1vw, 26px);
+    --workspace-column: clamp(270px, 22%, 340px);
+    --workspace-gap: clamp(16px, 1.1vw, 24px);
+    --workspace-padding: clamp(16px, 1vw, 24px);
     --hero-min-height: 270px;
     --hero-padding: 21px 23px 23px;
     --hero-math-min-height: 140px;
@@ -215,21 +213,17 @@
     --control-height: 42px;
     --verify-height: 46px;
     --settings-button-height: 46px;
-    --sidebar-width: 292px;
-    --sidebar-padding: 36px 18px 20px;
+    --sidebar-padding: clamp(32px, 1.6vw, 38px) clamp(16px, 0.9vw, 20px) 20px;
     --logo-size: 68px;
     --logo-font-size: 2.9rem;
     --nav-item-height: 48px;
     --nav-sub-height: 39px;
     --shell-max-width: 100%;
-    --main-min-width: 900px;
-    --right-min-width: 390px;
-    --right-max-width: 470px;
     --main-gutter: clamp(20px, 1.2vw, 30px);
-    --workspace-column: clamp(315px, 21%, 360px);
-    --workspace-gap: 26px;
+    --workspace-column: clamp(280px, 22%, 360px);
+    --workspace-gap: clamp(22px, 1.15vw, 28px);
     --workspace-padding: clamp(22px, 1.15vw, 30px);
-    --card-padding: 22px;
+    --card-padding: clamp(20px, 1vw, 22px);
     --settings-gap: 18px;
     --right-gap: 16px;
     --right-padding: 30px 18px 22px 20px;
@@ -405,14 +399,14 @@ dt,
   width: min(100%, var(--shell-max-width));
   min-height: 100vh;
   display: grid;
-  grid-template-columns: var(--sidebar-width) minmax(var(--main-min-width), 1fr) minmax(var(--right-min-width), var(--right-max-width));
+  grid-template-columns: minmax(var(--sidebar-min-width), var(--sidebar-width)) minmax(var(--main-min-width), 1fr) minmax(var(--right-min-width), var(--right-max-width));
   align-items: stretch;
   align-content: stretch;
   gap: 0;
   background: var(--bg);
 }
 
-@media (max-width: 1560px) {
+@media (max-width: 1360px) {
   .shell {
     grid-template-columns: var(--sidebar-width-narrow) minmax(0, 1fr);
     align-content: start;
@@ -604,7 +598,7 @@ dt,
   stroke-width: 2.4;
 }
 
-@container main-panel (max-width: 900px) {
+@container main-panel (max-width: 760px) {
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -641,18 +635,28 @@ dt,
   --primary-line: rgba(143, 165, 210, 0.18);
   --primary2: #c8c1ff;
   align-self: stretch;
-  height: 100%;
+  height: 100vh;
+  max-height: 100vh;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   padding: var(--sidebar-padding);
-  overflow: visible;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   color: var(--text);
   background: radial-gradient(circle at 8% 4%, var(--primary-line), transparent 10rem), linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg2) 100%);
   border: 1px solid var(--line);
   border-left: 0;
   border-radius: 0 10px 10px 0;
   box-shadow: 18px 0 44px rgba(15, 27, 51, 0.14);
+  /* Hide scrollbar while keeping scroll functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .brand {
@@ -1077,7 +1081,7 @@ dt,
   font-weight: 800;
 }
 
-@media (max-width: 1560px) {
+@media (max-width: 1360px) {
   .sidebar {
     position: absolute;
     inset: 0 auto 0 0;
@@ -1121,6 +1125,13 @@ dt,
     grid-row: auto;
     grid-template-columns: 1fr;
     padding: 14px;
+  }
+}
+/* Pantallas más grandes que 1080p (1920px) - aumentar ancho sidebar 20% */
+@media (min-width: 1920px) {
+  :root {
+    --sidebar-width: clamp(312px, 16.8vw, 350px);
+    --sidebar-min-width: 300px;
   }
 }
 .icon-btn,
@@ -2591,6 +2602,13 @@ input:focus {
   font-size: var(--font-sm);
 }
 
+.sidebar-formula-catalog .collapsible[data-level="2"] > .collapsible-trigger,
+.sidebar-formula-catalog .collapsible[data-level="3"] > .collapsible-trigger,
+.sidebar-formula-catalog .collapsible[data-level="4"] > .collapsible-trigger {
+  background: var(--surface-tint);
+  border-color: var(--line);
+}
+
 .sidebar-formula-catalog .collapsible-badge {
   color: var(--primary2);
   background: var(--primary-soft);
@@ -2634,7 +2652,7 @@ input:focus {
   max-width: 100%;
 }
 
-@media (max-width: 1560px) {
+@media (max-width: 1360px) {
   .formula-list,
   .formula-accordion {
     max-height: 320px;
