@@ -1,39 +1,132 @@
+@use "breakpoints";
+
 :root {
-  color-scheme: dark;
-  --bg: #0f1419;
-  --bg2: #151b20;
-  --card: #1b2228;
-  --card2: #20282f;
-  --soft: #293139;
-  --line: #333d46;
-  --line2: #44515c;
-  --text: #f2ede6;
-  --muted: #b9c0bc;
-  --faint: #818b87;
-  --gold: #e8c69a;
-  --gold2: #c99f6d;
-  --green: #78b8a8;
-  --red: #d78f85;
-  --accent: var(--gold);
-  --accent-soft: rgba(232, 198, 154, 0.13);
-  --accent-hover: #f5d6ab;
-  --success: var(--green);
-  --success-soft: rgba(43, 70, 63, 0.32);
-  --success-line: rgba(120, 184, 168, 0.7);
-  --danger: var(--red);
-  --danger-soft: rgba(80, 48, 45, 0.34);
-  --danger-line: rgba(215, 143, 133, 0.72);
-  --warn: var(--gold);
-  --warn-soft: #3a3428;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
-  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.18);
+  color-scheme: light;
+
+  --bg: #f7f8fc;
+  --bg2: #ffffff;
+  --surface: #ffffff;
+  --surface-soft: #f8f9fd;
+  --surface-tint: #f3f5fb;
+
+  --sidebar-bg: #0f1b33;
+  --sidebar-bg2: #132744;
+  --sidebar-active: rgba(255, 255, 255, 0.09);
+  --sidebar-active-strong: #5f56e8;
+
+  --text: #13254a;
+  --text-strong: #0f2045;
+  --muted: #7280a4;
+  --faint: #9aa6c2;
+
+  --primary: #6557ed;
+  --primary2: #7c5cf4;
+  --primary3: #9b6bff;
+  --primary-soft: #f0edff;
+  --primary-line: rgba(101, 87, 237, 0.28);
+
+  --success: #41b96e;
+  --success-soft: #edf9f2;
+  --success-line: rgba(65, 185, 110, 0.45);
+  --danger: #ff5b66;
+  --danger-soft: #fff0f1;
+  --danger-line: rgba(255, 91, 102, 0.42);
+  --warning: #a777ff;
+  --warning-soft: #f4efff;
+  --warning-line: rgba(167, 119, 255, 0.4);
+
+  --line: #e5e9f3;
+  --line2: #d8deec;
+  --line-strong: #cfd7ea;
+  --shadow: 0 24px 60px rgba(31, 45, 82, 0.1);
+  --shadow-soft: 0 12px 30px rgba(31, 45, 82, 0.08);
+
   --radius-lg: 22px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-  --radius-xs: 8px;
-  --r: 22px;
-  --r2: 14px;
-  --focus: var(--gold);
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 9px;
+  --r: var(--radius-lg);
+  --r2: var(--radius-md);
+  --focus: var(--primary);
+  --accent: var(--primary);
+  --accent-soft: var(--primary-soft);
+  --accent-hover: #5648de;
+
+  --font-micro: 0.68rem;
+  --font-xxs: 0.72rem;
+  --font-xs: 0.78rem;
+  --font-sm: 0.82rem;
+  --font-path: 0.84rem;
+  --font-base: 0.9rem;
+  --font-md: 0.98rem;
+  --font-h1: 1.05rem;
+  --font-h2: 1.12rem;
+  --font-h3: 0.98rem;
+  --font-exercise-title: 1.32rem;
+  --font-dd: 1.65rem;
+  --font-stat: 1.38rem;
+  --font-status: 0.56rem;
+  --math-display-size: 2.08rem;
+  --math-display-condensed: 1.85rem;
+  --option-math-size: 1.02rem;
+  --formula-size: 1.05rem;
+  --current-formula-size: 0.9rem;
+  --sidebar-formula-size: 0.88rem;
+
+  --topbar-height: 78px;
+  --button-height: 36px;
+  --icon-button-size: 36px;
+  --control-height: 36px;
+  --verify-height: 38px;
+  --settings-button-height: 38px;
+
+  --sidebar-width: clamp(260px, 14vw, 292px);
+  --sidebar-min-width: 250px;
+  --sidebar-width-narrow: clamp(224px, 20vw, 250px);
+  --sidebar-padding: clamp(24px, 1.55vw, 34px) clamp(12px, 0.9vw, 18px) 16px;
+  --logo-size: 58px;
+  --logo-font-size: 2.55rem;
+  --nav-item-height: 42px;
+  --nav-sub-height: 34px;
+
+  --shell-max-width: 100%;
+  --main-min-width: 0px;
+  --right-min-width: clamp(310px, 18vw, 360px);
+  --right-max-width: clamp(330px, 20vw, 430px);
+  --main-gutter: clamp(14px, 1.1vw, 24px);
+
+  --workspace-column: clamp(260px, 23%, 330px);
+  --workspace-gap: clamp(14px, 1.1vw, 22px);
+  --workspace-padding: clamp(14px, 1vw, 22px);
+  --card-padding: clamp(14px, 0.95vw, 20px);
+  --settings-gap: 14px;
+  --right-gap: 12px;
+  --right-padding: clamp(18px, 1.35vw, 28px) clamp(12px, 0.85vw, 18px) 16px clamp(14px, 1vw, 20px);
+
+  --hero-min-height: 252px;
+  --hero-padding: 20px 22px 22px;
+  --hero-math-min-height: 132px;
+  --mathbox-padding: 18px;
+  --exercise-actions-height: 58px;
+
+  --option-grid-gap: 12px 14px;
+  --option-grid-padding: 18px 20px;
+  --option-min-height: 62px;
+  --option-padding: 12px 14px;
+  --option-index-size: 38px;
+
+  --feedback-margin: 0 20px 20px;
+  --feedback-padding: 14px 16px 14px 50px;
+  --feedback-icon-size: 22px;
+  --feedback-icon-left: 16px;
+  --feedback-icon-top: 14px;
+
+  --learning-min-height: 66px;
+  --learning-padding: 12px 18px;
+  --learning-icon-size: 42px;
+  --learning-wave-width: 150px;
+  --learning-wave-height: 50px;
+
   --math-font:
     "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman",
     Georgia, serif;
@@ -45,4 +138,156 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0f1a;
+  --bg2: #0d1424;
+  --surface: #111928;
+  --surface-soft: #0e1526;
+  --surface-tint: #152036;
+
+  --sidebar-bg: #0a0f1a;
+  --sidebar-bg2: #0d1424;
+  --sidebar-active: rgba(101, 87, 237, 0.18);
+  --sidebar-active-strong: #6557ed;
+
+  --text: #e8ebf3;
+  --text-strong: #ffffff;
+  --muted: #8b98b8;
+  --faint: #6b7a9a;
+
+  --primary-soft: rgba(101, 87, 237, 0.15);
+  --primary-line: rgba(101, 87, 237, 0.35);
+  --success-soft: rgba(65, 185, 110, 0.12);
+  --success-line: rgba(65, 185, 110, 0.4);
+  --danger-soft: rgba(255, 91, 102, 0.12);
+  --danger-line: rgba(255, 91, 102, 0.4);
+  --warning-soft: rgba(167, 119, 255, 0.12);
+
+  --line: #1e2a44;
+  --line2: #253354;
+  --line-strong: #2d3d5e;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: breakpoints.$desktop-wide) and (max-height: 1179px) {
+  :root {
+    --font-micro: 0.7rem;
+    --font-xxs: 0.74rem;
+    --font-xs: 0.8rem;
+    --font-sm: 0.85rem;
+    --font-path: 0.88rem;
+    --font-base: 0.92rem;
+    --font-md: 1.01rem;
+    --font-h1: 1.1rem;
+    --font-h2: 1.16rem;
+    --font-h3: 1.02rem;
+    --font-exercise-title: 1.38rem;
+    --font-dd: 1.72rem;
+    --font-stat: 1.44rem;
+    --font-status: 0.6rem;
+    --math-display-size: 2.22rem;
+    --math-display-condensed: 1.92rem;
+    --option-math-size: 1.05rem;
+    --formula-size: 1.08rem;
+    --current-formula-size: 0.94rem;
+    --sidebar-formula-size: 0.9rem;
+
+    --topbar-height: 82px;
+    --button-height: 38px;
+    --icon-button-size: 38px;
+    --control-height: 38px;
+    --verify-height: 40px;
+    --settings-button-height: 40px;
+
+    --shell-max-width: 100%;
+    --main-gutter: clamp(16px, 1.1vw, 26px);
+
+    --workspace-column: clamp(270px, 22%, 340px);
+    --workspace-gap: clamp(16px, 1.1vw, 24px);
+    --workspace-padding: clamp(16px, 1vw, 24px);
+    --hero-min-height: 270px;
+    --hero-padding: 21px 23px 23px;
+    --hero-math-min-height: 140px;
+    --exercise-actions-height: 62px;
+    --option-min-height: 66px;
+    --learning-min-height: 70px;
+  }
+}
+
+@media (min-width: breakpoints.$desktop-wide) and (min-height: breakpoints.$desktop-tall) {
+  :root {
+    --font-micro: 0.74rem;
+    --font-xxs: 0.78rem;
+    --font-xs: 0.84rem;
+    --font-sm: 0.9rem;
+    --font-path: 0.96rem;
+    --font-base: 0.98rem;
+    --font-md: 1.08rem;
+    --font-h1: 1.22rem;
+    --font-h2: 1.34rem;
+    --font-h3: 1.14rem;
+    --font-exercise-title: 1.52rem;
+    --font-dd: 1.92rem;
+    --font-stat: 1.58rem;
+    --font-status: 0.65rem;
+    --math-display-size: 2.58rem;
+    --math-display-condensed: 2.05rem;
+    --option-math-size: 1.14rem;
+    --formula-size: 1.16rem;
+    --current-formula-size: 1rem;
+    --sidebar-formula-size: 0.96rem;
+
+    --topbar-height: 92px;
+    --button-height: 42px;
+    --icon-button-size: 42px;
+    --control-height: 42px;
+    --verify-height: 46px;
+    --settings-button-height: 46px;
+
+    --sidebar-padding: clamp(32px, 1.6vw, 38px) clamp(16px, 0.9vw, 20px) 20px;
+    --logo-size: 68px;
+    --logo-font-size: 2.9rem;
+    --nav-item-height: 48px;
+    --nav-sub-height: 39px;
+
+    --shell-max-width: 100%;
+    --main-gutter: clamp(20px, 1.2vw, 30px);
+
+    --workspace-column: clamp(280px, 22%, 360px);
+    --workspace-gap: clamp(22px, 1.15vw, 28px);
+    --workspace-padding: clamp(22px, 1.15vw, 30px);
+    --card-padding: clamp(20px, 1vw, 22px);
+    --settings-gap: 18px;
+    --right-gap: 16px;
+    --right-padding: 30px 18px 22px 20px;
+
+    --hero-min-height: 330px;
+    --hero-padding: 26px 30px 30px;
+    --hero-math-min-height: 174px;
+    --mathbox-padding: 24px;
+    --exercise-actions-height: 74px;
+
+    --option-grid-gap: 16px 18px;
+    --option-grid-padding: 24px 26px;
+    --option-min-height: 80px;
+    --option-padding: 16px 18px;
+    --option-index-size: 46px;
+
+    --feedback-margin: 0 26px 26px;
+    --feedback-padding: 18px 20px 18px 60px;
+    --feedback-icon-size: 26px;
+    --feedback-icon-left: 20px;
+    --feedback-icon-top: 18px;
+
+    --learning-min-height: 84px;
+    --learning-padding: 18px 24px;
+    --learning-icon-size: 52px;
+    --learning-wave-width: 180px;
+    --learning-wave-height: 62px;
+  }
 }

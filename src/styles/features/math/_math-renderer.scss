@@ -1,16 +1,21 @@
 .katex {
   font-size: 1em;
+  color: currentColor;
 }
 
 .math-inline {
   display: inline-block;
   max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
   vertical-align: middle;
 }
 
 .math-block {
   display: block;
   max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .math-display .katex-display,
@@ -18,9 +23,19 @@
   margin: 0;
 }
 
+.centered-formula .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.centered-formula .katex-display::-webkit-scrollbar {
+  display: none;
+}
+
 .math-display .katex-display {
   width: max-content;
-  max-width: 100%;
+  max-width: none;
 }
 
 .katex,
@@ -35,7 +50,7 @@
 .centered-formula .katex,
 .math-display .katex,
 .family-math-label .katex,
-.error-tooltip-value .katex {
+.error-tooltip.stat-error-tooltip .error-tooltip-value .katex {
   white-space: nowrap;
 }
 
@@ -44,13 +59,13 @@
   max-width: 100%;
   padding: 0.08em 0.24em;
   overflow-x: auto;
-  color: #ffd6d1;
+  color: var(--danger);
   font-family: var(--math-font);
   font-size: 0.95em;
   line-height: 1.25;
   vertical-align: middle;
   white-space: pre;
-  background: rgba(117, 44, 38, 0.22);
-  border: 1px solid rgba(255, 139, 125, 0.32);
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-line);
   border-radius: var(--radius-xs);
 }

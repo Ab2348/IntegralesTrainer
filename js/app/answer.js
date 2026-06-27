@@ -10,6 +10,7 @@
     getAnswered,
     setAnswered,
     statsPanel,
+    statsService,
     stateStore,
   }) {
     function answer(optionId) {
@@ -36,7 +37,8 @@
           };
 
       setAnswered(true);
-      statsPanel.recordAnswer(currentExercise, validation);
+      const recorder = statsService || statsPanel;
+      recorder.recordAnswer(currentExercise, validation);
       exerciseView.renderAnsweredState(currentExercise, chosen, validation);
       statsPanel.render();
       stateStore.saveState();

@@ -4,7 +4,7 @@
   margin: 0;
   padding-left: 0;
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: var(--font-base);
   list-style: none;
 }
 
@@ -13,12 +13,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 38px;
-  padding: 0 10px;
-  color: #e2e6df;
-  background: rgba(37, 43, 49, 0.82);
+  min-height: 42px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
 }
 
 .compact-list .stat-error-item {
@@ -28,8 +28,8 @@
 }
 
 .compact-list .empty-stat {
-  justify-content: flex-start;
-  color: var(--faint);
-  border-style: dashed;
-  background: transparent;
+  justify-content: center;
+  color: var(--muted);
+  border-style: solid;
+  background: var(--surface-soft);
 }

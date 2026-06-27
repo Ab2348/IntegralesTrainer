@@ -4,19 +4,14 @@ body {
   color: var(--text);
   background:
     radial-gradient(
-      circle at 16% 8%,
-      rgba(232, 198, 154, 0.13),
-      transparent 30rem
+      circle at 46% 0%,
+      var(--primary-soft),
+      transparent 32rem
     ),
-    radial-gradient(
-      circle at 82% 18%,
-      rgba(120, 184, 168, 0.08),
-      transparent 34rem
-    ),
-    linear-gradient(145deg, #0d1217, #151b20 45%, #0e1318);
+    linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
 }
 
 :focus-visible {
-  outline: 3px solid rgba(232, 198, 154, 0.78);
+  outline: 3px solid var(--primary-line);
   outline-offset: 3px;
 }

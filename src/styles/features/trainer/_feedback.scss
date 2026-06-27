@@ -2,12 +2,32 @@
 
 .feedback-zone,
 .derivation-zone {
-  padding: 16px;
-  color: #dce7e2;
-  background: rgba(35, 58, 53, 0.18);
-  border: 1px solid rgba(120, 184, 168, 0.34);
-  border-radius: 17px;
-  line-height: 1.55;
+  position: relative;
+  margin: var(--feedback-margin);
+  padding: var(--feedback-padding);
+  color: var(--text);
+  background: var(--surface-soft);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  line-height: 1.45;
+}
+
+.feedback-zone::before {
+  content: "";
+  position: absolute;
+  left: var(--feedback-icon-left);
+  top: var(--feedback-icon-top);
+  width: var(--feedback-icon-size);
+  height: var(--feedback-icon-size);
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.6A6 6 0 1 0 7.5 11.4C8.3 12.3 8.8 13 9 14'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3Cpath d='M10 18a2 2 0 1 1 4 0'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 14c.2-1 .7-1.7 1.5-2.6A6 6 0 1 0 7.5 11.4C8.3 12.3 8.8 13 9 14'/%3E%3Cpath d='M9 18h6'/%3E%3Cpath d='M10 22h4'/%3E%3Cpath d='M10 18a2 2 0 1 1 4 0'/%3E%3C/svg%3E")
+    center / contain no-repeat;
 }
 
 .feedback-zone:empty {
@@ -15,34 +35,94 @@
 }
 
 .feedback-zone.correct {
-  background: rgba(35, 58, 53, 0.28);
-  border-color: rgba(120, 184, 168, 0.48);
+  background: var(--success-soft);
+  border-color: var(--success-line);
 }
 
 .feedback-zone.incorrect {
-  background: rgba(80, 48, 45, 0.28);
-  border-color: rgba(215, 143, 133, 0.48);
+  background: var(--danger-soft);
+  border-color: var(--danger-line);
 }
 
 .feedback-title {
-  margin-bottom: 8px;
-  color: var(--text);
-  font-size: 1rem;
+  margin-bottom: 6px;
+  color: var(--text-strong);
+  font-size: var(--font-md);
   font-weight: 850;
 }
 
 .feedback-zone p + p,
 .derivation-zone p + p {
-  margin-top: 10px;
+  margin-top: 8px;
+}
+
+.practice-tip {
+  margin-top: 0;
+}
+
+.practice-tip-title {
+  color: var(--text-strong);
+  font-size: var(--font-base);
+  font-weight: 850;
+}
+
+.practice-tip-title .katex {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.practice-tip-copy {
+  color: var(--muted);
+  font-size: var(--font-path);
+}
+
+.practice-tip-cues {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.practice-tip-cue {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 9px 10px;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.practice-tip-cue-label {
+  color: var(--muted);
+  font-size: var(--font-micro);
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.practice-tip-cue-value {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: var(--text-strong);
+  font-family: var(--math-font);
+  font-size: var(--font-base);
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.practice-tip-cue-value::-webkit-scrollbar {
+  display: none;
 }
 
 .diagnostic-feedback {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .diagnostic-copy {
-  color: #e7ddd1;
+  color: var(--text);
 }
 
 .diagnostic-values {
@@ -53,45 +133,61 @@
 
 .diagnostic-value {
   min-width: 0;
-  padding: 9px 10px;
+  padding: 8px 10px;
   overflow-x: auto;
-  color: #fff2df;
-  background: rgba(15, 20, 25, 0.34);
-  border: 1px solid rgba(232, 198, 154, 0.22);
+  color: var(--text-strong);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 12px;
   white-space: nowrap;
 }
 
 .diagnostic-section {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .diagnostic-section h3 {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   font-weight: 850;
   text-transform: uppercase;
 }
 
 .diagnostic-formula {
   margin: 0;
-  padding: 12px;
-  background: rgba(12, 17, 22, 0.4);
-  border: 1px solid rgba(68, 81, 92, 0.64);
-  border-radius: 13px;
+  padding: 10px;
+  overflow-x: auto;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-line);
+  border-radius: 8px;
 }
 
 .centered-formula {
-  margin: 10px 0;
-  color: #fff2df;
+  margin: 6px 0;
+  color: var(--text);
   font-family: var(--math-font);
-  font-size: 1.2rem;
+  font-size: var(--formula-size);
   overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.centered-formula::-webkit-scrollbar {
+  display: none;
 }
 
 @include mixins.media-max(980px) {
   .diagnostic-values {
     grid-template-columns: 1fr;
+  }
+
+  .practice-tip-cues {
+    grid-template-columns: 1fr;
+  }
+
+  .feedback-zone,
+  .derivation-zone {
+    margin: 0 18px 22px;
   }
 }

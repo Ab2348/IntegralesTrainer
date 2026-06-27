@@ -2,6 +2,9 @@
   "use strict";
 
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
+  const Dom = App.DomUtils;
+  const UIData = App.UIData;
+  const CollapsibleView = App.CollapsibleView;
 
   App.createControlsPanel = function createControlsPanel({
     Core,
@@ -16,42 +19,72 @@
 
     function renderFamilyChecklist() {
       const state = stateStore.getState();
-      if (els.familyChecklist.replaceChildren) {
-        els.familyChecklist.replaceChildren();
-      } else {
-        els.familyChecklist.textContent = "";
-      }
-      Core.FAMILIES.forEach((family) => {
-        const label = document.createElement("label");
-        label.className = "family-check";
+      const activeIds = state.settings.activeFamilyIds || [];
+      Dom.clearElement(els.familyChecklist);
 
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.value = family.id;
-        input.checked = state.settings.activeFamilyIds.includes(family.id);
-        input.addEventListener("change", () => {
-          const selected = selectedFamiliesFromDom();
-          stateStore.setCustomFamilies(selected);
-          els.modeSelect.value = "custom";
+      const rootSection = CollapsibleView.createCollapsible({
+        id: "families-active",
+        title: "Familias activas",
+        badge: UIData.countBadge(
+          activeIds,
+          UIData.FAMILY_GROUPS.flatMap((group) => group.families),
+        ),
+        defaultOpen: true,
+        level: 1,
+        className: "family-root",
+      });
+
+      UIData.FAMILY_GROUPS.forEach((group) => {
+        const groupSection = CollapsibleView.createCollapsible({
+          id: `family-group-${group.id}`,
+          title: group.label,
+          badge: UIData.countBadge(activeIds, group.families),
+          defaultOpen: false,
+          level: 2,
+          className: "family-group",
         });
 
-        const span = document.createElement("span");
-        span.className = "family-check-label";
-        if (Core.renderInto) {
-          Core.renderInto(
-            span,
-            Core.familyLabelExpression
-              ? Core.familyLabelExpression(family)
-              : { latex: Core.familyLabelLatex ? Core.familyLabelLatex(family) : "" },
-            { className: "family-math-label" },
-          );
-        } else {
-          span.textContent = family.name;
-        }
+        const list = document.createElement("div");
+        list.className = "family-group-list";
+        group.families.forEach((familyId) => {
+          const family = Core.FAMILY_MAP[familyId];
+          if (!family) {
+            return;
+          }
 
-        label.append(input, span);
-        els.familyChecklist.appendChild(label);
+          const label = document.createElement("label");
+          label.className = "family-check";
+
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.value = family.id;
+          input.checked = activeIds.includes(family.id);
+          input.addEventListener("change", () => {
+            const selected = selectedFamiliesFromDom();
+            stateStore.setCustomFamilies(selected);
+            els.modeSelect.value = "custom";
+            renderFamilyChecklist();
+          });
+
+          const span = document.createElement("span");
+          span.className = "family-check-label";
+          Dom.renderMathInto(
+            Core,
+            span,
+            UIData.familyLabelExpression(Core, family),
+            { className: "family-math-label" },
+            family.name,
+          );
+
+          label.append(input, span);
+          list.appendChild(label);
+        });
+
+        groupSection.content.appendChild(list);
+        rootSection.content.appendChild(groupSection.section);
       });
+
+      els.familyChecklist.appendChild(rootSection.section);
     }
 
     function syncControlsFromState() {
@@ -89,9 +122,17 @@
       renderFamilyChecklist();
     }
 
+    function syncCurrentFamilyGroup(familyId) {
+      const currentGroup = UIData.groupForFamily(familyId);
+      CollapsibleView.setOpen("families-active", true);
+      UIData.FAMILY_GROUPS.forEach((group) => {
+        const isCurrent = Boolean(currentGroup && group.id === currentGroup.id);
+        CollapsibleView.setOpen(`family-group-${group.id}`, isCurrent);
+      });
+    }
+
     function bindEvents() {
       els.modeSelect.addEventListener("change", applyModeFromControls);
-
       [
         els.difficultySelect,
         els.rangeMinInput,
@@ -106,6 +147,7 @@
       bindEvents,
       renderFamilyChecklist,
       syncControlsFromState,
+      syncCurrentFamilyGroup,
       updateSettingsFromControls,
     };
   };

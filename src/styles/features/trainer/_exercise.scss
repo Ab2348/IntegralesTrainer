@@ -1,50 +1,161 @@
 @use "../../abstracts/mixins";
 
 .exercise-heading {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.exercise-heading .kicker {
+  width: max-content;
+  max-width: 100%;
+  padding: 5px 8px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  letter-spacing: 0;
+}
+
+#exerciseTitle {
+  margin-top: 8px;
+  color: #ffffff;
+  font-size: var(--font-exercise-title);
+  font-weight: 850;
+}
+
+#difficultyLabel {
+  min-height: 28px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.30);
+}
+
+.exercise-hero {
+  position: relative;
+  min-height: var(--hero-min-height);
+  padding: var(--hero-padding);
+  overflow: hidden;
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 96% 18%, rgba(255, 255, 255, 0.13), transparent 14rem),
+    radial-gradient(circle at 10% 100%, rgba(105, 120, 231, 0.55), transparent 20rem),
+    linear-gradient(135deg, #6269df 0%, #5264c9 42%, #344ca9 100%);
+  border-radius: 18px 18px 0 0;
+}
+
+.exercise-hero::before {
+  content: "";
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  right: -54px;
+  top: -22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 50%;
+}
+
+.exercise-hero::after {
+  content: "";
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  width: 78px;
+  height: 58px;
+  opacity: 0.65;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.62) 1.3px, transparent 1.5px);
+  background-size: 12px 12px;
+}
+
+.hero-decoration {
+  position: absolute;
+  pointer-events: none;
+}
+
+.hero-orbit {
+  width: 340px;
+  height: 340px;
+  right: -118px;
+  top: -62px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 50%;
+}
+
+.hero-dots {
+  right: 28px;
+  bottom: 38px;
+  width: 84px;
+  height: 60px;
+  opacity: 0.55;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.56) 1.2px, transparent 1.4px);
+  background-size: 12px 12px;
 }
 
 .mathbox,
 .exercise-display {
-  min-height: 168px;
+  min-height: 128px;
   display: grid;
   place-items: center;
-  padding: 30px 22px;
-  margin-bottom: 18px;
   overflow: auto;
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(232, 198, 154, 0.08),
-      transparent 26rem
-    ),
-    linear-gradient(135deg, rgba(30, 38, 45, 0.96), rgba(14, 20, 26, 0.96));
-  border: 1px solid rgba(68, 81, 92, 0.86);
-  border-radius: 18px;
+}
+
+.exercise-hero .mathbox,
+.exercise-hero .exercise-display {
+  position: relative;
+  z-index: 1;
+  min-height: var(--hero-math-min-height);
+  margin: 12px 0 0;
+  padding: var(--mathbox-padding);
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: rgba(21, 32, 54, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  scrollbar-width: none;
+}
+
+.exercise-hero .mathbox::-webkit-scrollbar,
+.exercise-hero .exercise-display::-webkit-scrollbar {
+  display: none;
 }
 
 .math,
 .math-display {
   font-family: var(--math-font);
-  font-size: 2.45rem;
-  line-height: 1.45;
+  font-size: var(--math-display-size);
+  line-height: 1.36;
   text-align: center;
   white-space: nowrap;
 }
 
-.exercise-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin: -2px 0 16px;
+.exercise-hero .math,
+.exercise-hero .math-display {
+  color: #ffffff;
 }
 
-@include mixins.media-max(980px) {
+.exercise-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: var(--exercise-actions-height);
+  margin: 0;
+  padding: 0 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+@container exercise-card (max-width: 620px) {
+  .exercise-hero {
+    min-height: 240px;
+    padding: 18px;
+  }
+
   .exercise-actions {
     justify-content: stretch;
+    min-height: 76px;
   }
 
   .verify {
@@ -53,7 +164,29 @@
 
   .math,
   .math-display {
-    font-size: 1.85rem;
+    font-size: var(--math-display-condensed);
+    white-space: normal;
+  }
+}
+
+@include mixins.media-max(980px) {
+  .exercise-hero {
+    min-height: 240px;
+    padding: 18px;
+  }
+
+  .exercise-actions {
+    justify-content: stretch;
+    min-height: 76px;
+  }
+
+  .verify {
+    width: 100%;
+  }
+
+  .math,
+  .math-display {
+    font-size: var(--math-display-condensed);
     white-space: normal;
   }
 }

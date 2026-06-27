@@ -1,11 +1,18 @@
+@use "../abstracts/breakpoints";
 @use "../abstracts/mixins";
 
 .workspace {
+  min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 300px;
-  gap: 18px;
-  align-items: start;
-  padding: 24px;
+  grid-template-columns: minmax(0, 1fr) var(--workspace-column);
+  gap: var(--workspace-gap);
+  align-items: stretch;
+  margin: 0 var(--main-gutter);
+  padding: var(--workspace-padding);
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
 }
 
 #practicePanel,
@@ -14,9 +21,102 @@
   min-width: 0;
 }
 
-@include mixins.media-max(980px) {
+#practicePanel {
+  display: grid;
+}
+
+.learning-banner {
+  min-height: var(--learning-min-height);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) var(--learning-wave-width);
+  align-items: center;
+  gap: 14px;
+  margin: 12px var(--main-gutter);
+  padding: var(--learning-padding);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+}
+
+.learning-icon {
+  position: relative;
+  width: var(--learning-icon-size);
+  height: var(--learning-icon-size);
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  font-size: 0;
+  background: var(--primary-soft);
+  border-radius: 12px;
+}
+
+.learning-icon::before {
+  content: "";
+  width: 27px;
+  height: 27px;
+  background: var(--primary);
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 10v6M2 10l10-5 10 5-10 5z'/%3E%3Cpath d='M6 12v5c3 2 9 2 12 0v-5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 10v6M2 10l10-5 10 5-10 5z'/%3E%3Cpath d='M6 12v5c3 2 9 2 12 0v-5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.learning-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.learning-copy strong {
+  color: var(--text-strong);
+  font-size: var(--font-md);
+  font-weight: 850;
+}
+
+.learning-copy span {
+  color: var(--muted);
+  font-size: var(--font-sm);
+}
+
+.learning-wave {
+  width: var(--learning-wave-width);
+  height: var(--learning-wave-height);
+  justify-self: end;
+  overflow: visible;
+}
+
+.learning-wave path {
+  fill: none;
+  stroke: var(--primary-line);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.learning-wave path:nth-child(3) {
+  stroke: var(--primary3);
+  stroke-width: 2.4;
+}
+
+@container main-panel (max-width: 760px) {
   .workspace {
     grid-template-columns: 1fr;
-    padding: 18px;
+  }
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .workspace {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .learning-banner {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .learning-wave {
+    display: none;
   }
 }
