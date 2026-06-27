@@ -2,6 +2,7 @@
   "use strict";
 
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
+  const CollapseAnimator = App.CollapseAnimator;
 
   App.createExerciseView = function createExerciseView({ Core, els }) {
     function clearElement(element) {
@@ -45,10 +46,13 @@
 
     function clearDerivation() {
       clearElement(els.derivationZone);
+      CollapseAnimator.setOpen(els.derivationButton, els.derivationZone, false, {
+        animate: false,
+        force: true,
+      });
       els.derivationZone.classList.add("hidden");
       els.derivationButton.classList.add("hidden");
       els.derivationButton.textContent = "Ver derivación";
-      els.derivationButton.setAttribute("aria-expanded", "false");
     }
 
     function renderGenerationError(error, settings) {
@@ -141,19 +145,23 @@
       if (!exercise || !answered) {
         return;
       }
-      const hidden = els.derivationZone.classList.contains("hidden");
-      if (hidden) {
+      const open =
+        els.derivationButton.getAttribute("aria-expanded") === "true";
+      if (!open) {
         renderContentInto(
           els.derivationZone,
           Core.derivationContent ? Core.derivationContent(exercise) : [],
         );
         els.derivationZone.classList.remove("hidden");
         els.derivationButton.textContent = "Ocultar derivación";
-        els.derivationButton.setAttribute("aria-expanded", "true");
+        CollapseAnimator.setOpen(els.derivationButton, els.derivationZone, true);
       } else {
-        els.derivationZone.classList.add("hidden");
         els.derivationButton.textContent = "Ver derivación";
-        els.derivationButton.setAttribute("aria-expanded", "false");
+        CollapseAnimator.setOpen(els.derivationButton, els.derivationZone, false, {
+          onAfterClose: () => {
+            els.derivationZone.classList.add("hidden");
+          },
+        });
       }
     }
 

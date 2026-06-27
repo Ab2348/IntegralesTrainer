@@ -1670,11 +1670,7 @@ input:focus {
     box-shadow: 0 0 0 4px var(--primary-soft);
   }
   .settings-content {
-    max-height: 0;
     overflow: hidden;
-    opacity: 0;
-    transform: translateY(-6px);
-    transition: max-height 260ms ease, opacity 200ms ease, transform 220ms ease;
   }
   .settings-content-inner {
     padding-top: var(--settings-gap);
@@ -2732,5 +2728,30 @@ input:focus {
   to {
     opacity: 1;
     transform: translateY(0) scaleY(1);
+  }
+}
+.collapse-content {
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition: height 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: height, opacity, transform;
+}
+
+.collapse-content[data-collapse-state=closed],
+.collapse-content[data-collapse-state=closing] {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+.collapse-content[data-collapse-state=open],
+.collapse-content[data-collapse-state=opening] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapse-content {
+    transition: none;
   }
 }

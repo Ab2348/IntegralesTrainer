@@ -3,6 +3,7 @@
 
   const Core = window.TrigCore;
   const App = window.TrigTrainerApp;
+  const CollapseAnimator = App.CollapseAnimator;
 
   let currentExercise = null;
   let answered = false;
@@ -35,7 +36,6 @@
     mobileSectionNav: document.getElementById("mobileSectionNav"),
     settingsToggle: document.getElementById("settingsToggle"),
     settingsContent: document.getElementById("settingsContent"),
-    settingsContentInner: document.querySelector(".settings-content-inner"),
     controlsPanel: document.getElementById("controlsPanel"),
   };
 
@@ -103,20 +103,23 @@
     statsPanel.render();
   }
 
-  function setMobileNavOpen(isOpen) {
+  function setMobileNavOpen(isOpen, animate = true) {
     if (!els.mobileSectionNav) {
       return;
     }
 
-    const open = Boolean(isOpen);
-    els.mobileSectionNav.hidden = !open;
-    if (els.mobileMenuToggle) {
-      els.mobileMenuToggle.setAttribute("aria-expanded", String(open));
-    }
+    CollapseAnimator.setOpen(
+      els.mobileMenuToggle,
+      els.mobileSectionNav,
+      Boolean(isOpen),
+      { animate },
+    );
   }
 
   function toggleMobileNav() {
-    setMobileNavOpen(els.mobileSectionNav.hidden);
+    setMobileNavOpen(
+      els.mobileMenuToggle.getAttribute("aria-expanded") !== "true",
+    );
   }
 
   function scrollToTop() {
@@ -149,20 +152,11 @@
 
     window.addEventListener("resize", () => {
       if (window.matchMedia("(min-width: 981px)").matches) {
-        setMobileNavOpen(false);
+        setMobileNavOpen(false, false);
       }
     });
-  }
 
-  function setSettingsContentAvailability(isOpen) {
-    if (!els.settingsContent) {
-      return;
-    }
-
-    els.settingsContent.setAttribute("aria-hidden", String(!isOpen));
-    if ("inert" in els.settingsContent) {
-      els.settingsContent.inert = !isOpen;
-    }
+    setMobileNavOpen(false, false);
   }
 
   function setSettingsPanelOpen(isOpen, animate = true) {
@@ -175,38 +169,20 @@
       els.settingsToggle.setAttribute("aria-expanded", "true");
       els.settingsToggle.tabIndex = -1;
       els.controlsPanel.dataset.settingsCollapsed = "false";
-      els.settingsContent.hidden = false;
-      els.settingsContent.style.maxHeight = "";
-      setSettingsContentAvailability(true);
+      CollapseAnimator.setOpen(els.settingsToggle, els.settingsContent, true, {
+        animate: false,
+        force: true,
+      });
       return;
     }
 
     const open = Boolean(isOpen);
     els.settingsToggle.tabIndex = 0;
-    els.settingsToggle.setAttribute("aria-expanded", String(open));
     els.controlsPanel.dataset.settingsCollapsed = String(!open);
-    setSettingsContentAvailability(open);
-
-    if (!animate) {
-      els.settingsContent.hidden = !open;
-      els.settingsContent.style.maxHeight = open
-        ? `${els.settingsContent.scrollHeight}px`
-        : "0px";
-      return;
-    }
-
-    els.settingsContent.hidden = false;
-    if (open) {
-      els.settingsContent.style.maxHeight = "0px";
-      requestAnimationFrame(() => {
-        els.settingsContent.style.maxHeight = `${els.settingsContent.scrollHeight}px`;
-      });
-      return;
-    }
-
-    els.settingsContent.style.maxHeight = `${els.settingsContent.scrollHeight}px`;
-    els.settingsContent.offsetHeight;
-    els.settingsContent.style.maxHeight = "0px";
+    CollapseAnimator.setOpen(els.settingsToggle, els.settingsContent, open, {
+      animate,
+      force: !animate,
+    });
   }
 
   function toggleSettingsPanel() {
@@ -224,18 +200,18 @@
       return;
     }
 
-    els.settingsToggle.addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 980px)").matches) {
-        toggleSettingsPanel();
-      }
+    CollapseAnimator.enhance({
+      trigger: els.settingsToggle,
+      content: els.settingsContent,
+      defaultOpen: !window.matchMedia("(max-width: 980px)").matches,
+      allowToggle: () => window.matchMedia("(max-width: 980px)").matches,
     });
 
-    els.settingsContent.addEventListener("transitionend", (event) => {
-      if (
-        event.propertyName === "max-height" &&
-        els.settingsToggle.getAttribute("aria-expanded") !== "true"
-      ) {
-        els.settingsContent.hidden = true;
+    els.settingsToggle.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 980px)").matches) {
+        els.controlsPanel.dataset.settingsCollapsed = String(
+          els.settingsToggle.getAttribute("aria-expanded") === "true",
+        );
       }
     });
 
@@ -245,18 +221,6 @@
         false,
       );
     });
-
-    if (window.ResizeObserver && els.settingsContentInner) {
-      const settingsResizeObserver = new ResizeObserver(() => {
-        if (
-          window.matchMedia("(max-width: 980px)").matches &&
-          els.settingsToggle.getAttribute("aria-expanded") === "true"
-        ) {
-          els.settingsContent.style.maxHeight = `${els.settingsContent.scrollHeight}px`;
-        }
-      });
-      settingsResizeObserver.observe(els.settingsContentInner);
-    }
 
     setSettingsPanelOpen(
       !window.matchMedia("(max-width: 980px)").matches,

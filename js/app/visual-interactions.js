@@ -5,6 +5,7 @@
   if (!App) {
     return;
   }
+  const CollapseAnimator = App.CollapseAnimator;
 
   const FAMILY_GROUPS = [
     {
@@ -134,12 +135,10 @@
     content.id = `${id}-content`;
     content.setAttribute("role", "region");
     content.setAttribute("aria-labelledby", button.id);
-    content.hidden = !defaultOpen;
-
-    button.addEventListener("click", () => {
-      const open = button.getAttribute("aria-expanded") !== "true";
-      button.setAttribute("aria-expanded", String(open));
-      content.hidden = !open;
+    CollapseAnimator.enhance({
+      trigger: button,
+      content,
+      defaultOpen: Boolean(defaultOpen),
     });
 
     section.append(button, content);
@@ -228,8 +227,7 @@
     if (!trigger || !content) {
       return;
     }
-    trigger.setAttribute("aria-expanded", String(Boolean(open)));
-    content.hidden = !open;
+    CollapseAnimator.setOpen(trigger, content, Boolean(open));
   }
 
   function syncCurrentFamilyGroup(familyId) {
@@ -265,14 +263,12 @@
       items.forEach((item) => content.appendChild(item));
 
       const open = trigger.textContent.includes("Entrenar");
-      content.hidden = !open;
       trigger.dataset.stableAccordion = "true";
-      trigger.setAttribute("aria-expanded", String(open));
       trigger.setAttribute("aria-controls", contentId);
-      trigger.addEventListener("click", () => {
-        const next = trigger.getAttribute("aria-expanded") !== "true";
-        trigger.setAttribute("aria-expanded", String(next));
-        content.hidden = !next;
+      CollapseAnimator.enhance({
+        trigger,
+        content,
+        defaultOpen: open,
       });
     });
 
@@ -299,7 +295,6 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "card-toggle";
-      button.setAttribute("aria-expanded", "true");
       button.setAttribute("aria-controls", contentId);
       while (head.firstChild) {
         button.appendChild(head.firstChild);
@@ -312,11 +307,10 @@
       button.appendChild(chevron);
       head.appendChild(button);
       head.dataset.stableAccordion = "true";
-
-      button.addEventListener("click", () => {
-        const next = button.getAttribute("aria-expanded") !== "true";
-        button.setAttribute("aria-expanded", String(next));
-        content.hidden = !next;
+      CollapseAnimator.enhance({
+        trigger: button,
+        content,
+        defaultOpen: true,
       });
     });
   }
@@ -559,8 +553,7 @@
       if (!trigger || !content) {
         return;
       }
-      trigger.setAttribute("aria-expanded", "true");
-      content.hidden = false;
+      CollapseAnimator.setOpen(trigger, content, true);
     }
 
     function renderCurrentFamily(familyId) {
