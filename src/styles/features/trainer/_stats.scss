@@ -202,41 +202,6 @@
   text-transform: uppercase;
 }
 
-.error-tooltip.stat-error-tooltip {
-  position: fixed;
-  z-index: 1000;
-  top: 0;
-  left: 0;
-  width: min(330px, calc(100vw - 24px));
-  max-height: min(65vh, 360px);
-  display: none;
-  gap: 8px;
-  padding: 12px;
-  overflow: auto;
-  color: var(--text-strong);
-  background: var(--surface);
-  border: 1px solid var(--primary-line);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  pointer-events: auto;
-}
-
-.error-tooltip.stat-error-tooltip.is-visible {
-  display: grid;
-}
-
-.error-tooltip-row {
-  display: grid;
-  gap: 4px;
-}
-
-.error-tooltip-label {
-  color: var(--muted);
-  font-size: var(--font-xxs);
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
 .stat-list-block {
   margin-top: 22px;
 }

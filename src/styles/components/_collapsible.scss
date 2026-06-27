@@ -1,0 +1,71 @@
+.collapsible {
+  min-width: 0;
+}
+
+.collapsible + .collapsible {
+  margin-top: 7px;
+}
+
+.collapsible-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 10px;
+  color: var(--text-strong);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-weight: 800;
+}
+
+.collapsible[data-level="2"] > .collapsible-trigger,
+.collapsible[data-level="3"] > .collapsible-trigger,
+.collapsible[data-level="4"] > .collapsible-trigger {
+  min-height: 34px;
+  color: var(--text-strong);
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.collapsible-title {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.collapsible-badge {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  font-size: var(--font-micro);
+  font-weight: 900;
+}
+
+.collapsible-chevron {
+  flex: 0 0 auto;
+  color: var(--primary);
+  transition: transform 160ms ease;
+}
+
+[aria-expanded="false"] > .collapsible-chevron,
+[aria-expanded="false"] .collapsible-chevron {
+  transform: rotate(-90deg);
+}
+
+.collapsible-content {
+  display: grid;
+  gap: 7px;
+  padding: 7px 0 0 8px;
+}
+
+.static-collapsible-header {
+  cursor: default;
+}
+
+.static-collapsible-header:hover {
+  background: var(--surface-soft);
+}

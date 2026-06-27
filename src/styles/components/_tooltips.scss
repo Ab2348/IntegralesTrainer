@@ -18,16 +18,23 @@
 }
 
 .error-tooltip.stat-error-tooltip {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
   display: none;
   gap: 10px;
   width: min(330px, calc(100vw - 24px));
+  max-height: min(65vh, 360px);
   margin: 0;
   padding: 12px;
+  overflow: auto;
   color: var(--text-strong);
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-soft);
+  pointer-events: auto;
 }
 
 .error-tooltip.stat-error-tooltip.is-visible {

@@ -3,6 +3,7 @@
 
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
   const COLLAPSE_CLASS = "collapse-content";
+  const COLLAPSE_FALLBACK_MS = 320;
   const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
   function prefersReducedMotion() {
@@ -121,7 +122,7 @@
     content.__collapseTimer = root.setTimeout(() => {
       cleanup(content);
       finish(content, nextOpen, options);
-    }, 420);
+    }, COLLAPSE_FALLBACK_MS);
 
     requestAnimationFrame(() => {
       const targetHeight = nextOpen ? content.scrollHeight : 0;
@@ -204,6 +205,7 @@
   }
 
   App.CollapseAnimator = {
+    COLLAPSE_FALLBACK_MS,
     enhance,
     refresh,
     setOpen,

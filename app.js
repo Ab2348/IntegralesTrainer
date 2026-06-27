@@ -3,7 +3,6 @@
 
   const Core = window.TrigCore;
   const App = window.TrigTrainerApp;
-  const CollapseAnimator = App.CollapseAnimator;
 
   let currentExercise = null;
   let answered = false;
@@ -39,19 +38,22 @@
     controlsPanel: document.getElementById("controlsPanel"),
   };
 
-  const mobileNavLinks = Array.from(
-    document.querySelectorAll("#mobileSectionNav a"),
-  );
-
   const stateStore = App.createStateStore(Core);
+  const statsService = App.createStatsService({ Core, stateStore });
   const controlsPanel = App.createControlsPanel({
     Core,
     els,
     stateStore,
   });
   const exerciseView = App.createExerciseView({ Core, els });
-  const statsPanel = App.createStatsPanel({ Core, els, stateStore });
+  const statsPanel = App.createStatsPanel({
+    Core,
+    els,
+    stateStore,
+    statsService,
+  });
   const formulaPanel = App.createFormulaPanel({ Core, els });
+  const uiOrchestrator = App.createUIOrchestrator({ els });
   const answerController = App.createAnswerController({
     Core,
     exerciseView,
@@ -61,6 +63,7 @@
       answered = Boolean(value);
     },
     statsPanel,
+    statsService,
     stateStore,
   });
   const pageWarning = App.createPageWarning
@@ -83,15 +86,15 @@
         settings,
         answerController.answer,
       );
+      uiOrchestrator.onExerciseChanged(currentExercise, {
+        controlsPanel,
+        formulaPanel,
+      });
     } catch (error) {
       currentExercise = null;
       answered = false;
       exerciseView.renderGenerationError(error, settings);
     }
-  }
-
-  function toggleDerivation() {
-    exerciseView.toggleDerivation(currentExercise, answered);
   }
 
   function resetStats() {
@@ -103,144 +106,20 @@
     statsPanel.render();
   }
 
-  function setMobileNavOpen(isOpen, animate = true) {
-    if (!els.mobileSectionNav) {
-      return;
-    }
-
-    CollapseAnimator.setOpen(
-      els.mobileMenuToggle,
-      els.mobileSectionNav,
-      Boolean(isOpen),
-      { animate },
-    );
-  }
-
-  function toggleMobileNav() {
-    setMobileNavOpen(
-      els.mobileMenuToggle.getAttribute("aria-expanded") !== "true",
-    );
-  }
-
-  function scrollToTop() {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  function bindMobileNavigation() {
-    if (els.mobileMenuToggle) {
-      els.mobileMenuToggle.addEventListener("click", toggleMobileNav);
-    }
-
-    if (els.mobileQuickNavButton) {
-      els.mobileQuickNavButton.addEventListener("click", scrollToTop);
-    }
-
-    mobileNavLinks.forEach((link) => {
-      link.addEventListener("click", () => {
-        setMobileNavOpen(false);
-      });
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        setMobileNavOpen(false);
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      if (window.matchMedia("(min-width: 981px)").matches) {
-        setMobileNavOpen(false, false);
-      }
-    });
-
-    setMobileNavOpen(false, false);
-  }
-
-  function setSettingsPanelOpen(isOpen, animate = true) {
-    if (!els.settingsToggle || !els.settingsContent || !els.controlsPanel) {
-      return;
-    }
-
-    const mobile = window.matchMedia("(max-width: 980px)").matches;
-    if (!mobile) {
-      els.settingsToggle.setAttribute("aria-expanded", "true");
-      els.settingsToggle.tabIndex = -1;
-      els.controlsPanel.dataset.settingsCollapsed = "false";
-      CollapseAnimator.setOpen(els.settingsToggle, els.settingsContent, true, {
-        animate: false,
-        force: true,
-      });
-      return;
-    }
-
-    const open = Boolean(isOpen);
-    els.settingsToggle.tabIndex = 0;
-    els.controlsPanel.dataset.settingsCollapsed = String(!open);
-    CollapseAnimator.setOpen(els.settingsToggle, els.settingsContent, open, {
-      animate,
-      force: !animate,
-    });
-  }
-
-  function toggleSettingsPanel() {
-    if (!els.settingsToggle) {
-      return;
-    }
-
-    setSettingsPanelOpen(
-      els.settingsToggle.getAttribute("aria-expanded") !== "true",
-    );
-  }
-
-  function bindMobileSettingsPanel() {
-    if (!els.settingsToggle || !els.settingsContent) {
-      return;
-    }
-
-    CollapseAnimator.enhance({
-      trigger: els.settingsToggle,
-      content: els.settingsContent,
-      defaultOpen: !window.matchMedia("(max-width: 980px)").matches,
-      allowToggle: () => window.matchMedia("(max-width: 980px)").matches,
-    });
-
-    els.settingsToggle.addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 980px)").matches) {
-        els.controlsPanel.dataset.settingsCollapsed = String(
-          els.settingsToggle.getAttribute("aria-expanded") === "true",
-        );
-      }
-    });
-
-    window.addEventListener("resize", () => {
-      setSettingsPanelOpen(
-        !window.matchMedia("(max-width: 980px)").matches,
-        false,
-      );
-    });
-
-    setSettingsPanelOpen(
-      !window.matchMedia("(max-width: 980px)").matches,
-      false,
-    );
-  }
-
   function bindEvents() {
     controlsPanel.bindEvents();
     els.nextExerciseButton.addEventListener("click", generateNextExercise);
     els.resetStatsButton.addEventListener("click", resetStats);
-    els.derivationButton.addEventListener("click", toggleDerivation);
-    bindMobileNavigation();
-    bindMobileSettingsPanel();
+    els.derivationButton.addEventListener("click", () => {
+      exerciseView.toggleDerivation(currentExercise, answered);
+    });
   }
 
   function init() {
     controlsPanel.syncControlsFromState();
-    bindEvents();
     formulaPanel.render();
+    uiOrchestrator.init();
+    bindEvents();
     statsPanel.render();
     generateNextExercise();
     if (pageWarning) {

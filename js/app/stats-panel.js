@@ -2,33 +2,17 @@
   "use strict";
 
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
+  const Dom = App.DomUtils;
 
-  App.createStatsPanel = function createStatsPanel({ Core, els, stateStore }) {
-    const tooltipCleanupHandlers = [];
-
-    function clearElement(element) {
-      if (element.replaceChildren) {
-        element.replaceChildren();
-      } else {
-        element.textContent = "";
-      }
-    }
-
-    function renderContentInto(target, content, fallbackText) {
-      if (Core.renderContentInto && content) {
-        Core.renderContentInto(target, content);
-      } else {
-        target.textContent = fallbackText || "";
-      }
-    }
-
-    function renderMathInto(target, expression, fallbackText, options) {
-      if (Core.renderInto && expression) {
-        Core.renderInto(target, expression, options || {});
-      } else {
-        target.textContent = fallbackText || "";
-      }
-    }
+  App.createStatsPanel = function createStatsPanel({
+    Core,
+    els,
+    stateStore,
+    statsService,
+  }) {
+    const service =
+      statsService || App.createStatsService({ Core, stateStore });
+    const floatingLayers = [];
 
     function appendEmptyState(container, description) {
       const item = document.createElement("li");
@@ -47,8 +31,8 @@
     }
 
     function removeFloatingErrorTooltips() {
-      while (tooltipCleanupHandlers.length) {
-        tooltipCleanupHandlers.pop()();
+      while (floatingLayers.length) {
+        floatingLayers.pop().cleanup();
       }
       if (!root.document) {
         return;
@@ -56,104 +40,6 @@
       root.document
         .querySelectorAll('.error-tooltip[data-stats-tooltip="true"]')
         .forEach((tooltip) => tooltip.remove());
-    }
-
-    function positionErrorTooltip(trigger, tooltip) {
-      const documentElement = root.document.documentElement;
-      const triggerRect = trigger.getBoundingClientRect();
-      const viewportWidth = root.innerWidth || documentElement.clientWidth;
-      const viewportHeight = root.innerHeight || documentElement.clientHeight;
-      const margin = 12;
-      const gap = 8;
-
-      tooltip.style.left = "0";
-      tooltip.style.top = "0";
-      tooltip.style.maxWidth = `calc(100vw - ${margin * 2}px)`;
-
-      const tooltipRect = tooltip.getBoundingClientRect();
-      const tooltipWidth = tooltipRect.width;
-      const tooltipHeight = tooltipRect.height;
-      const maxLeft = Math.max(margin, viewportWidth - tooltipWidth - margin);
-      const preferredLeft = triggerRect.right - tooltipWidth;
-      const left = Math.min(Math.max(margin, preferredLeft), maxLeft);
-      const topAbove = triggerRect.top - tooltipHeight - gap;
-      const topBelow = triggerRect.bottom + gap;
-      const maxTop = Math.max(margin, viewportHeight - tooltipHeight - margin);
-      const top = topAbove >= margin ? topAbove : Math.min(topBelow, maxTop);
-
-      tooltip.style.left = `${left}px`;
-      tooltip.style.top = `${Math.max(margin, top)}px`;
-    }
-
-    function wireErrorTooltip(item, trigger, tooltip) {
-      let hideTimer = null;
-
-      function cancelHide() {
-        if (hideTimer) {
-          root.clearTimeout(hideTimer);
-          hideTimer = null;
-        }
-      }
-
-      function refreshPosition() {
-        if (tooltip.classList.contains("is-visible")) {
-          positionErrorTooltip(trigger, tooltip);
-        }
-      }
-
-      function showTooltip() {
-        cancelHide();
-        tooltip.classList.add("is-visible");
-        positionErrorTooltip(trigger, tooltip);
-        root.addEventListener("scroll", refreshPosition, true);
-        root.addEventListener("resize", refreshPosition);
-        if (root.requestAnimationFrame) {
-          root.requestAnimationFrame(refreshPosition);
-        }
-      }
-
-      function hideTooltip() {
-        cancelHide();
-        tooltip.classList.remove("is-visible");
-        root.removeEventListener("scroll", refreshPosition, true);
-        root.removeEventListener("resize", refreshPosition);
-      }
-
-      function scheduleHide() {
-        cancelHide();
-        hideTimer = root.setTimeout(hideTooltip, 120);
-      }
-
-      item.addEventListener("pointerenter", showTooltip);
-      item.addEventListener("pointerleave", scheduleHide);
-      trigger.addEventListener("focus", showTooltip);
-      trigger.addEventListener("blur", scheduleHide);
-      tooltip.addEventListener("pointerenter", cancelHide);
-      tooltip.addEventListener("pointerleave", scheduleHide);
-
-      return function cleanupErrorTooltip() {
-        hideTooltip();
-        item.removeEventListener("pointerenter", showTooltip);
-        item.removeEventListener("pointerleave", scheduleHide);
-        trigger.removeEventListener("focus", showTooltip);
-        trigger.removeEventListener("blur", scheduleHide);
-        tooltip.removeEventListener("pointerenter", cancelHide);
-        tooltip.removeEventListener("pointerleave", scheduleHide);
-        tooltip.remove();
-      };
-    }
-
-    function latestErrorExample(tag) {
-      const state = stateStore.getState();
-      const examples = Array.isArray(state.errorExamplesByTag[tag])
-        ? state.errorExamplesByTag[tag]
-        : [];
-      if (!examples.length) {
-        return null;
-      }
-      return examples.reduce((latest, example) =>
-        example.timestamp > latest.timestamp ? example : latest,
-      );
     }
 
     function appendTooltipRow(container, labelText, valueText, expression) {
@@ -166,7 +52,7 @@
 
       const value = document.createElement("span");
       value.className = "error-tooltip-value";
-      renderMathInto(value, expression, valueText || "Sin datos");
+      Dom.renderMathInto(Core, value, expression, {}, valueText || "Sin datos");
 
       row.append(label, value);
       container.appendChild(row);
@@ -180,7 +66,7 @@
       tooltip.id = tooltipId;
       tooltip.setAttribute("role", "tooltip");
 
-      const example = latestErrorExample(tag);
+      const example = service.latestErrorExample(tag);
       if (example) {
         const math = Core.errorExampleMath
           ? Core.errorExampleMath(example)
@@ -230,16 +116,10 @@
       return tooltip;
     }
 
-    function renderErrorList() {
-      const state = stateStore.getState();
-      const entries = Object.entries(state.errorCountsByTag || {})
-        .filter((entry) => entry[1] > 0)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-
+    function renderErrorList(errorEntries) {
       removeFloatingErrorTooltips();
-      clearElement(els.errorList);
-      if (!entries.length) {
+      Dom.clearElement(els.errorList);
+      if (!errorEntries.length) {
         appendEmptyState(
           els.errorList,
           "Resuelve ejercicios para ver tu diagnóstico personalizado.",
@@ -247,7 +127,7 @@
         return;
       }
 
-      entries.forEach(([tag, value]) => {
+      errorEntries.forEach(([tag, value]) => {
         const item = document.createElement("li");
         item.className = "stat-error-item";
 
@@ -257,7 +137,8 @@
 
         const label = document.createElement("span");
         label.className = "stat-item-label";
-        renderContentInto(
+        Dom.renderContentInto(
+          Core,
           label,
           Core.errorLabelContent ? Core.errorLabelContent(tag) : [tag],
           tag,
@@ -271,18 +152,19 @@
         item.appendChild(trigger);
         const tooltip = appendErrorTooltip(item, tag);
         trigger.setAttribute("aria-describedby", tooltip.id);
-        tooltipCleanupHandlers.push(wireErrorTooltip(item, trigger, tooltip));
+        floatingLayers.push(
+          App.createFloatingLayer({
+            hoverTarget: item,
+            layer: tooltip,
+            trigger,
+          }),
+        );
         els.errorList.appendChild(item);
       });
     }
 
-    function renderRankedList(container, data, renderLabel) {
-      const entries = Object.entries(data || {})
-        .filter((entry) => entry[1] > 0)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-
-      clearElement(container);
+    function renderRankedList(container, entries, renderLabel) {
+      Dom.clearElement(container);
       if (!entries.length) {
         appendEmptyState(
           container,
@@ -307,31 +189,26 @@
     }
 
     function render() {
-      const state = stateStore.getState();
-      const total = state.totalAnswered || 0;
-      const correct = state.totalCorrect || 0;
-      const incorrect = state.totalIncorrect || 0;
-      const accuracy = total ? Math.round((correct / total) * 100) : 0;
+      const viewModel = service.getStatsViewModel();
 
-      els.totalAnswered.textContent = total;
-      els.totalCorrect.textContent = correct;
-      els.totalIncorrect.textContent = incorrect;
-      els.accuracyRate.textContent = `${accuracy}%`;
+      els.totalAnswered.textContent = viewModel.total;
+      els.totalCorrect.textContent = viewModel.correct;
+      els.totalIncorrect.textContent = viewModel.incorrect;
+      els.accuracyRate.textContent = `${viewModel.accuracy}%`;
 
-      renderErrorList();
+      renderErrorList(viewModel.errorEntries);
       renderRankedList(
         els.familyErrorList,
-        state.familyErrorCounts,
+        viewModel.familyErrorEntries,
         (label, familyId) => {
           const family = Core.FAMILY_MAP[familyId];
           if (family) {
-            renderMathInto(
+            Dom.renderMathInto(
+              Core,
               label,
-              Core.familyLabelExpression
-                ? Core.familyLabelExpression(family)
-                : { latex: Core.familyLabelLatex ? Core.familyLabelLatex(family) : "" },
-              family.name,
+              App.UIData.familyLabelExpression(Core, family),
               { className: "family-math-label" },
+              family.name,
             );
             return;
           }
@@ -340,116 +217,8 @@
       );
     }
 
-    function incrementCounter(map, key) {
-      if (!key) {
-        return;
-      }
-      map[key] = (map[key] || 0) + 1;
-    }
-
-    function normalizeValidation(exercise, resultOrOption) {
-      if (resultOrOption && resultOrOption.selectedOption) {
-        return resultOrOption;
-      }
-      const chosen = resultOrOption;
-      return {
-        isValid: Boolean(chosen),
-        isCorrect: Boolean(chosen && chosen.isCorrect),
-        selectedOption: chosen || null,
-        errorTag: chosen ? chosen.errorTag : "",
-        errorType: chosen ? chosen.errorType || chosen.errorTag : "",
-        stats: exercise.statsInfo || {},
-      };
-    }
-
-    function pushErrorExample(exercise, chosen, validation) {
-      const state = stateStore.getState();
-      const tag =
-        (validation && (validation.errorType || validation.errorTag)) ||
-        (chosen && (chosen.errorType || chosen.errorTag)) ||
-        "";
-      if (
-        !chosen ||
-        chosen.isCorrect ||
-        !stateStore.isValidErrorTag(tag)
-      ) {
-        return;
-      }
-      const examples = Array.isArray(state.errorExamplesByTag[tag])
-        ? state.errorExamplesByTag[tag]
-        : [];
-      const example = {
-        id: `err-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        timestamp: Date.now(),
-        errorTag: tag,
-        familyId: exercise.familyId,
-        mathFamilyId: validation.mathFamilyId || validation.stats.mathFamilyId || "",
-        exercisePlain: exercise.integrandExpression,
-        chosenPlain: chosen.displayExpression,
-        correctPlain: exercise.correctAnswer.displayExpression,
-        exerciseMath: Core.exerciseSnapshot(exercise),
-        chosenMath: Core.optionSnapshot(chosen),
-        methodId: validation.methodId || validation.stats.methodId || "",
-        submethodId:
-          validation.submethodId || validation.stats.submethodId || "",
-        difficulty: validation.difficulty || validation.stats.difficulty || "",
-        templateId: validation.templateId || validation.stats.templateId || "",
-        variantId: validation.variantId || validation.stats.variantId || "",
-      };
-      state.errorExamplesByTag[tag] = [example]
-        .concat(examples)
-        .slice(0, stateStore.constants.ERROR_EXAMPLES_PER_TAG_LIMIT);
-      state.recentErrorHistory = [example]
-        .concat(Array.isArray(state.recentErrorHistory) ? state.recentErrorHistory : [])
-        .slice(0, 20);
-    }
-
-    function recordAnswer(exercise, resultOrOption) {
-      const state = stateStore.getState();
-      const validation = normalizeValidation(exercise, resultOrOption);
-      const chosen = validation.selectedOption;
-      const stats = validation.stats || exercise.statsInfo || {};
-      const familyId = stats.familyId || validation.familyId || exercise.familyId;
-      const mathFamilyId =
-        stats.mathFamilyId || validation.mathFamilyId || exercise.mathFamilyId;
-      const methodId =
-        stats.methodId || validation.methodId || exercise.methodId;
-      const submethodId =
-        stats.submethodId || validation.submethodId || exercise.submethodId;
-      const difficulty =
-        String(stats.difficulty || validation.difficulty || exercise.difficulty || "");
-      const templateId =
-        stats.templateId || validation.templateId || exercise.templateId;
-      const variantId =
-        stats.variantId || validation.variantId || exercise.variantId;
-      state.totalAnswered += 1;
-      incrementCounter(state.familyCounts, familyId);
-      incrementCounter(state.mathFamilyCounts, mathFamilyId);
-      incrementCounter(state.methodCounts, methodId);
-      incrementCounter(state.submethodCounts, submethodId);
-      incrementCounter(state.difficultyCounts, difficulty);
-      incrementCounter(state.templateCounts, templateId);
-      incrementCounter(state.variantCounts, variantId);
-
-      if (validation.isCorrect) {
-        state.totalCorrect += 1;
-        return;
-      }
-
-      state.totalIncorrect += 1;
-      incrementCounter(state.errorCountsByTag, validation.errorTag);
-      incrementCounter(state.familyErrorCounts, familyId);
-      incrementCounter(state.mathFamilyErrorCounts, mathFamilyId);
-      incrementCounter(state.methodErrorCounts, methodId);
-      incrementCounter(state.submethodErrorCounts, submethodId);
-      incrementCounter(state.difficultyErrorCounts, difficulty);
-      incrementCounter(state.templateErrorCounts, templateId);
-      incrementCounter(state.variantErrorCounts, variantId);
-      pushErrorExample(exercise, chosen, validation);
-    }
-
     return {
-      recordAnswer,
+      recordAnswer: service.recordAnswer,
       render,
     };
   };
