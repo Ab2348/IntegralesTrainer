@@ -4,11 +4,11 @@
 .workspace {
   min-width: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(270px, 20%, 310px);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) var(--workspace-column);
+  gap: var(--workspace-gap);
   align-items: stretch;
   margin: 0 var(--main-gutter);
-  padding: clamp(16px, 1vw, 20px);
+  padding: var(--workspace-padding);
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -26,13 +26,13 @@
 }
 
 .learning-banner {
-  min-height: 66px;
+  min-height: var(--learning-min-height);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 150px;
+  grid-template-columns: auto minmax(0, 1fr) var(--learning-wave-width);
   align-items: center;
   gap: 14px;
   margin: 12px var(--main-gutter);
-  padding: 12px 18px;
+  padding: var(--learning-padding);
   background: #ffffff;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -41,8 +41,8 @@
 
 .learning-icon {
   position: relative;
-  width: 42px;
-  height: 42px;
+  width: var(--learning-icon-size);
+  height: var(--learning-icon-size);
   display: grid;
   place-items: center;
   color: var(--primary);
@@ -72,18 +72,18 @@
 
 .learning-copy strong {
   color: var(--text-strong);
-  font-size: 0.94rem;
+  font-size: var(--font-md);
   font-weight: 850;
 }
 
 .learning-copy span {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--font-sm);
 }
 
 .learning-wave {
-  width: 150px;
-  height: 50px;
+  width: var(--learning-wave-width);
+  height: var(--learning-wave-height);
   justify-self: end;
   overflow: visible;
 }

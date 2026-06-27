@@ -25,8 +25,8 @@
 }
 
 .icon-btn {
-  width: 36px;
-  height: 36px;
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
   display: inline-grid;
   place-items: center;
   color: #263b66;
@@ -36,7 +36,7 @@
 .btn,
 .quiet-button,
 .secondary-button {
-  min-height: 36px;
+  min-height: var(--button-height);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -58,7 +58,7 @@
 }
 
 .verify {
-  min-height: 38px;
+  min-height: var(--verify-height);
   padding: 0 20px;
   border: 0;
   border-radius: 9px;
@@ -88,7 +88,7 @@
 .settings-card .btn.primary {
   align-self: end;
   width: 100%;
-  min-height: 38px;
+  min-height: var(--settings-button-height);
   justify-content: space-between;
   border: 0;
   border-radius: 8px;

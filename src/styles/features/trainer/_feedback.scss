@@ -3,8 +3,8 @@
 .feedback-zone,
 .derivation-zone {
   position: relative;
-  margin: 0 20px 20px;
-  padding: 14px 16px 14px 50px;
+  margin: var(--feedback-margin);
+  padding: var(--feedback-padding);
   color: #4c5b80;
   background: linear-gradient(180deg, #fbfcff, #f6f8ff);
   border: 1px solid var(--line2);
@@ -15,10 +15,10 @@
 .feedback-zone::before {
   content: "";
   position: absolute;
-  left: 16px;
-  top: 14px;
-  width: 22px;
-  height: 22px;
+  left: var(--feedback-icon-left);
+  top: var(--feedback-icon-top);
+  width: var(--feedback-icon-size);
+  height: var(--feedback-icon-size);
   display: grid;
   place-items: center;
   background: var(--primary);
@@ -47,7 +47,7 @@
 .feedback-title {
   margin-bottom: 6px;
   color: var(--text-strong);
-  font-size: 1rem;
+  font-size: var(--font-md);
   font-weight: 850;
 }
 
@@ -62,7 +62,7 @@
 
 .practice-tip-title {
   color: var(--text-strong);
-  font-size: 0.9rem;
+  font-size: var(--font-base);
   font-weight: 850;
 }
 
@@ -73,7 +73,7 @@
 
 .practice-tip-copy {
   color: #66769c;
-  font-size: 0.84rem;
+  font-size: var(--font-path);
 }
 
 .diagnostic-feedback {
@@ -109,7 +109,7 @@
 
 .diagnostic-section h3 {
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   font-weight: 850;
   text-transform: uppercase;
 }
@@ -127,7 +127,7 @@
   margin: 6px 0;
   color: #3e4c75;
   font-family: var(--math-font);
-  font-size: 1.05rem;
+  font-size: var(--formula-size);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;

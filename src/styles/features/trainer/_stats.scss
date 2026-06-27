@@ -2,7 +2,7 @@
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--right-gap);
 }
 
 .stat,
@@ -20,7 +20,7 @@
 .stat-grid dt {
   display: block;
   color: #637298;
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 800;
 }
 
@@ -29,7 +29,7 @@
   display: block;
   margin-top: 9px;
   color: var(--text-strong);
-  font-size: 1.38rem;
+  font-size: var(--font-stat);
   font-weight: 900;
 }
 
@@ -119,7 +119,7 @@
   padding: 0;
   margin: 10px 0 0;
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: var(--font-base);
   list-style: none;
 }
 
@@ -160,7 +160,7 @@
   color: var(--primary);
   background: var(--primary-soft);
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   font-weight: 900;
 }
 
@@ -181,7 +181,7 @@
 
 .empty-stat-title {
   color: var(--text-strong);
-  font-size: 0.88rem;
+  font-size: var(--font-base);
   font-weight: 850;
   line-height: 1.2;
 }
@@ -189,16 +189,16 @@
 .empty-stat-copy {
   max-width: 24rem;
   color: #7584a6;
-  font-size: 0.78rem;
+  font-size: var(--font-xs);
   line-height: 1.4;
 }
 
 .mini-title {
   margin-top: 14px;
   color: #5f6f9a;
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 850;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -230,7 +230,7 @@
 
 .error-tooltip-label {
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 850;
   text-transform: uppercase;
 }

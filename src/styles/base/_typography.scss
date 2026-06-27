@@ -4,35 +4,35 @@
   gap: 8px;
   margin-bottom: 6px;
   color: var(--muted);
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
 h1 {
   color: var(--text-strong);
-  font-size: 1.05rem;
+  font-size: var(--font-h1);
   line-height: 1.28;
   font-weight: 800;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 h2 {
   margin: 0;
   color: var(--text-strong);
-  font-size: 1.12rem;
+  font-size: var(--font-h2);
   line-height: 1.18;
   font-weight: 850;
-  letter-spacing: -0.015em;
+  letter-spacing: 0;
 }
 
 h3 {
   color: var(--text-strong);
-  font-size: 0.98rem;
+  font-size: var(--font-h3);
   line-height: 1.2;
   font-weight: 850;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 dt {
@@ -41,10 +41,10 @@ dt {
 
 dd {
   color: var(--text-strong);
-  font-size: 1.65rem;
+  font-size: var(--font-dd);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 label,
@@ -53,23 +53,23 @@ dt,
 .section-label,
 .option-index {
   color: #5f6f9a;
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 850;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .kicker {
   color: #5f6f9a;
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 850;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .label {
   color: #5f6f9a;
-  font-size: 0.72rem;
+  font-size: var(--font-xxs);
   font-weight: 850;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }

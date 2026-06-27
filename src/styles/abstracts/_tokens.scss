@@ -1,3 +1,5 @@
+@use "breakpoints";
+
 :root {
   color-scheme: light;
 
@@ -35,7 +37,7 @@
   --line: #e5e9f3;
   --line2: #d8deec;
   --line-strong: #cfd7ea;
-  --shadow: 0 24px 60px rgba(31, 45, 82, 0.10);
+  --shadow: 0 24px 60px rgba(31, 45, 82, 0.1);
   --shadow-soft: 0 12px 30px rgba(31, 45, 82, 0.08);
 
   --radius-lg: 22px;
@@ -49,6 +51,80 @@
   --accent-soft: var(--primary-soft);
   --accent-hover: #5648de;
 
+  --font-micro: 0.68rem;
+  --font-xxs: 0.72rem;
+  --font-xs: 0.78rem;
+  --font-sm: 0.82rem;
+  --font-path: 0.84rem;
+  --font-base: 0.9rem;
+  --font-md: 0.98rem;
+  --font-h1: 1.05rem;
+  --font-h2: 1.12rem;
+  --font-h3: 0.98rem;
+  --font-exercise-title: 1.32rem;
+  --font-dd: 1.65rem;
+  --font-stat: 1.38rem;
+  --font-status: 0.56rem;
+  --math-display-size: 2.08rem;
+  --math-display-condensed: 1.85rem;
+  --option-math-size: 1.02rem;
+  --formula-size: 1.05rem;
+  --current-formula-size: 0.9rem;
+  --sidebar-formula-size: 0.88rem;
+
+  --topbar-height: 78px;
+  --button-height: 36px;
+  --icon-button-size: 36px;
+  --control-height: 36px;
+  --verify-height: 38px;
+  --settings-button-height: 38px;
+
+  --sidebar-width: 264px;
+  --sidebar-width-narrow: 250px;
+  --sidebar-padding: 30px 14px 16px;
+  --logo-size: 58px;
+  --logo-font-size: 2.55rem;
+  --nav-item-height: 42px;
+  --nav-sub-height: 34px;
+
+  --shell-max-width: 100%;
+  --main-min-width: 820px;
+  --right-min-width: 360px;
+  --right-max-width: 430px;
+  --main-gutter: clamp(16px, 1.15vw, 22px);
+
+  --workspace-column: clamp(270px, 20%, 310px);
+  --workspace-gap: 20px;
+  --workspace-padding: clamp(16px, 1vw, 20px);
+  --card-padding: 16px;
+  --settings-gap: 14px;
+  --right-gap: 12px;
+  --right-padding: 24px 14px 16px 16px;
+
+  --hero-min-height: 252px;
+  --hero-padding: 20px 22px 22px;
+  --hero-math-min-height: 132px;
+  --mathbox-padding: 18px;
+  --exercise-actions-height: 58px;
+
+  --option-grid-gap: 12px 14px;
+  --option-grid-padding: 18px 20px;
+  --option-min-height: 62px;
+  --option-padding: 12px 14px;
+  --option-index-size: 38px;
+
+  --feedback-margin: 0 20px 20px;
+  --feedback-padding: 14px 16px 14px 50px;
+  --feedback-icon-size: 22px;
+  --feedback-icon-left: 16px;
+  --feedback-icon-top: 14px;
+
+  --learning-min-height: 66px;
+  --learning-padding: 12px 18px;
+  --learning-icon-size: 42px;
+  --learning-wave-width: 150px;
+  --learning-wave-height: 50px;
+
   --math-font:
     "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman",
     Georgia, serif;
@@ -60,4 +136,129 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+@media (min-width: breakpoints.$desktop-wide) and (max-height: 1179px) {
+  :root {
+    --font-micro: 0.7rem;
+    --font-xxs: 0.74rem;
+    --font-xs: 0.8rem;
+    --font-sm: 0.85rem;
+    --font-path: 0.88rem;
+    --font-base: 0.92rem;
+    --font-md: 1.01rem;
+    --font-h1: 1.1rem;
+    --font-h2: 1.16rem;
+    --font-h3: 1.02rem;
+    --font-exercise-title: 1.38rem;
+    --font-dd: 1.72rem;
+    --font-stat: 1.44rem;
+    --font-status: 0.6rem;
+    --math-display-size: 2.22rem;
+    --math-display-condensed: 1.92rem;
+    --option-math-size: 1.05rem;
+    --formula-size: 1.08rem;
+    --current-formula-size: 0.94rem;
+    --sidebar-formula-size: 0.9rem;
+
+    --topbar-height: 82px;
+    --button-height: 38px;
+    --icon-button-size: 38px;
+    --control-height: 38px;
+    --verify-height: 40px;
+    --settings-button-height: 40px;
+
+    --shell-max-width: 100%;
+    --main-min-width: 840px;
+    --right-min-width: 370px;
+    --right-max-width: 440px;
+    --main-gutter: clamp(17px, 1.1vw, 24px);
+
+    --workspace-column: clamp(280px, 20%, 320px);
+    --workspace-gap: 22px;
+    --workspace-padding: clamp(17px, 1vw, 22px);
+    --hero-min-height: 270px;
+    --hero-padding: 21px 23px 23px;
+    --hero-math-min-height: 140px;
+    --exercise-actions-height: 62px;
+    --option-min-height: 66px;
+    --learning-min-height: 70px;
+  }
+}
+
+@media (min-width: breakpoints.$desktop-wide) and (min-height: breakpoints.$desktop-tall) {
+  :root {
+    --font-micro: 0.74rem;
+    --font-xxs: 0.78rem;
+    --font-xs: 0.84rem;
+    --font-sm: 0.9rem;
+    --font-path: 0.96rem;
+    --font-base: 0.98rem;
+    --font-md: 1.08rem;
+    --font-h1: 1.22rem;
+    --font-h2: 1.34rem;
+    --font-h3: 1.14rem;
+    --font-exercise-title: 1.52rem;
+    --font-dd: 1.92rem;
+    --font-stat: 1.58rem;
+    --font-status: 0.65rem;
+    --math-display-size: 2.58rem;
+    --math-display-condensed: 2.05rem;
+    --option-math-size: 1.14rem;
+    --formula-size: 1.16rem;
+    --current-formula-size: 1rem;
+    --sidebar-formula-size: 0.96rem;
+
+    --topbar-height: 92px;
+    --button-height: 42px;
+    --icon-button-size: 42px;
+    --control-height: 42px;
+    --verify-height: 46px;
+    --settings-button-height: 46px;
+
+    --sidebar-width: 292px;
+    --sidebar-padding: 36px 18px 20px;
+    --logo-size: 68px;
+    --logo-font-size: 2.9rem;
+    --nav-item-height: 48px;
+    --nav-sub-height: 39px;
+
+    --shell-max-width: 100%;
+    --main-min-width: 900px;
+    --right-min-width: 390px;
+    --right-max-width: 470px;
+    --main-gutter: clamp(20px, 1.2vw, 30px);
+
+    --workspace-column: clamp(315px, 21%, 360px);
+    --workspace-gap: 26px;
+    --workspace-padding: clamp(22px, 1.15vw, 30px);
+    --card-padding: 22px;
+    --settings-gap: 18px;
+    --right-gap: 16px;
+    --right-padding: 30px 18px 22px 20px;
+
+    --hero-min-height: 330px;
+    --hero-padding: 26px 30px 30px;
+    --hero-math-min-height: 174px;
+    --mathbox-padding: 24px;
+    --exercise-actions-height: 74px;
+
+    --option-grid-gap: 16px 18px;
+    --option-grid-padding: 24px 26px;
+    --option-min-height: 80px;
+    --option-padding: 16px 18px;
+    --option-index-size: 46px;
+
+    --feedback-margin: 0 26px 26px;
+    --feedback-padding: 18px 20px 18px 60px;
+    --feedback-icon-size: 26px;
+    --feedback-icon-left: 20px;
+    --feedback-icon-top: 18px;
+
+    --learning-min-height: 84px;
+    --learning-padding: 18px 24px;
+    --learning-icon-size: 52px;
+    --learning-wave-width: 180px;
+    --learning-wave-height: 62px;
+  }
 }

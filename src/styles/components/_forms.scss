@@ -1,7 +1,7 @@
 select,
 input {
   width: 100%;
-  min-height: 36px;
+  min-height: var(--control-height);
   padding: 0 10px;
   color: var(--text-strong);
   background: #ffffff;
@@ -29,7 +29,7 @@ input:focus {
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 7px;
 }
 
 .field-label-with-icon {

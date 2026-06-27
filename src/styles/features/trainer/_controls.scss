@@ -23,7 +23,7 @@
   align-items: center;
   gap: 8px;
   color: #52607f;
-  font-size: 0.86rem;
+  font-size: var(--font-path);
 }
 
 .family-check input {
@@ -70,7 +70,7 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 36px;
+  min-height: var(--control-height);
   padding: 0 10px;
   color: var(--text-strong);
   text-align: left;
@@ -100,7 +100,7 @@
   color: var(--primary);
   background: var(--primary-soft);
   border-radius: 999px;
-  font-size: 0.68rem;
+  font-size: var(--font-micro);
   font-weight: 900;
 }
 
