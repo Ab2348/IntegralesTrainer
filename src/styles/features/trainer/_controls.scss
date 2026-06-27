@@ -1,30 +1,37 @@
 .family-fieldset {
   min-width: 0;
+  min-height: 0;
   margin: 0;
   padding: 0;
+  overflow: auto;
   border: 0;
+  scrollbar-width: thin;
+}
+
+.family-fieldset > legend {
+  margin-bottom: 8px;
 }
 
 .checks,
 .family-list {
   display: grid;
-  gap: 10px;
+  gap: 7px;
 }
 
 .family-check {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: #d7ddd9;
-  font-size: 0.9rem;
+  gap: 8px;
+  color: #52607f;
+  font-size: 0.86rem;
 }
 
 .family-check input {
-  width: 16px;
-  height: 16px;
-  min-height: 16px;
+  width: 14px;
+  height: 14px;
+  min-height: 14px;
   margin: 0;
-  accent-color: var(--gold);
+  accent-color: var(--primary);
 }
 
 .family-check-label {
@@ -46,7 +53,7 @@
 
 .family-group-list {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   padding: 2px 0 2px 4px;
 }
 
@@ -55,7 +62,7 @@
 }
 
 .collapsible + .collapsible {
-  margin-top: 8px;
+  margin-top: 7px;
 }
 
 .collapsible-trigger {
@@ -63,28 +70,23 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 40px;
+  min-height: 36px;
   padding: 0 10px;
-  color: #e8ede8;
+  color: var(--text-strong);
   text-align: left;
-  background: rgba(15, 20, 25, 0.28);
-  border: 1px solid rgba(68, 81, 92, 0.56);
-  border-radius: 13px;
-  font-weight: 850;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-weight: 800;
 }
 
-.collapsible[data-level="2"] > .collapsible-trigger {
-  min-height: 38px;
-  color: #d9e1dc;
-  background: rgba(15, 20, 25, 0.22);
-}
-
+.collapsible[data-level="2"] > .collapsible-trigger,
 .collapsible[data-level="3"] > .collapsible-trigger,
 .collapsible[data-level="4"] > .collapsible-trigger {
-  min-height: 36px;
-  color: #d5ddd8;
-  background: rgba(15, 20, 25, 0.2);
-  border-color: rgba(68, 81, 92, 0.48);
+  min-height: 34px;
+  color: var(--text-strong);
+  background: #ffffff;
+  border-color: var(--line);
 }
 
 .collapsible-title {
@@ -95,16 +97,16 @@
 .collapsible-badge {
   flex: 0 0 auto;
   padding: 3px 8px;
-  color: #ffdcb1;
-  background: rgba(232, 198, 154, 0.13);
+  color: var(--primary);
+  background: var(--primary-soft);
   border-radius: 999px;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 900;
 }
 
 .collapsible-chevron {
   flex: 0 0 auto;
-  color: var(--gold);
+  color: var(--primary);
   transition: transform 160ms ease;
 }
 
@@ -115,8 +117,8 @@
 
 .collapsible-content {
   display: grid;
-  gap: 8px;
-  padding: 9px 0 0 10px;
+  gap: 7px;
+  padding: 7px 0 0 8px;
 }
 
 .static-collapsible-header {
@@ -124,5 +126,5 @@
 }
 
 .static-collapsible-header:hover {
-  background: rgba(15, 20, 25, 0.28);
+  background: #ffffff;
 }

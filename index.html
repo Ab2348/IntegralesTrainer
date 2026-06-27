@@ -12,21 +12,21 @@
       <section class="shell">
         <aside class="panel sidebar">
           <div class="brand">
-            <div class="logo">∫</div>
-            <h1><span>Entrenador de</span><br />integrales trigonométricas</h1>
+            <div class="logo" aria-hidden="true">∫</div>
+            <h1>Entrenador de<br />integrales<br />trigonométricas</h1>
           </div>
 
           <section class="nav-section">
             <p class="nav-title">Principal</p>
             <button class="nav-item active" type="button">
-              <span>⌂</span>Inicio
+              <span class="nav-icon" aria-hidden="true">⌂</span>Inicio
             </button>
           </section>
 
           <section class="nav-section">
             <p class="nav-title">Entrenar</p>
             <button class="nav-item" type="button">
-              <span>◉</span>Entrenar <span class="chev">⌃</span>
+              <span class="nav-icon" aria-hidden="true">◉</span>Entrenar <span class="chev">⌃</span>
             </button>
             <button class="nav-sub active" type="button">
               Ejercicio aleatorio
@@ -34,19 +34,19 @@
             <button class="nav-sub" type="button">
               <span>Por tema</span>
               <span class="nav-status" aria-label="Apartado en construcción">
-                Construyendo
+                En construcción
               </span>
             </button>
             <button class="nav-sub" type="button">
               <span>Por técnica</span>
               <span class="nav-status" aria-label="Apartado en construcción">
-                Construyendo
+                En construcción
               </span>
             </button>
             <button class="nav-sub" type="button">
               <span>Modo examen</span>
               <span class="nav-status" aria-label="Apartado en construcción">
-                Construyendo
+                En construcción
               </span>
             </button>
           </section>
@@ -54,7 +54,7 @@
           <section class="nav-section">
             <p class="nav-title">Consulta</p>
             <button class="nav-item" type="button">
-              <span>▣</span>Fórmulas <span class="chev">⌄</span>
+              <span class="nav-icon nav-icon-formulas" aria-hidden="true"></span>Fórmulas <span class="chev">⌄</span>
             </button>
             <div
               class="sidebar-formula-catalog"
@@ -64,14 +64,14 @@
           </section>
 
           <section class="nav-section">
-            <p class="nav-title nav-title-row">
-              <span>Seguimiento</span>
+            <div class="nav-title-row">
+              <p class="nav-title">Seguimiento</p>
               <span class="nav-status" aria-label="Apartado en construcción">
-                Construyendo
+                En construcción
               </span>
-            </p>
+            </div>
             <button class="nav-item" type="button">
-              <span>◷</span>Progreso <span class="chev">⌄</span>
+              <span class="nav-icon" aria-hidden="true">◷</span>Progreso <span class="chev">⌄</span>
             </button>
             <button class="nav-sub" type="button">Estadísticas</button>
             <button class="nav-sub" type="button">Historial</button>
@@ -80,12 +80,12 @@
 
           <div class="sidebar-footer">
             <button class="nav-item" type="button">
-              <span>⚙</span>Ajustes
+              <span class="nav-icon" aria-hidden="true">⚙</span>Ajustes
             </button>
             <div class="sidebar-feedback" aria-label="Sugerencias y contacto">
-              <p class="feedback-title">Sugerencias</p>
+              <p class="feedback-title">¿Tienes sugerencias?</p>
               <p class="feedback-text">
-                Reporta errores, propone cambios o sugiere nuevas funciones.
+                Reporta errores o propone nuevas funciones.
               </p>
               <div class="feedback-links">
                 <a
@@ -98,16 +98,21 @@
                 <a href="mailto:carlosmontes0983@outlook.com">Correo</a>
               </div>
             </div>
-            <div class="small-card">
-              <strong>V1.4</strong>
+            <div class="small-card version-card">
+              <strong>v1.4</strong>
+              <span aria-hidden="true">☾</span>
             </div>
           </div>
         </aside>
 
         <section class="panel main">
           <header class="topbar">
-            <div class="path">
-              Inicio / Entrenar / <b>Ejercicio aleatorio</b>
+            <div class="path" aria-label="Ruta">
+              <span>Inicio</span>
+              <span class="path-separator" aria-hidden="true">›</span>
+              <span>Entrenar</span>
+              <span class="path-separator" aria-hidden="true">›</span>
+              <b>Ejercicio aleatorio</b>
             </div>
             <div class="top-actions">
               <button
@@ -120,14 +125,14 @@
               >
                 ☰
               </button>
-              <button class="icon-btn" type="button" aria-label="Tema oscuro">
-                ☾
+              <button class="icon-btn" type="button" aria-label="Ajustes visuales">
+                ☼
               </button>
               <button class="btn" id="resetStatsButton" type="button">
                 Reiniciar
               </button>
               <button class="btn primary" id="nextExerciseButton" type="button">
-                Nuevo ejercicio
+                Siguiente ejercicio <span aria-hidden="true">→</span>
               </button>
             </div>
           </header>
@@ -147,25 +152,30 @@
           <div class="workspace">
             <section id="practicePanel" aria-label="Práctica">
               <article class="exercise-card">
-                <div class="card-head">
-                  <div>
-                    <div class="kicker" id="familyLabel">Integral actual</div>
-                    <h2 id="exerciseTitle">Ejercicio aleatorio</h2>
-                  </div>
-                  <span class="pill" id="difficultyLabel">Nivel 1</span>
-                </div>
+                <section class="exercise-hero" aria-label="Ejercicio actual">
+                  <div class="hero-decoration hero-orbit" aria-hidden="true"></div>
+                  <div class="hero-decoration hero-dots" aria-hidden="true"></div>
 
-                <div class="mathbox">
-                  <div
-                    class="math math-display"
-                    id="exerciseDisplay"
-                    aria-live="polite"
-                  ></div>
-                </div>
+                  <div class="card-head exercise-heading">
+                    <div>
+                      <div class="kicker" id="familyLabel">FAMILIA SIN</div>
+                      <h2 id="exerciseTitle">Ejercicio aleatorio</h2>
+                    </div>
+                    <span class="pill" id="difficultyLabel">Nivel 1</span>
+                  </div>
+
+                  <div class="mathbox">
+                    <div
+                      class="math math-display"
+                      id="exerciseDisplay"
+                      aria-live="polite"
+                    ></div>
+                  </div>
+                </section>
 
                 <div class="exercise-actions">
                   <button class="verify" data-next-exercise-proxy type="button">
-                    Siguiente ejercicio
+                    Siguiente ejercicio <span aria-hidden="true">→</span>
                   </button>
                 </div>
 
@@ -202,11 +212,9 @@
               id="controlsPanel"
               aria-label="Configuración"
             >
-              <div class="card-head compact-head">
-                <div>
-                  <div class="kicker">Configuración rápida</div>
-                  <h2>Sesión</h2>
-                </div>
+              <div class="card-head compact-head settings-head">
+                <h2>Configuración rápida</h2>
+                <span class="settings-icon" aria-hidden="true"></span>
               </div>
 
               <div class="field">
@@ -223,7 +231,10 @@
               </div>
 
               <div class="field">
-                <label class="label" for="difficultySelect">Nivel</label>
+                <label class="label field-label-with-icon" for="difficultySelect">
+                  <span class="field-label-icon level-icon" aria-hidden="true"></span>
+                  Nivel
+                </label>
                 <select id="difficultySelect">
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -251,10 +262,29 @@
                 data-next-exercise-proxy
                 type="button"
               >
-                Aplicar cambios
+                Aplicar cambios <span class="apply-icon" aria-hidden="true"></span>
               </button>
             </aside>
           </div>
+
+          <section class="learning-banner" aria-label="Mensaje de práctica">
+            <div class="learning-icon" aria-hidden="true">🎓</div>
+            <div class="learning-copy">
+              <strong>Domina las integrales trigonométricas paso a paso</strong>
+              <span>La práctica constante te llevará a la perfección.</span>
+            </div>
+            <svg
+              class="learning-wave"
+              viewBox="0 0 180 70"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M10 35 H170" />
+              <path d="M35 62 V8" />
+              <path d="M35 35 C55 0 78 0 98 35 S142 70 162 35" />
+              <path d="M28 16 H42 M28 54 H42 M55 30 V40 M77 30 V40 M99 30 V40 M121 30 V40 M143 30 V40" />
+            </svg>
+          </section>
         </section>
 
         <aside
@@ -268,7 +298,6 @@
                 <div class="kicker">Progreso</div>
                 <h2>Resumen</h2>
               </div>
-              <span class="pill">Hoy</span>
             </div>
 
             <dl class="statgrid">

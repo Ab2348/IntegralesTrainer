@@ -28,6 +28,22 @@
       }
     }
 
+    function appendEmptyState(container, description) {
+      const item = document.createElement("li");
+      item.className = "empty-stat";
+
+      const title = document.createElement("strong");
+      title.className = "empty-stat-title";
+      title.textContent = "Aún no hay datos";
+
+      const copy = document.createElement("span");
+      copy.className = "empty-stat-copy";
+      copy.textContent = description;
+
+      item.append(title, copy);
+      container.appendChild(item);
+    }
+
     function latestErrorExample(tag) {
       const state = stateStore.getState();
       const examples = Array.isArray(state.errorExamplesByTag[tag])
@@ -119,10 +135,10 @@
 
       clearElement(els.errorList);
       if (!entries.length) {
-        const item = document.createElement("li");
-        item.className = "empty-stat";
-        item.textContent = "Sin datos";
-        els.errorList.appendChild(item);
+        appendEmptyState(
+          els.errorList,
+          "Resuelve ejercicios para ver tu diagnóstico personalizado.",
+        );
         return;
       }
 
@@ -161,10 +177,10 @@
 
       clearElement(container);
       if (!entries.length) {
-        const item = document.createElement("li");
-        item.className = "empty-stat";
-        item.textContent = "Sin datos";
-        container.appendChild(item);
+        appendEmptyState(
+          container,
+          "Resuelve ejercicios para ver las familias con más errores.",
+        );
         return;
       }
 

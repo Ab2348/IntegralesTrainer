@@ -1,57 +1,62 @@
+@use "../../abstracts/breakpoints";
 @use "../../abstracts/mixins";
 
 .formula-list,
 .formula-accordion {
   display: grid;
-  gap: 9px;
-  max-height: 420px;
+  gap: 8px;
+  max-height: 360px;
   overflow: auto;
   padding-right: 4px;
 }
 
 .current-formula-list {
-  max-height: none;
+  max-height: clamp(220px, 24vh, 360px);
+  overflow: auto;
 }
 
 .current-formula {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .current-formula-label {
   width: max-content;
   max-width: 100%;
-  padding: 8px 10px;
+  padding: 5px 10px;
   overflow-x: auto;
-  color: #ffe0b9;
-  background: rgba(232, 198, 154, 0.1);
-  border: 1px solid rgba(232, 198, 154, 0.3);
-  border-radius: 12px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border: 0;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 850;
 }
 
 .formula-item,
 .formula-family {
-  background: rgba(15, 20, 25, 0.43);
-  border: 1px solid rgba(68, 81, 92, 0.7);
-  border-radius: 14px;
+  background: #fbf8ff;
+  border: 1px solid #ece6ff;
+  border-radius: 8px;
 }
 
 .formula-family {
-  padding: 6px;
+  padding: 5px;
 }
 
 .formula-family > .collapsible-content {
-  padding: 10px 6px 4px;
+  padding: 8px 5px 3px;
 }
 
 .formula-item[open],
 .formula-family:has([aria-expanded="true"]) {
-  background: rgba(232, 198, 154, 0.075);
-  border-color: rgba(232, 198, 154, 0.54);
+  background: #fbf8ff;
+  border-color: #ded4ff;
 }
 
 .formula-summary {
-  padding: 13px;
+  padding: 11px;
+  color: var(--text-strong);
   font-weight: 850;
   list-style: none;
   cursor: pointer;
@@ -64,19 +69,20 @@
 .formula-summary::before {
   content: "⊙";
   margin-right: 10px;
-  color: var(--gold);
+  color: var(--primary);
 }
 
 .formula-body {
   display: grid;
-  gap: 12px;
-  padding: 0 13px 13px;
-  color: #eee7de;
+  gap: 10px;
+  padding: 0 11px 11px;
+  color: #4c5b80;
 }
 
 .formula-block {
   display: grid;
-  gap: 7px;
+  gap: 6px;
+  min-width: 0;
 }
 
 .section-label,
@@ -90,11 +96,30 @@
   line-height: 1.45;
 }
 
+.sidebar-formula-catalog .formula-item,
+.sidebar-formula-catalog .formula-family {
+  color: #d5def7;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(143, 165, 210, 0.16);
+}
+
 .sidebar-formula-catalog .collapsible-trigger {
   min-height: 34px;
   padding: 0 8px;
+  color: #d5def7;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(143, 165, 210, 0.16);
   border-radius: 10px;
   font-size: 0.82rem;
+}
+
+.sidebar-formula-catalog .collapsible-badge {
+  color: #c8c1ff;
+  background: rgba(124, 92, 244, 0.20);
+}
+
+.sidebar-formula-catalog .collapsible-chevron {
+  color: #c8c1ff;
 }
 
 .sidebar-formula-catalog .collapsible-content {
@@ -107,12 +132,35 @@
 }
 
 .sidebar-formula-catalog .centered-formula {
+  color: #eef3ff;
   font-size: 0.88rem;
 }
 
-@include mixins.media-max(1500px) {
+.current-formula .centered-formula {
+  margin: 4px 0 0;
+  padding: 9px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 0.9rem;
+  scrollbar-width: none;
+}
+
+.current-formula .centered-formula::-webkit-scrollbar {
+  display: none;
+}
+
+.current-formula .centered-formula .katex-display {
+  max-width: 100%;
+}
+
+@include mixins.media-max(breakpoints.$desktop-narrow) {
   .formula-list,
   .formula-accordion {
-    max-height: 270px;
+    max-height: 320px;
+  }
+
+  .current-formula-list,
+  .right .formula-list {
+    max-height: 320px;
   }
 }

@@ -1,38 +1,52 @@
 @use "../abstracts/breakpoints";
 @use "../abstracts/mixins";
 
-.app {
-  width: min(1760px, calc(100% - 40px));
-  margin: auto;
-  padding: 22px 0 34px;
+.app,
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
-.app-shell {
-  width: min(1760px, calc(100% - 40px));
-  margin: auto;
-  padding: 22px 0 34px;
+.app {
+  display: flex;
+  justify-content: center;
+  background: var(--bg);
 }
 
 .shell {
-  min-height: calc(100vh - 56px);
+  --main-gutter: clamp(16px, 1.15vw, 22px);
+
+  width: min(100%, 2220px);
+  min-height: 100vh;
   display: grid;
-  grid-template-columns: 300px minmax(620px, 1fr) 390px;
-  gap: 18px;
+  grid-template-columns: 264px minmax(820px, 1fr) minmax(360px, 430px);
+  align-content: start;
+  gap: 0;
+  background: var(--bg);
 }
 
-@include mixins.media-max(1500px) {
+@include mixins.media-max(breakpoints.$desktop-narrow) {
   .shell {
-    grid-template-columns: 280px minmax(0, 1fr);
+    grid-template-columns: 250px minmax(0, 1fr);
+    background:
+      linear-gradient(90deg, #111a32 0 250px, transparent 250px),
+      var(--bg);
   }
 }
 
-@include mixins.media-max(980px) {
+@include mixins.media-max(breakpoints.$mobile) {
   .app,
   .app-shell {
-    width: min(100% - 28px, 780px);
+    width: 100%;
   }
 
   .shell {
+    --main-gutter: 14px;
+
+    width: 100%;
     grid-template-columns: 1fr;
+    background: var(--bg);
   }
 }

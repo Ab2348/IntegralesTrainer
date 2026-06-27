@@ -599,6 +599,7 @@
       onAnswer,
     ) {
       originalRenderExercise(exercise, settings, onAnswer);
+      renderPracticeTip(exercise);
       if (exercise && exercise.family) {
         syncCurrentFamilyGroup(exercise.family.id);
         if (
@@ -610,6 +611,41 @@
         }
       }
     };
+
+    function renderPracticeTip(exercise) {
+      if (!exercise || !exercise.correctAnswer) {
+        return;
+      }
+
+      const integralLatex = Core.integralLatex
+        ? Core.integralLatex(exercise)
+        : "";
+      const answerLatex = exercise.correctAnswer.displayLatex || "";
+
+      clearElement(els.feedbackZone);
+      els.feedbackZone.className = "feedback-zone practice-tip";
+
+      const title = document.createElement("p");
+      title.className = "practice-tip-title";
+      renderContentInto(Core, title, [
+        "Consejo: ",
+        {
+          type: "math",
+          latex:
+            integralLatex && answerLatex
+              ? `${integralLatex} = ${answerLatex}`
+              : answerLatex,
+          display: "inline",
+        },
+      ]);
+
+      const copy = document.createElement("p");
+      copy.className = "practice-tip-copy";
+      copy.textContent =
+        "Comprueba la respuesta derivando: debe regresar al integrando original.";
+
+      els.feedbackZone.append(title, copy);
+    }
 
     function appendDiagnosticRow(container, latex) {
       const item = document.createElement("div");

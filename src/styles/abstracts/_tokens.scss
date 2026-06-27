@@ -1,39 +1,54 @@
 :root {
-  color-scheme: dark;
-  --bg: #0f1419;
-  --bg2: #151b20;
-  --card: #1b2228;
-  --card2: #20282f;
-  --soft: #293139;
-  --line: #333d46;
-  --line2: #44515c;
-  --text: #f2ede6;
-  --muted: #b9c0bc;
-  --faint: #818b87;
-  --gold: #e8c69a;
-  --gold2: #c99f6d;
-  --green: #78b8a8;
-  --red: #d78f85;
-  --accent: var(--gold);
-  --accent-soft: rgba(232, 198, 154, 0.13);
-  --accent-hover: #f5d6ab;
-  --success: var(--green);
-  --success-soft: rgba(43, 70, 63, 0.32);
-  --success-line: rgba(120, 184, 168, 0.7);
-  --danger: var(--red);
-  --danger-soft: rgba(80, 48, 45, 0.34);
-  --danger-line: rgba(215, 143, 133, 0.72);
-  --warn: var(--gold);
-  --warn-soft: #3a3428;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
-  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.18);
+  color-scheme: light;
+
+  --bg: #f7f8fc;
+  --bg2: #ffffff;
+  --surface: #ffffff;
+  --surface-soft: #f8f9fd;
+  --surface-tint: #f3f5fb;
+
+  --sidebar-bg: #0f1b33;
+  --sidebar-bg2: #132744;
+  --sidebar-active: rgba(255, 255, 255, 0.09);
+  --sidebar-active-strong: #5f56e8;
+
+  --text: #13254a;
+  --text-strong: #0f2045;
+  --muted: #7280a4;
+  --faint: #9aa6c2;
+
+  --primary: #6557ed;
+  --primary2: #7c5cf4;
+  --primary3: #9b6bff;
+  --primary-soft: #f0edff;
+  --primary-line: rgba(101, 87, 237, 0.28);
+
+  --success: #41b96e;
+  --success-soft: #edf9f2;
+  --success-line: rgba(65, 185, 110, 0.45);
+  --danger: #ff5b66;
+  --danger-soft: #fff0f1;
+  --danger-line: rgba(255, 91, 102, 0.42);
+  --warning: #a777ff;
+  --warning-soft: #f4efff;
+
+  --line: #e5e9f3;
+  --line2: #d8deec;
+  --line-strong: #cfd7ea;
+  --shadow: 0 24px 60px rgba(31, 45, 82, 0.10);
+  --shadow-soft: 0 12px 30px rgba(31, 45, 82, 0.08);
+
   --radius-lg: 22px;
-  --radius-md: 14px;
-  --radius-sm: 10px;
-  --radius-xs: 8px;
-  --r: 22px;
-  --r2: 14px;
-  --focus: var(--gold);
+  --radius-md: 16px;
+  --radius-sm: 12px;
+  --radius-xs: 9px;
+  --r: var(--radius-lg);
+  --r2: var(--radius-md);
+  --focus: var(--primary);
+  --accent: var(--primary);
+  --accent-soft: var(--primary-soft);
+  --accent-hover: #5648de;
+
   --math-font:
     "Cambria Math", "STIX Two Math", "Latin Modern Math", "Times New Roman",
     Georgia, serif;

@@ -4,8 +4,8 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  min-height: 38px;
-  padding: 0 10px;
+  min-height: 42px;
+  padding: 10px 12px;
   color: inherit;
   text-align: left;
   background: transparent;
@@ -14,7 +14,7 @@
 }
 
 .stat-error-trigger:hover {
-  background: rgba(139, 184, 176, 0.07);
+  background: var(--primary-soft);
 }
 
 .error-tooltip {
@@ -22,9 +22,9 @@
   gap: 10px;
   width: 100%;
   margin: 0 0 10px;
-  padding: 10px;
-  color: #f4efe7;
-  background: #1f252a;
+  padding: 12px;
+  color: var(--text-strong);
+  background: #ffffff;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-soft);
@@ -41,10 +41,10 @@
 }
 
 .error-tooltip-label {
-  color: #b5bfbc;
+  color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0;
+  font-weight: 850;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -53,7 +53,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   overflow-wrap: anywhere;
-  color: #f2ede5;
+  color: var(--text-strong);
   font-family: var(--math-font);
   font-size: 0.94rem;
   line-height: 1.35;

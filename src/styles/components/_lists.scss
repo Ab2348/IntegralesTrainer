@@ -13,12 +13,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 38px;
-  padding: 0 10px;
-  color: #e2e6df;
-  background: rgba(37, 43, 49, 0.82);
+  min-height: 42px;
+  padding: 10px 12px;
+  color: #4d5d82;
+  background: #ffffff;
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: 10px;
 }
 
 .compact-list .stat-error-item {
@@ -28,8 +28,8 @@
 }
 
 .compact-list .empty-stat {
-  justify-content: flex-start;
-  color: var(--faint);
-  border-style: dashed;
-  background: transparent;
+  justify-content: center;
+  color: #7584a6;
+  border-style: solid;
+  background: linear-gradient(180deg, #fbfcff, #f6f8fd);
 }

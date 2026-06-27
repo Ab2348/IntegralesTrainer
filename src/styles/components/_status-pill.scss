@@ -2,13 +2,22 @@
 .status-pill {
   display: inline-flex;
   align-items: center;
-  min-height: 32px;
-  padding: 0 12px;
-  color: #d9dfdb;
-  background: rgba(15, 20, 25, 0.45);
-  border: 1px solid rgba(68, 81, 92, 0.78);
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 10px;
+  color: var(--primary);
+  background: #ffffff;
+  border: 1px solid var(--line);
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 850;
   white-space: nowrap;
+}
+
+.right-card .pill {
+  min-height: 28px;
+  color: #42527c;
+  background: #ffffff;
+  border-color: #e6ebf5;
+  border-radius: 10px;
 }

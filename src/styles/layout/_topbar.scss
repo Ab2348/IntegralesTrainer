@@ -1,13 +1,16 @@
+@use "../abstracts/breakpoints";
 @use "../abstracts/mixins";
 
 .topbar {
   min-width: 0;
+  min-height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 22px 24px;
-  border-bottom: 1px solid rgba(68, 81, 92, 0.55);
+  gap: 16px;
+  padding: 0 var(--main-gutter);
+  background: rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid #edf0f7;
 }
 
 .path {
@@ -15,13 +18,21 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 0.9rem;
+  gap: 10px;
+  color: #8b98ba;
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .path b {
-  color: var(--text);
+  color: var(--text-strong);
+  font-weight: 850;
+}
+
+.path-separator {
+  color: #b7c1d9;
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 .top-actions,
@@ -38,9 +49,11 @@
   white-space: nowrap;
 }
 
-@include mixins.media-max(980px) {
+@include mixins.media-max(breakpoints.$mobile) {
   .topbar {
+    min-height: auto;
     flex-wrap: wrap;
+    padding: 18px;
   }
 
   .top-actions,
@@ -58,14 +71,14 @@
   .topbar-actions {
     width: 100%;
     display: grid;
-    grid-template-columns: 42px 42px minmax(0, max-content);
+    grid-template-columns: 40px 40px minmax(0, 1fr);
     align-items: center;
   }
 
   .top-actions .btn.primary,
   .topbar-actions .btn.primary {
     grid-column: 1 / -1;
-    justify-self: start;
+    justify-self: stretch;
     max-width: 100%;
     white-space: normal;
   }
