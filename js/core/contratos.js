@@ -1,6 +1,9 @@
 (function (root) {
   "use strict";
 
+  const Diagnostics = root.TrigContractDiagnostics || {};
+  const ParameterPolicy = root.TrigParameterPolicy || {};
+
   const DIFFICULTY_LEVELS = [
     { id: "1", name: "Nivel 1", weight: 1 },
     { id: "2", name: "Nivel 2", weight: 2 },
@@ -76,7 +79,9 @@
       type: source.type || "any",
       values: Array.isArray(source.values) ? source.values.slice() : [],
       range: source.range && typeof source.range === "object"
-        ? { ...source.range }
+        ? ParameterPolicy.sanitizeRange
+          ? ParameterPolicy.sanitizeRange(source.range.min, source.range.max)
+          : { ...source.range }
         : null,
       prohibited: Array.isArray(source.prohibited)
         ? source.prohibited.slice()
@@ -310,9 +315,20 @@
       }
     });
 
+    const diagnostics = Diagnostics.fromWarningCodes
+      ? Diagnostics.fromWarningCodes(warnings, source)
+      : warnings.map((warning) => ({
+          code: warning,
+          severity: "warning",
+          message: warning,
+          field: "",
+          blocking: false,
+        }));
+
     return {
       valid: warnings.length === 0,
       warnings,
+      diagnostics,
     };
   }
 

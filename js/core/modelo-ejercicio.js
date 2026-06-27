@@ -2,6 +2,7 @@
   "use strict";
 
   const Taxonomy = root.TrigExerciseTaxonomy || {};
+  const Identity = root.TrigOptionIdentity || {};
 
   function cloneArray(value) {
     return Array.isArray(value) ? value.slice() : [];
@@ -31,9 +32,18 @@
       source.displayPlain || source.displayExpression || source.value || "";
     const displayLatex = source.displayLatex || source.latex || displayPlain;
     const display = normalizeExpression(source.display, displayPlain, displayLatex);
+    const hadInputId = Boolean(source.id);
+    const fallbackId = Identity.deterministicOptionId
+      ? Identity.deterministicOptionId([
+          source.errorTag || source.errorType || (source.isCorrect ? "correct" : "option"),
+          source.key || source.equivalenceKey || displayPlain || displayLatex,
+        ])
+      : `opt-${String(displayPlain || displayLatex || "option")
+          .replace(/[^a-zA-Z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "")}`;
     return {
       ...source,
-      id: source.id || `opt-${Math.random().toString(36).slice(2)}`,
+      id: source.id || fallbackId,
       value: source.value || displayPlain,
       isCorrect: Boolean(source.isCorrect),
       errorTag:
@@ -48,7 +58,10 @@
       display,
       sourceStrategy: source.sourceStrategy || source.errorType || source.errorTag || "",
       explanation: source.explanation || "",
-      metadata: source.metadata || source.debugData || {},
+      metadata: {
+        ...(source.metadata || source.debugData || {}),
+        generatedFallbackId: !hadInputId,
+      },
     };
   }
 

@@ -2,6 +2,8 @@
 
 Este documento describe el funcionamiento interno del entrenador de integrales trigonométricas. Está pensado para personas que quieran mantener, auditar o extender la página.
 
+Para el contrato matemático plug-and-play de V1.4, ver tambien `docs/MAPA_FUNCIONAL_MATEMATICO_V1_4.md`.
+
 ## Resumen técnico
 
 La aplicación es una página estática sin backend. Todo se ejecuta en el navegador:
@@ -11,6 +13,10 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `src/styles/` contiene los parciales SCSS separados por abstracts, base, layout, components, features y utilities.
 - `styles.css` es el CSS de salida que carga `index.html`.
 - `js/core/taxonomia.js` define familias matemáticas, métodos y tipos de error de la arquitectura v1.3.
+- `js/core/parametros.js` define la política central de coeficientes y el rango oficial `-20..20`.
+- `js/core/identidad-opciones.js` centraliza la identidad y los IDs determinísticos de opciones.
+- `js/core/firmas.js` prepara firmas extensibles por plantilla.
+- `js/core/diagnostico-contratos.js` clasifica diagnósticos de contratos por severidad.
 - `js/core/contratos.js` normaliza los contratos de plantilla, variante, dificultad, parámetros, restricciones, feedback y distractores.
 - `js/core/math-renderer.js` registra renderizadores matemáticos, normaliza expresiones `plain`/`latex` y renderiza el contenido visual.
 - `js/core/modelo-ejercicio.js` normaliza el contrato universal de ejercicio.
@@ -19,7 +25,8 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `js/core/retroalimentacion.js` orquesta la retroalimentación desde el resultado de validación.
 - `js/core/generador.js` registra plantillas, selecciona variantes, genera ejercicios con semilla y valida instancias.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
-- `js/core/integraleslineales.js` registra las plantillas trigonométricas actuales, sus variantes, restricciones, reglas matemáticas y su renderizador.
+- `js/core/modules/integrales-lineales/index.js` implementa el módulo matemático de integrales trigonométricas lineales, registra sus plantillas, variantes, restricciones, reglas y renderizador.
+- `js/core/integraleslineales.js` es una fachada temporal de compatibilidad hacia el módulo anterior.
 - `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
@@ -48,7 +55,7 @@ La generación estándar queda así:
 
 1. La app lee la configuración.
 2. `js/core/generador.js` filtra plantillas por familia concreta, familia matemática, método y dificultad.
-3. La plantilla trigonométrica registrada en `integraleslineales.js` crea una instancia matemática.
+3. La plantilla trigonométrica registrada por `js/core/modules/integrales-lineales/index.js` crea una instancia matemática.
 4. `js/core/opciones.js` arma opción correcta y distractores tipados.
 5. `js/core/modelo-ejercicio.js` normaliza la instancia al modelo universal.
 6. `js/core/validacion.js` valida la opción elegida.
@@ -69,6 +76,8 @@ El motor v1.4 aporta:
 - selección de variantes por dificultad;
 - generación reproducible mediante `seed`;
 - RNG determinístico interno con `createSeededRng(seed)`;
+- política central de cantidad de opciones por dificultad: niveles 1, 2 y 3 usan 4 opciones; niveles 4 y 5 usan 6 opciones;
+- política central de coeficientes enteros inmediatos en `-20..20`, con contrato preparado para tipos no enteros futuros;
 - límite de intentos por generación;
 - validación central de instancias generadas;
 - descarte de ejercicios inválidos;
@@ -194,7 +203,7 @@ Estados válidos de plantilla:
   id: "k",
   name: "Coeficiente interno",
   type: "integer",
-  range: { min: -50, max: 50 },
+  range: { min: -20, max: 20 },
   prohibited: [0],
   restrictions: ["k != 0"],
   required: true
@@ -348,16 +357,17 @@ Utilidades pequeñas y globales.
 
 Al cargar la página:
 
-1. `index.html` carga los módulos base de v1.3: taxonomía, modelo, opciones, validación, retroalimentación y generador.
+1. `index.html` carga taxonomía, contratos, políticas centrales, modelo, opciones, validación, retroalimentación y generador.
 2. `index.html` carga `js/core/registro.js`.
-3. `index.html` carga `js/core/integraleslineales.js`.
+3. `index.html` carga `js/core/modules/integrales-lineales/index.js`.
 4. El módulo matemático registra sus plantillas y el módulo activo `integrales-lineales`.
-5. `index.html` carga `core.js`.
-6. `core.js` publica la API activa en `window.TrigCore`.
-7. `index.html` carga los módulos de `js/app/`.
-8. `index.html` carga `app.js`.
-9. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
-10. Se genera el primer ejercicio con `Core.generateExercise`.
+5. `index.html` carga `js/core/integraleslineales.js` como fachada temporal.
+6. `index.html` carga `core.js`.
+7. `core.js` publica la API activa en `window.TrigCore`.
+8. `index.html` carga los módulos de `js/app/`.
+9. `index.html` carga `app.js`.
+10. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
+11. Se genera el primer ejercicio con `Core.generateExercise`.
 11. La respuesta del usuario pasa por `Core.validateAnswer`, actualiza estadísticas y guarda el estado.
 
 El flujo principal queda distribuido así:
@@ -402,8 +412,8 @@ El estado base tiene esta forma:
     mode: "basic",
     practiceMode: "practice",
     difficulty: "1",
-    rangeMin: -10,
-    rangeMax: 10,
+    rangeMin: -20,
+    rangeMax: 20,
     optionCount: 4,
     activeFamilyIds: ["sin", "cos"],
     activeMethodIds: ["directa"],
@@ -479,33 +489,33 @@ Definen el rango de valores enteros para `A`, `k` y `b`.
 
 El rango se sanea con `Core.sanitizeRange()`:
 
-- valores no numéricos caen a `-10` y `10`;
+- valores no numéricos caen al rango oficial `-20` y `20`;
 - si `min > max`, se intercambian;
 - el rango queda limitado a `Core.RANGE_LIMITS`;
-- si el rango final es `0..0`, vuelve a `-10..10`.
+- si el rango final es `0..0`, vuelve a `-20..20`.
 
 Límite actual:
 
 ```js
 {
-  min: -50,
-  max: 50
+  min: -20,
+  max: 20
 }
 ```
 
-Este límite existe para evitar rangos enormes que puedan congelar la página o producir ejercicios demasiado incómodos.
+Este límite es la política oficial inmediata para `A`, `k` y `b`. El contrato de parámetros queda preparado para coeficientes futuros de tipo `integer`, `rational`, `irrational-simple`, `symbolic`, `pi-multiple` y `sqrt`, pero la generación actual sigue usando enteros.
 
 ### `optionCount`
 
-Cantidad de opciones visibles por ejercicio.
+La cantidad de opciones visibles por ejercicio es política del core, no de la UI:
 
-Valores permitidos:
+- Dificultad 1: 4 opciones.
+- Dificultad 2: 4 opciones.
+- Dificultad 3: 4 opciones.
+- Dificultad 4: 6 opciones.
+- Dificultad 5: 6 opciones.
 
-- `4`
-- `5`
-- `6`
-
-Internamente también se limita en `Core.generateExercise()`.
+La función compartida es `Core.optionCountForDifficulty(difficulty)`. El selector oculto de `index.html` se conserva solo por compatibilidad de controles, pero no decide la cantidad real.
 
 ### `activeFamilyIds`
 
@@ -515,7 +525,7 @@ En modo cargado desde estado guardado, el fallback preferido es el conjunto de f
 
 ## Familias matemáticas
 
-Las familias actuales están definidas en `FAMILY_DEFINITIONS` dentro de `js/core/integraleslineales.js`.
+Las familias actuales están definidas en `FAMILY_DEFINITIONS` dentro de `js/core/modules/integrales-lineales/index.js`.
 
 Cada familia incluye:
 
@@ -571,7 +581,7 @@ Parámetros:
 
 El generador:
 
-1. Normaliza `optionCount`.
+1. Resuelve `optionCount` desde `Core.optionCountForDifficulty()`.
 2. Normaliza familias activas.
 3. Normaliza familias matemáticas y métodos activos.
 4. Sanea el rango.

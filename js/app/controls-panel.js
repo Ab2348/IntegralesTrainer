@@ -99,7 +99,11 @@
       els.difficultySelect.value = String(state.settings.difficulty || "1");
       els.rangeMinInput.value = state.settings.rangeMin;
       els.rangeMaxInput.value = state.settings.rangeMax;
-      els.optionCountSelect.value = String(state.settings.optionCount || 4);
+      els.optionCountSelect.value = String(
+        Core.optionCountForDifficulty
+          ? Core.optionCountForDifficulty(state.settings.difficulty)
+          : state.settings.optionCount || 4,
+      );
       renderFamilyChecklist();
     }
 
@@ -114,6 +118,7 @@
       });
       els.rangeMinInput.value = settings.rangeMin;
       els.rangeMaxInput.value = settings.rangeMax;
+      els.optionCountSelect.value = String(settings.optionCount || 4);
       return settings;
     }
 

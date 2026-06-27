@@ -2,6 +2,7 @@
   "use strict";
 
   const Model = root.TrigExerciseModel || {};
+  const Identity = root.TrigOptionIdentity || {};
 
   function defaultShuffle(items, rng) {
     const random = rng || Math.random;
@@ -16,6 +17,9 @@
   }
 
   function optionIdentity(option) {
+    if (Identity.optionIdentity) {
+      return Identity.optionIdentity(option);
+    }
     if (!option) {
       return "";
     }
@@ -26,8 +30,14 @@
       option.displayPlain ||
       option.displayExpression ||
       option.displayLatex ||
+      option.id ||
       ""
     );
+  }
+
+  function optionCountForDifficulty(difficulty) {
+    const level = Number.parseInt(difficulty, 10) || 1;
+    return level >= 4 ? 6 : 4;
   }
 
   function buildOptionSet(config) {
@@ -78,6 +88,8 @@
   root.TrigOptionEngine = {
     buildOptionSet,
     defaultShuffle,
+    optionIdentity,
+    optionCountForDifficulty,
   };
 
   if (typeof module !== "undefined" && module.exports) {

@@ -2,6 +2,9 @@
   "use strict";
 
   const Contracts = root.TrigContractModels || {};
+  const Diagnostics = root.TrigContractDiagnostics || {};
+  const OptionEngine = root.TrigOptionEngine || {};
+  const Identity = root.TrigOptionIdentity || {};
   const templates = {};
   const ENGINE_VERSION = "1.4";
   const DEFAULT_MAX_ATTEMPTS = 300;
@@ -53,7 +56,15 @@
       ? Contracts.validateTemplateContract(normalized)
       : { valid: true, warnings: [] };
     normalized.contractWarnings = contract.warnings || [];
+    normalized.contractDiagnostics =
+      contract.diagnostics ||
+      (Diagnostics.fromWarningCodes
+        ? Diagnostics.fromWarningCodes(normalized.contractWarnings, normalized)
+        : []);
     normalized.isContractComplete = Boolean(contract.valid);
+    normalized.hasBlockingContractErrors = normalized.contractDiagnostics.some(
+      (diagnostic) => diagnostic && diagnostic.blocking,
+    );
     if (
       normalized.contractWarnings.length &&
       typeof console !== "undefined" &&
@@ -101,6 +112,12 @@
         return false;
       }
       if (!template.enabled || template.status === "disabled") {
+        return false;
+      }
+      if (
+        template.status === "active" &&
+        template.hasBlockingContractErrors
+      ) {
         return false;
       }
       if (template.pending && !includePending) {
@@ -156,6 +173,9 @@
   }
 
   function optionIdentity(option) {
+    if (Identity.optionIdentity) {
+      return Identity.optionIdentity(option);
+    }
     if (!option) {
       return "";
     }
@@ -173,6 +193,7 @@
 
   function validateGeneratedExercise(exercise, context) {
     const errors = [];
+    const warnings = [];
     const template = context && context.template ? context.template : null;
     const options = Array.isArray(exercise && exercise.options)
       ? exercise.options
@@ -212,6 +233,9 @@
         errors.push("option-without-identity");
         return;
       }
+      if (option.metadata && option.metadata.generatedFallbackId) {
+        warnings.push("option-with-generated-fallback-id");
+      }
       if (optionKeys.has(key)) {
         errors.push("duplicate-option");
       }
@@ -236,6 +260,9 @@
       if (Array.isArray(template.contractWarnings) && template.contractWarnings.length) {
         errors.push(`template-contract-incomplete:${template.contractWarnings.join("|")}`);
       }
+      if (template.hasBlockingContractErrors) {
+        errors.push("template-contract-blocking-errors");
+      }
       if (!templateSupportsDifficulty(template, difficulty)) {
         errors.push("difficulty-out-of-template-range");
       }
@@ -250,6 +277,7 @@
     return {
       valid: errors.length === 0,
       errors,
+      warnings,
     };
   }
 
@@ -334,7 +362,11 @@
       const exercise = template.generate({
         settings: source.settings || {},
         range: source.range,
-        optionCount: source.optionCount,
+        optionCount: OptionEngine.optionCountForDifficulty
+          ? OptionEngine.optionCountForDifficulty(
+              source.settings && source.settings.difficulty,
+            )
+          : source.optionCount,
         rng: random,
         seed,
         attempt,
@@ -406,11 +438,15 @@
               activeFamilyIds: [template.familyId],
               activeMathFamilyIds: [template.mathFamilyId],
               activeMethodIds: [template.methodId],
-              rangeMin: -10,
-              rangeMax: 10,
-              optionCount: source.optionCount || 4,
+              rangeMin: -20,
+              rangeMax: 20,
+              optionCount: OptionEngine.optionCountForDifficulty
+                ? OptionEngine.optionCountForDifficulty(difficulty)
+                : source.optionCount || 4,
             },
-            optionCount: source.optionCount || 4,
+            optionCount: OptionEngine.optionCountForDifficulty
+              ? OptionEngine.optionCountForDifficulty(difficulty)
+              : source.optionCount || 4,
             rng,
             seed,
             attempt: index,
@@ -449,6 +485,7 @@
         templateId: template.id,
         passed: errors.length === 0,
         iterations,
+        contractDiagnostics: template.contractDiagnostics || [],
         errors,
       });
     });
