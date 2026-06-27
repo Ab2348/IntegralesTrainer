@@ -3,7 +3,8 @@ node_modules/
 
 # Local/dev folders
 .dev/
-tests/
+tests/*
+!tests/core.test.js
 URS-SRS/
 
 

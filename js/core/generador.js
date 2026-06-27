@@ -103,8 +103,18 @@
       : null;
     const includePending = Boolean(source.includePending);
     const includeExperimental = source.includeExperimental !== false;
+    const registeredTemplateIds = new Set(
+      listTemplates().map((template) => template.id),
+    );
     const excludedTemplateIds = Array.isArray(source.excludedTemplateIds)
-      ? new Set(source.excludedTemplateIds)
+      ? new Set(
+          source.excludedTemplateIds.filter(
+            (id, index) =>
+              typeof id === "string" &&
+              registeredTemplateIds.has(id) &&
+              source.excludedTemplateIds.indexOf(id) === index,
+          ),
+        )
       : null;
 
     return listTemplates().filter((template) => {
@@ -258,7 +268,7 @@
 
     if (template) {
       if (Array.isArray(template.contractWarnings) && template.contractWarnings.length) {
-        errors.push(`template-contract-incomplete:${template.contractWarnings.join("|")}`);
+        warnings.push(`template-contract-incomplete:${template.contractWarnings.join("|")}`);
       }
       if (template.hasBlockingContractErrors) {
         errors.push("template-contract-blocking-errors");

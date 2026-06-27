@@ -138,6 +138,23 @@
       return ids.length ? ids : fallback.slice();
     }
 
+    function normalizeTemplateIds(value) {
+      if (!Array.isArray(value)) {
+        return [];
+      }
+      const validTemplateIds =
+        typeof Core.listTemplates === "function"
+          ? new Set(Core.listTemplates().map((template) => template.id))
+          : null;
+      return value.filter(
+        (id, index) =>
+          typeof id === "string" &&
+          id &&
+          (!validTemplateIds || validTemplateIds.has(id)) &&
+          value.indexOf(id) === index,
+      );
+    }
+
     function normalizeSettings(value) {
       const base = cloneDefaultState().settings;
       const saved = isPlainObject(value) ? value : {};
@@ -179,14 +196,7 @@
           saved.includeExperimentalMethods === undefined
             ? base.includeExperimentalMethods
             : normalizeBoolean(saved.includeExperimentalMethods),
-        disabledTemplateIds: Array.isArray(saved.disabledTemplateIds)
-          ? saved.disabledTemplateIds.filter(
-              (id, index) =>
-                typeof id === "string" &&
-                id &&
-                saved.disabledTemplateIds.indexOf(id) === index,
-            )
-          : base.disabledTemplateIds.slice(),
+        disabledTemplateIds: normalizeTemplateIds(saved.disabledTemplateIds),
       };
     }
 
@@ -407,12 +417,7 @@
       state.settings.disabledTemplateIds = Array.isArray(
         values.disabledTemplateIds,
       )
-        ? values.disabledTemplateIds.filter(
-            (id, index) =>
-              typeof id === "string" &&
-              id &&
-              values.disabledTemplateIds.indexOf(id) === index,
-          )
+        ? normalizeTemplateIds(values.disabledTemplateIds)
         : state.settings.disabledTemplateIds;
       saveState();
       return state.settings;
