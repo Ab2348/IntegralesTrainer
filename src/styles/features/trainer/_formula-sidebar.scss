@@ -139,8 +139,43 @@
 }
 
 .sidebar-formula-catalog .centered-formula {
+  max-width: 100%;
+  padding: 8px 10px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
   color: var(--text);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   font-size: var(--sidebar-formula-size);
+  scrollbar-color: var(--primary2) rgba(143, 165, 210, 0.12);
+  scrollbar-width: thin;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar-track {
+  background: rgba(143, 165, 210, 0.12);
+  border-radius: 999px;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--primary), var(--primary2));
+  border: 2px solid var(--surface-tint);
+  border-radius: 999px;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, var(--primary2), var(--primary3));
+}
+
+.sidebar-formula-catalog .centered-formula .katex-display {
+  width: max-content;
+  min-width: 100%;
+  overflow: visible;
+  scrollbar-width: auto;
 }
 
 .current-formula .centered-formula {

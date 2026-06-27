@@ -1383,11 +1383,11 @@ input:focus {
   background: var(--primary-soft);
 }
 
-.error-tooltip {
+.error-tooltip.stat-error-tooltip {
   display: none;
   gap: 10px;
-  width: 100%;
-  margin: 0 0 10px;
+  width: min(330px, calc(100vw - 24px));
+  margin: 0;
   padding: 12px;
   color: var(--text-strong);
   background: var(--surface);
@@ -1396,8 +1396,7 @@ input:focus {
   box-shadow: var(--shadow-soft);
 }
 
-.stat-error-item:hover .error-tooltip,
-.stat-error-item:focus-within .error-tooltip {
+.error-tooltip.stat-error-tooltip.is-visible {
   display: grid;
 }
 
@@ -1414,7 +1413,7 @@ input:focus {
   text-transform: uppercase;
 }
 
-.error-tooltip-value {
+.error-tooltip.stat-error-tooltip .error-tooltip-value {
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
@@ -1425,12 +1424,12 @@ input:focus {
   line-height: 1.35;
 }
 
-.error-tooltip-value .katex {
+.error-tooltip.stat-error-tooltip .error-tooltip-value .katex {
   flex-wrap: nowrap;
   white-space: nowrap;
 }
 
-.error-tooltip-empty {
+.error-tooltip.stat-error-tooltip .error-tooltip-empty {
   color: var(--muted);
   font-size: var(--font-base);
   line-height: 1.4;
@@ -2453,25 +2452,27 @@ input:focus {
   text-transform: uppercase;
 }
 
-.error-tooltip {
-  position: absolute;
-  z-index: 5;
-  right: 0;
-  bottom: calc(100% + 8px);
-  width: min(330px, 82vw);
+.error-tooltip.stat-error-tooltip {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: min(330px, calc(100vw - 24px));
+  max-height: min(65vh, 360px);
   display: none;
+  gap: 8px;
   padding: 12px;
+  overflow: auto;
   color: var(--text-strong);
   background: var(--surface);
   border: 1px solid var(--primary-line);
   border-radius: 14px;
   box-shadow: var(--shadow);
+  pointer-events: auto;
 }
 
-.stat-error-item:focus-within .error-tooltip,
-.stat-error-item:hover .error-tooltip {
+.error-tooltip.stat-error-tooltip.is-visible {
   display: grid;
-  gap: 8px;
 }
 
 .error-tooltip-row {
@@ -2628,8 +2629,43 @@ input:focus {
 }
 
 .sidebar-formula-catalog .centered-formula {
+  max-width: 100%;
+  padding: 8px 10px 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
   color: var(--text);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   font-size: var(--sidebar-formula-size);
+  scrollbar-color: var(--primary2) rgba(143, 165, 210, 0.12);
+  scrollbar-width: thin;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar {
+  height: 8px;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar-track {
+  background: rgba(143, 165, 210, 0.12);
+  border-radius: 999px;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--primary), var(--primary2));
+  border: 2px solid var(--surface-tint);
+  border-radius: 999px;
+}
+
+.sidebar-formula-catalog .centered-formula::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, var(--primary2), var(--primary3));
+}
+
+.sidebar-formula-catalog .centered-formula .katex-display {
+  width: max-content;
+  min-width: 100%;
+  overflow: visible;
+  scrollbar-width: auto;
 }
 
 .current-formula .centered-formula {
@@ -2714,7 +2750,7 @@ input:focus {
 .centered-formula .katex,
 .math-display .katex,
 .family-math-label .katex,
-.error-tooltip-value .katex {
+.error-tooltip.stat-error-tooltip .error-tooltip-value .katex {
   white-space: nowrap;
 }
 

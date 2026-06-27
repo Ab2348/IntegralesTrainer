@@ -17,11 +17,11 @@
   background: var(--primary-soft);
 }
 
-.error-tooltip {
+.error-tooltip.stat-error-tooltip {
   display: none;
   gap: 10px;
-  width: 100%;
-  margin: 0 0 10px;
+  width: min(330px, calc(100vw - 24px));
+  margin: 0;
   padding: 12px;
   color: var(--text-strong);
   background: var(--surface);
@@ -30,8 +30,7 @@
   box-shadow: var(--shadow-soft);
 }
 
-.stat-error-item:hover .error-tooltip,
-.stat-error-item:focus-within .error-tooltip {
+.error-tooltip.stat-error-tooltip.is-visible {
   display: grid;
 }
 
@@ -48,7 +47,7 @@
   text-transform: uppercase;
 }
 
-.error-tooltip-value {
+.error-tooltip.stat-error-tooltip .error-tooltip-value {
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
@@ -59,12 +58,12 @@
   line-height: 1.35;
 }
 
-.error-tooltip-value .katex {
+.error-tooltip.stat-error-tooltip .error-tooltip-value .katex {
   flex-wrap: nowrap;
   white-space: nowrap;
 }
 
-.error-tooltip-empty {
+.error-tooltip.stat-error-tooltip .error-tooltip-empty {
   color: var(--muted);
   font-size: var(--font-base);
   line-height: 1.4;

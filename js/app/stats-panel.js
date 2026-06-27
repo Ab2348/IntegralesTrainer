@@ -4,6 +4,8 @@
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
 
   App.createStatsPanel = function createStatsPanel({ Core, els, stateStore }) {
+    const tooltipCleanupHandlers = [];
+
     function clearElement(element) {
       if (element.replaceChildren) {
         element.replaceChildren();
@@ -44,6 +46,103 @@
       container.appendChild(item);
     }
 
+    function removeFloatingErrorTooltips() {
+      while (tooltipCleanupHandlers.length) {
+        tooltipCleanupHandlers.pop()();
+      }
+      if (!root.document) {
+        return;
+      }
+      root.document
+        .querySelectorAll('.error-tooltip[data-stats-tooltip="true"]')
+        .forEach((tooltip) => tooltip.remove());
+    }
+
+    function positionErrorTooltip(trigger, tooltip) {
+      const documentElement = root.document.documentElement;
+      const triggerRect = trigger.getBoundingClientRect();
+      const viewportWidth = root.innerWidth || documentElement.clientWidth;
+      const viewportHeight = root.innerHeight || documentElement.clientHeight;
+      const margin = 12;
+      const gap = 8;
+
+      tooltip.style.left = "0";
+      tooltip.style.top = "0";
+      tooltip.style.maxWidth = `calc(100vw - ${margin * 2}px)`;
+
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const tooltipWidth = tooltipRect.width;
+      const tooltipHeight = tooltipRect.height;
+      const maxLeft = Math.max(margin, viewportWidth - tooltipWidth - margin);
+      const preferredLeft = triggerRect.right - tooltipWidth;
+      const left = Math.min(Math.max(margin, preferredLeft), maxLeft);
+      const topAbove = triggerRect.top - tooltipHeight - gap;
+      const topBelow = triggerRect.bottom + gap;
+      const maxTop = Math.max(margin, viewportHeight - tooltipHeight - margin);
+      const top = topAbove >= margin ? topAbove : Math.min(topBelow, maxTop);
+
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${Math.max(margin, top)}px`;
+    }
+
+    function wireErrorTooltip(item, trigger, tooltip) {
+      let hideTimer = null;
+
+      function cancelHide() {
+        if (hideTimer) {
+          root.clearTimeout(hideTimer);
+          hideTimer = null;
+        }
+      }
+
+      function refreshPosition() {
+        if (tooltip.classList.contains("is-visible")) {
+          positionErrorTooltip(trigger, tooltip);
+        }
+      }
+
+      function showTooltip() {
+        cancelHide();
+        tooltip.classList.add("is-visible");
+        positionErrorTooltip(trigger, tooltip);
+        root.addEventListener("scroll", refreshPosition, true);
+        root.addEventListener("resize", refreshPosition);
+        if (root.requestAnimationFrame) {
+          root.requestAnimationFrame(refreshPosition);
+        }
+      }
+
+      function hideTooltip() {
+        cancelHide();
+        tooltip.classList.remove("is-visible");
+        root.removeEventListener("scroll", refreshPosition, true);
+        root.removeEventListener("resize", refreshPosition);
+      }
+
+      function scheduleHide() {
+        cancelHide();
+        hideTimer = root.setTimeout(hideTooltip, 120);
+      }
+
+      item.addEventListener("pointerenter", showTooltip);
+      item.addEventListener("pointerleave", scheduleHide);
+      trigger.addEventListener("focus", showTooltip);
+      trigger.addEventListener("blur", scheduleHide);
+      tooltip.addEventListener("pointerenter", cancelHide);
+      tooltip.addEventListener("pointerleave", scheduleHide);
+
+      return function cleanupErrorTooltip() {
+        hideTooltip();
+        item.removeEventListener("pointerenter", showTooltip);
+        item.removeEventListener("pointerleave", scheduleHide);
+        trigger.removeEventListener("focus", showTooltip);
+        trigger.removeEventListener("blur", scheduleHide);
+        tooltip.removeEventListener("pointerenter", cancelHide);
+        tooltip.removeEventListener("pointerleave", scheduleHide);
+        tooltip.remove();
+      };
+    }
+
     function latestErrorExample(tag) {
       const state = stateStore.getState();
       const examples = Array.isArray(state.errorExamplesByTag[tag])
@@ -76,7 +175,8 @@
     function appendErrorTooltip(item, tag) {
       const tooltip = document.createElement("div");
       const tooltipId = `error-tooltip-${tag}`;
-      tooltip.className = "error-tooltip";
+      tooltip.className = "error-tooltip stat-error-tooltip";
+      tooltip.dataset.statsTooltip = "true";
       tooltip.id = tooltipId;
       tooltip.setAttribute("role", "tooltip");
 
@@ -122,8 +222,12 @@
         tooltip.appendChild(fallback);
       }
 
-      item.appendChild(tooltip);
-      return tooltipId;
+      if (root.document && root.document.body) {
+        root.document.body.appendChild(tooltip);
+      } else {
+        item.appendChild(tooltip);
+      }
+      return tooltip;
     }
 
     function renderErrorList() {
@@ -133,6 +237,7 @@
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
 
+      removeFloatingErrorTooltips();
       clearElement(els.errorList);
       if (!entries.length) {
         appendEmptyState(
@@ -164,7 +269,9 @@
 
         trigger.append(label, count);
         item.appendChild(trigger);
-        trigger.setAttribute("aria-describedby", appendErrorTooltip(item, tag));
+        const tooltip = appendErrorTooltip(item, tag);
+        trigger.setAttribute("aria-describedby", tooltip.id);
+        tooltipCleanupHandlers.push(wireErrorTooltip(item, trigger, tooltip));
         els.errorList.appendChild(item);
       });
     }
