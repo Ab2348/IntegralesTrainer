@@ -35,7 +35,13 @@
     RANGE_LIMITS,
     TRIG_LINEAR_RENDERER_ID,
   } = Data;
-  const { rational, createArgument, correctCoefficient, integralPlain, integralLatex } = Format;
+  const {
+    rational,
+    createArgument,
+    correctCoefficient,
+    integralPlain,
+    integralLatex,
+  } = Format;
   const { buildOptions } = Distractors;
 
   function randomInt(min, max, rng) {
@@ -81,10 +87,10 @@
     let min = Number.parseInt(minValue, 10);
     let max = Number.parseInt(maxValue, 10);
     if (!Number.isFinite(min)) {
-      min = -10;
+      min = RANGE_LIMITS.min;
     }
     if (!Number.isFinite(max)) {
-      max = 10;
+      max = RANGE_LIMITS.max;
     }
     if (min > max) {
       const temp = min;
@@ -94,8 +100,8 @@
     min = Math.max(RANGE_LIMITS.min, Math.min(RANGE_LIMITS.max, min));
     max = Math.max(RANGE_LIMITS.min, Math.min(RANGE_LIMITS.max, max));
     if (min === 0 && max === 0) {
-      min = -10;
-      max = 10;
+      min = RANGE_LIMITS.min;
+      max = RANGE_LIMITS.max;
     }
     return { min, max };
   }
@@ -153,10 +159,22 @@
     const variantId = meta.variantId || variantIdForDifficulty(difficulty);
     const seedPart = safeIdPart(meta.seed);
     const attempt = meta.attempt === 0 || meta.attempt ? meta.attempt : "";
+    const signature = exerciseSignature({
+      ...params,
+      templateId,
+      variantId,
+    });
+    const idParts = [templateId, variantId, signature];
+    if (seedPart) {
+      idParts.push(seedPart);
+    }
+    if (attempt === 0 || attempt) {
+      idParts.push(String(attempt));
+    }
+    const exerciseId = `ex-${safeIdPart(idParts.join("-"))}`;
+
     const exercise = {
-      id: seedPart
-        ? `ex-${templateId}-${seedPart}`
-        : `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      id: exerciseId,
       A,
       k,
       b,
@@ -186,11 +204,7 @@
       },
       argument,
       correctCoefficient: coefficient,
-      signature: exerciseSignature({
-        ...params,
-        templateId,
-        variantId,
-      }),
+      signature,
     };
     exercise.integrandExpression = integralPlain(exercise);
     exercise.integrandLatex = integralLatex(exercise);
@@ -224,9 +238,10 @@
         selectedVariant.parameterOverrides.profileLevel,
       10,
     );
-    const level = Number.isFinite(profileLevel) && profileLevel > 0
-      ? profileLevel
-      : Number.parseInt(difficulty, 10) || 1;
+    const level =
+      Number.isFinite(profileLevel) && profileLevel > 0
+        ? profileLevel
+        : Number.parseInt(difficulty, 10) || 1;
     const familyId = choose(familyIds, rng);
     if (level === 1) {
       return { A: choose([-1, 1], rng), k: 1, b: 0, familyId };

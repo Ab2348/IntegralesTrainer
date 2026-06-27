@@ -96,12 +96,104 @@ function testOptionIdsIncludeGenerationContext() {
   assert.equal(first.correctAnswer.key, second.correctAnswer.key);
 }
 
+function testAllModesAndDifficulties() {
+  const modes = ["basic", "intermediate", "products", "logarithmic", "inverse", "mixed"];
+  const difficulties = ["1", "2", "3", "4", "5"];
+
+  for (const mode of modes) {
+    for (const difficulty of difficulties) {
+      const expectedOptionCount = difficulty === "1" || difficulty === "2" || difficulty === "3" ? 4 : 6;
+
+      const seed = `test-${mode}-diff-${difficulty}`;
+      const exercise = Core.generateExercise(
+        {
+          mode,
+          difficulty,
+          rangeMin: -20,
+          rangeMax: 20,
+          includeExperimentalMethods: true,
+          seed,
+        },
+        [],
+        fixedRng,
+      );
+
+      // Verificar que el ejercicio existe
+      assert.ok(exercise, `Ejercicio no generado para mode=${mode}, difficulty=${difficulty}`);
+
+      // Verificar integralShown
+      assert.ok(exercise.integralShown, `Falta integralShown para mode=${mode}, difficulty=${difficulty}`);
+
+      // Verificar correctAnswer
+      assert.ok(exercise.correctAnswer, `Falta correctAnswer para mode=${mode}, difficulty=${difficulty}`);
+      assert.ok(exercise.correctAnswer.id, `Falta correctAnswer.id para mode=${mode}, difficulty=${difficulty}`);
+
+      // Verificar options
+      assert.ok(exercise.options, `Falta options para mode=${mode}, difficulty=${difficulty}`);
+      assert.ok(Array.isArray(exercise.options), `options no es array para mode=${mode}, difficulty=${difficulty}`);
+
+      // Verificar exactamente una opción correcta
+      const correctOptions = exercise.options.filter((opt) => opt.isCorrect);
+      assert.equal(
+        correctOptions.length,
+        1,
+        `Debe haber exactamente una opción correcta para mode=${mode}, difficulty=${difficulty} (encontradas: ${correctOptions.length})`
+      );
+
+      // Verificar número de opciones según dificultad
+      assert.equal(
+        exercise.options.length,
+        expectedOptionCount,
+        `Número de opciones incorrecto para mode=${mode}, difficulty=${difficulty}: esperado ${expectedOptionCount}, obtenido ${exercise.options.length}`
+      );
+
+      // Verificar no hay opciones duplicadas por Core.optionIdentity
+      const identities = new Set();
+      for (const option of exercise.options) {
+        const identity = Core.optionIdentity(option);
+        assert.ok(identity, `optionIdentity devuelve falsy para mode=${mode}, difficulty=${difficulty}`);
+        assert.ok(
+          !identities.has(identity),
+          `Opción duplicada detectada por optionIdentity para mode=${mode}, difficulty=${difficulty}: ${identity}`
+        );
+        identities.add(identity);
+      }
+
+      // Verificar que todos los distractores tienen errorTag, errorType y sourceStrategy
+      for (const option of exercise.options) {
+        if (!option.isCorrect) {
+          assert.ok(option.errorTag, `Falta errorTag en distractor para mode=${mode}, difficulty=${difficulty}`);
+          assert.ok(option.errorType, `Falta errorType en distractor para mode=${mode}, difficulty=${difficulty}`);
+          assert.ok(option.sourceStrategy, `Falta sourceStrategy en distractor para mode=${mode}, difficulty=${difficulty}`);
+        }
+      }
+
+      // Verificar templateId
+      assert.ok(exercise.templateId, `Falta templateId para mode=${mode}, difficulty=${difficulty}`);
+
+      // Verificar variantId
+      assert.ok(exercise.variantId, `Falta variantId para mode=${mode}, difficulty=${difficulty}`);
+
+      // Verificar signature
+      assert.ok(exercise.signature, `Falta signature para mode=${mode}, difficulty=${difficulty}`);
+    }
+  }
+}
+
+function testTemplatesComprehensive() {
+  const result = Core.testTemplates({ iterations: 5 });
+  assert.equal(result.passed, true, "Core.testTemplates falló: " + JSON.stringify(result, null, 2));
+}
+
 function run() {
   testRationalUtilsArePublic();
   testOptionCountPolicy();
   testGenerationSmoke();
   testContractWarningsDoNotBlockValidation();
   testOptionIdsIncludeGenerationContext();
+  testAllModesAndDifficulties();
+  testTemplatesComprehensive();
+  console.log("All tests passed!");
 }
 
 run();

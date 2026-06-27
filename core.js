@@ -6,10 +6,7 @@
       return root.TrigCoreRegistry.getActive();
     }
 
-    if (
-      root.TrigCoreModules &&
-      root.TrigCoreModules.integralesLineales
-    ) {
+    if (root.TrigCoreModules && root.TrigCoreModules.integralesLineales) {
       return root.TrigCoreModules.integralesLineales;
     }
 
@@ -22,6 +19,7 @@
       require("./js/core/identidad-opciones.js");
       require("./js/core/firmas.js");
       require("./js/core/math-renderer.js");
+      require("./js/core/math-content.js");
       require("./js/core/modelo-ejercicio.js");
       require("./js/core/opciones.js");
       require("./js/core/validacion.js");

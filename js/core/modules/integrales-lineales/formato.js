@@ -4,14 +4,24 @@
   if (typeof require === "function") {
     require("../../racionales.js");
     require("../../math-renderer.js");
+    require("../../math-content.js");
     require("./datos.js");
   }
 
   const MathRenderer = root.TrigMathRenderer || {};
+  const MathContent = root.TrigMathContent || {};
   const Data = root.TrigLinearData || {};
   const Rational = root.TrigRationalUtils || {};
   const { ERROR_LABELS, FAMILY_DEFINITIONS, FAMILY_MAP, NEGATIVE_CORES } = Data;
-  const { rational, multiplyInt, divide, rationalPlain, rationalLatex, rationalKey } = Rational;
+  const {
+    rational,
+    multiplyInt,
+    divide,
+    rationalPlain,
+    rationalLatex,
+    rationalKey,
+  } = Rational;
+  const { mathInline, mathBlock, contentNode } = MathContent;
 
   function parensLatex(content) {
     return `\\left(${content}\\right)`;
@@ -21,20 +31,8 @@
     return `\\left|${content}\\right|`;
   }
 
-  function mathInline(latex, plain) {
-    return MathRenderer.inlineMath
-      ? MathRenderer.inlineMath(latex, { plain })
-      : { type: "math", latex, plain: plain || "", display: "inline" };
-  }
-
-  function mathBlock(latex, plain) {
-    return MathRenderer.blockMath
-      ? MathRenderer.blockMath(latex, { plain })
-      : { type: "math", latex, plain: plain || "", display: "block" };
-  }
-
-  function contentNode(type, className, children) {
-    return { type, className: className || "", children: children || [] };
+  if (!mathInline || !mathBlock || !contentNode) {
+    throw new Error("TrigMathContent debe cargarse antes de TrigLinearFormat.");
   }
 
   function plainMathLatex(value) {

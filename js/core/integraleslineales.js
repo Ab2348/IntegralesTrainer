@@ -2,10 +2,7 @@
   "use strict";
 
   function loadLinearModule() {
-    if (
-      root.TrigCoreModules &&
-      root.TrigCoreModules.integralesLineales
-    ) {
+    if (root.TrigCoreModules && root.TrigCoreModules.integralesLineales) {
       return root.TrigCoreModules.integralesLineales;
     }
 
@@ -18,6 +15,7 @@
       require("./identidad-opciones.js");
       require("./firmas.js");
       require("./math-renderer.js");
+      require("./math-content.js");
       require("./modelo-ejercicio.js");
       require("./opciones.js");
       require("./validacion.js");
