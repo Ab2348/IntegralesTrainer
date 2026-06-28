@@ -1,23 +1,12 @@
 (function (root) {
   "use strict";
 
-  const Diagnostics = root.TrigContractDiagnostics || {};
+  const Diagnostics = root.TrigContractDiagnostics;
   const modules = {};
   let activeModuleId = "";
 
   function diagnostic(code, moduleApi, field) {
-    if (Diagnostics.diagnostic) {
-      return Diagnostics.diagnostic(code, moduleApi, field);
-    }
-    const severity = code === "missing-moduleId" ? "error" : "warning";
-    return {
-      code,
-      severity,
-      message: code,
-      field: field || "",
-      recommendation: "",
-      blocking: severity === "error",
-    };
+    return Diagnostics.diagnostic(code, moduleApi, field);
   }
 
   function validateModuleContract(moduleApi) {
