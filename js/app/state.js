@@ -274,6 +274,35 @@
       };
     }
 
+    function settingsForNewScope(value) {
+      const saved = isPlainObject(value) ? value : {};
+      const mode = defaultModeId();
+      const range = Core.sanitizeRange(saved.rangeMin, saved.rangeMax);
+      const difficulty = VALID_DIFFICULTIES.has(String(saved.difficulty))
+        ? String(saved.difficulty)
+        : "1";
+
+      return {
+        mode,
+        practiceMode:
+          typeof saved.practiceMode === "string" && saved.practiceMode
+            ? saved.practiceMode
+            : "practice",
+        difficulty,
+        rangeMin: range.min,
+        rangeMax: range.max,
+        activeFamilyIds: familyIdsForMode(mode),
+        activeMathFamilyIds: defaultMathFamilyIds(),
+        activeMethodIds: defaultMethodIds(),
+        includePendingMethods: normalizeBoolean(saved.includePendingMethods),
+        includeExperimentalMethods:
+          saved.includeExperimentalMethods === undefined
+            ? true
+            : normalizeBoolean(saved.includeExperimentalMethods),
+        disabledTemplateIds: [],
+      };
+    }
+
     function normalizeRecentExercises(value) {
       if (!Array.isArray(value)) {
         return [];
@@ -553,12 +582,20 @@
     function setPracticeScope(typeIds) {
       const previous = state.practiceScope.typeIds.join("|");
       const normalized = normalizePracticeScope({ typeIds }).typeIds;
+      let appliedTypeIds = normalized;
       if (Core && typeof Core.setPracticeScope === "function") {
-        Core.setPracticeScope(normalized);
+        const nextScope = Core.setPracticeScope(normalized);
+        if (nextScope && Array.isArray(nextScope.typeIds)) {
+          appliedTypeIds = nextScope.typeIds;
+        }
       }
-      state.practiceScope = normalizePracticeScope({ typeIds: normalized });
-      state.settings = normalizeSettings(state.settings);
-      if (previous !== state.practiceScope.typeIds.join("|")) {
+      state.practiceScope = normalizePracticeScope({ typeIds: appliedTypeIds });
+      const next = state.practiceScope.typeIds.join("|");
+      state.settings =
+        previous === next
+          ? normalizeSettings(state.settings)
+          : settingsForNewScope(state.settings);
+      if (previous !== next) {
         state.recentExercises = [];
       }
       saveState();

@@ -68,6 +68,94 @@ function createStateStore(savedState, Core) {
   };
 }
 
+function createScopedCore() {
+  const scopes = {
+    "integrales-lineales": {
+      MODE_FAMILIES: {
+        basic: ["sin"],
+        custom: ["sin"],
+      },
+      defaultModeId: "basic",
+      customModeId: "custom",
+      FAMILIES: [{ id: "sin" }],
+      MATH_FAMILIES: [{ id: "trigonometrica-directa" }],
+      METHODS: [{ id: "directa" }],
+      templates: [{ id: "trig-linear-sin" }],
+    },
+    "integrales-algebraicas-lineales": {
+      MODE_FAMILIES: {
+        algebraic: ["potencia-lineal-positiva"],
+        custom: ["potencia-lineal-positiva"],
+      },
+      defaultModeId: "algebraic",
+      customModeId: "custom",
+      FAMILIES: [{ id: "potencia-lineal-positiva" }],
+      MATH_FAMILIES: [{ id: "algebraica-inmediata" }],
+      METHODS: [{ id: "sustitucion-lineal-directa" }],
+      templates: [{ id: "algebraic-linear-power-positive" }],
+    },
+    "integrales-lineales|integrales-algebraicas-lineales": {
+      MODE_FAMILIES: {
+        mixed: ["sin", "potencia-lineal-positiva"],
+        custom: ["sin", "potencia-lineal-positiva"],
+      },
+      defaultModeId: "mixed",
+      customModeId: "custom",
+      FAMILIES: [{ id: "sin" }, { id: "potencia-lineal-positiva" }],
+      MATH_FAMILIES: [
+        { id: "trigonometrica-directa" },
+        { id: "algebraica-inmediata" },
+      ],
+      METHODS: [{ id: "directa" }, { id: "sustitucion-lineal-directa" }],
+      templates: [
+        { id: "trig-linear-sin" },
+        { id: "algebraic-linear-power-positive" },
+      ],
+    },
+  };
+  const allowed = new Set([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const core = createCore();
+
+  function applyScope(typeIds) {
+    const ids = Array.isArray(typeIds)
+      ? typeIds.filter(
+          (id, index) => allowed.has(id) && typeIds.indexOf(id) === index,
+        )
+      : [];
+    const metadata = scopes[ids.join("|")] || {
+      MODE_FAMILIES: {},
+      defaultModeId: "",
+      customModeId: "",
+      FAMILIES: [],
+      MATH_FAMILIES: [],
+      METHODS: [],
+      templates: [],
+    };
+    Object.assign(core, metadata);
+    return { typeIds: ids };
+  }
+
+  Object.assign(core, {
+    normalizePracticeScope(scope) {
+      return applyScope(scope && scope.typeIds);
+    },
+    hasValidScope(scope) {
+      return this.normalizePracticeScope(scope).typeIds.length > 0;
+    },
+    setPracticeScope(typeIds) {
+      return applyScope(typeIds);
+    },
+    listTemplates() {
+      return this.templates || [];
+    },
+  });
+  applyScope([]);
+  return core;
+}
+
 function testOldOptionCountIsIgnoredWhenLoadingState() {
   [
     { difficulty: "1", optionCount: 6 },
@@ -181,12 +269,135 @@ function testPracticeScopePersistsAndValidatesThroughRuntime() {
   ]);
 }
 
+function testScopeChangeRebuildsScopedSettingsFromTrigToMixed() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(undefined, Core);
+
+  store.setPracticeScope(["integrales-lineales"]);
+  store.updateSettings({
+    mode: "custom",
+    difficulty: "4",
+    rangeMin: -12,
+    rangeMax: 14,
+    activeFamilyIds: ["sin"],
+    activeMathFamilyIds: ["trigonometrica-directa"],
+    activeMethodIds: ["directa"],
+    includeExperimentalMethods: false,
+    disabledTemplateIds: ["trig-linear-sin"],
+  });
+  store.pushRecent("recent-trig");
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const settings = store.getState().settings;
+
+  assert.equal(settings.mode, "mixed");
+  assert.equal(settings.difficulty, "4");
+  assert.equal(settings.includeExperimentalMethods, false);
+  assert.deepEqual(Array.from(settings.activeFamilyIds), [
+    "sin",
+    "potencia-lineal-positiva",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+    "algebraica-inmediata",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMethodIds), [
+    "directa",
+    "sustitucion-lineal-directa",
+  ]);
+  assert.deepEqual(Array.from(settings.disabledTemplateIds), []);
+  assert.deepEqual(Array.from(store.getState().recentExercises), []);
+}
+
+function testScopeChangeRebuildsScopedSettingsFromAlgebraicToMixed() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(undefined, Core);
+
+  store.setPracticeScope(["integrales-algebraicas-lineales"]);
+  store.updateSettings({
+    mode: "custom",
+    difficulty: "2",
+    rangeMin: -8,
+    rangeMax: 8,
+    activeFamilyIds: ["potencia-lineal-positiva"],
+    activeMathFamilyIds: ["algebraica-inmediata"],
+    activeMethodIds: ["sustitucion-lineal-directa"],
+    includeExperimentalMethods: true,
+  });
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const settings = store.getState().settings;
+
+  assert.equal(settings.mode, "mixed");
+  assert.equal(settings.difficulty, "2");
+  assert.deepEqual(Array.from(settings.activeFamilyIds), [
+    "sin",
+    "potencia-lineal-positiva",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+    "algebraica-inmediata",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMethodIds), [
+    "directa",
+    "sustitucion-lineal-directa",
+  ]);
+}
+
+function testSameScopeKeepsSettingsAndRecentExercises() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(undefined, Core);
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  store.updateSettings({
+    mode: "custom",
+    difficulty: "5",
+    rangeMin: -6,
+    rangeMax: 6,
+    activeFamilyIds: ["sin"],
+    activeMathFamilyIds: ["trigonometrica-directa"],
+    activeMethodIds: ["directa"],
+    includeExperimentalMethods: true,
+    disabledTemplateIds: ["algebraic-linear-power-positive"],
+  });
+  store.pushRecent("same-scope-recent");
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const state = store.getState();
+
+  assert.equal(state.settings.mode, "custom");
+  assert.deepEqual(Array.from(state.settings.activeFamilyIds), ["sin"]);
+  assert.deepEqual(Array.from(state.settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+  ]);
+  assert.deepEqual(Array.from(state.settings.activeMethodIds), ["directa"]);
+  assert.deepEqual(Array.from(state.settings.disabledTemplateIds), [
+    "algebraic-linear-power-positive",
+  ]);
+  assert.deepEqual(Array.from(state.recentExercises), ["same-scope-recent"]);
+}
+
 function run() {
   testOldOptionCountIsIgnoredWhenLoadingState();
   testOptionCountIsNotPersistedFromUpdates();
   testModuleDefaultsComeFromCoreMetadata();
   testStateDoesNotRequireBasicMode();
   testPracticeScopePersistsAndValidatesThroughRuntime();
+  testScopeChangeRebuildsScopedSettingsFromTrigToMixed();
+  testScopeChangeRebuildsScopedSettingsFromAlgebraicToMixed();
+  testSameScopeKeepsSettingsAndRecentExercises();
   console.log("State tests passed!");
 }
 

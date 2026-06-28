@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 require("../js/core/modules/index.js");
 require("../core.js");
 require("../js/app/practice-runtime.js");
+require("../js/app/state.js");
 
 const App = globalThis.TrigTrainerApp;
 
@@ -15,6 +16,50 @@ function createRuntime() {
     registry: globalThis.TrigCoreRegistry,
     generator: globalThis.TrigExerciseGenerator,
   });
+}
+
+function createLocalStorage() {
+  const store = new Map();
+  return {
+    getItem(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    setItem(key, value) {
+      store.set(key, String(value));
+    },
+  };
+}
+
+function createRuntimeStatePair() {
+  const runtime = createRuntime();
+  globalThis.localStorage = createLocalStorage();
+  return {
+    runtime,
+    stateStore: App.createStateStore(runtime),
+  };
+}
+
+function settingsForGeneration(settings) {
+  return {
+    ...settings,
+    rangeMin: settings.rangeMin === undefined ? -20 : settings.rangeMin,
+    rangeMax: settings.rangeMax === undefined ? 20 : settings.rangeMax,
+    includeExperimentalMethods: settings.includeExperimentalMethods !== false,
+  };
+}
+
+function generatedModules(runtime, settings, seedPrefix) {
+  const modules = new Set();
+  for (let index = 0; index < 50; index += 1) {
+    const exercise = runtime.generateExercise({
+      settings: settingsForGeneration(settings),
+      recentSignatures: [],
+      rng: () => (index % 10) / 10,
+      seed: `${seedPrefix}-${index}`,
+    });
+    modules.add(exercise.moduleId);
+  }
+  return modules;
 }
 
 function testListsPracticeTypesWithoutActiveScope() {
@@ -136,11 +181,99 @@ function testMixedScopeCombinesFamiliesAndFiltersFormulas() {
   assert.ok(runtime.feedbackContent(trig, trig.options[0]));
 }
 
+function testStateTransitionFromTrigToMixedCanGenerateBothModules() {
+  const { runtime, stateStore } = createRuntimeStatePair();
+
+  stateStore.setPracticeScope(["integrales-lineales"]);
+  stateStore.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+
+  const modules = generatedModules(
+    runtime,
+    stateStore.getState().settings,
+    "p0-trig-to-mixed",
+  );
+
+  assert.ok(modules.has("integrales-lineales"));
+  assert.ok(modules.has("integrales-algebraicas-lineales"));
+}
+
+function testStateTransitionFromAlgebraicToMixedCanGenerateBothModules() {
+  const { runtime, stateStore } = createRuntimeStatePair();
+
+  stateStore.setPracticeScope(["integrales-algebraicas-lineales"]);
+  stateStore.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+
+  const modules = generatedModules(
+    runtime,
+    stateStore.getState().settings,
+    "p0-algebraic-to-mixed",
+  );
+
+  assert.ok(modules.has("integrales-lineales"));
+  assert.ok(modules.has("integrales-algebraicas-lineales"));
+}
+
+function testMixedScopeWithOnlyTrigFamiliesGeneratesTrig() {
+  const { runtime, stateStore } = createRuntimeStatePair();
+
+  stateStore.setPracticeScope(["integrales-algebraicas-lineales"]);
+  stateStore.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const settings = stateStore.updateSettings({
+    ...stateStore.getState().settings,
+    mode: "custom",
+    activeFamilyIds: ["sin"],
+  });
+  const exercise = runtime.generateExercise({
+    settings: settingsForGeneration(settings),
+    recentSignatures: [],
+    rng: fixedRng,
+    seed: "p0-only-trig-family",
+  });
+
+  assert.equal(exercise.moduleId, "integrales-lineales");
+}
+
+function testMixedScopeWithOnlyAlgebraicFamiliesGeneratesAlgebraic() {
+  const { runtime, stateStore } = createRuntimeStatePair();
+
+  stateStore.setPracticeScope(["integrales-lineales"]);
+  stateStore.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const settings = stateStore.updateSettings({
+    ...stateStore.getState().settings,
+    mode: "custom",
+    activeFamilyIds: ["potencia-lineal-positiva"],
+  });
+  const exercise = runtime.generateExercise({
+    settings: settingsForGeneration(settings),
+    recentSignatures: [],
+    rng: fixedRng,
+    seed: "p0-only-algebraic-family",
+  });
+
+  assert.equal(exercise.moduleId, "integrales-algebraicas-lineales");
+}
+
 function run() {
   testListsPracticeTypesWithoutActiveScope();
   testSingleTrigScopeGeneratesTrigExercise();
   testSingleAlgebraicScopeGeneratesAlgebraicExercise();
   testMixedScopeCombinesFamiliesAndFiltersFormulas();
+  testStateTransitionFromTrigToMixedCanGenerateBothModules();
+  testStateTransitionFromAlgebraicToMixedCanGenerateBothModules();
+  testMixedScopeWithOnlyTrigFamiliesGeneratesTrig();
+  testMixedScopeWithOnlyAlgebraicFamiliesGeneratesAlgebraic();
   console.log("Practice runtime tests passed!");
 }
 
