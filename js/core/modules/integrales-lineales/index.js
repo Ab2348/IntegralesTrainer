@@ -57,6 +57,14 @@
   }
 
   const MODULE_ID = "integrales-lineales";
+  const PRACTICE_TYPE = {
+    id: MODULE_ID,
+    title: "Trigonométricas directas",
+    description: "sen, cos, tan, sec², inversas y relacionadas.",
+    preview: ["sen", "cos", "tan", "sec²", "arctan"],
+    shortLabel: "Trigonométricas",
+    order: 10,
+  };
 
   function hasModuleFilter(filters) {
     return Boolean(
@@ -102,6 +110,7 @@
   const api = {
     moduleId: MODULE_ID,
     moduleName: "Integrales con argumento lineal",
+    practiceType: PRACTICE_TYPE,
     modelVersion: "1.5",
     generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.5",
     ERROR_TAGS: Errors.ERROR_TAGS,

@@ -5,88 +5,121 @@
 
   App.createStateStore = function createStateStore(Core) {
     const BASE_STORAGE_KEY = "trig-integral-trainer:v1";
-    const STORAGE_KEY =
-      Core && Core.moduleId && Core.moduleId !== "integrales-lineales"
-        ? `${BASE_STORAGE_KEY}:${Core.moduleId}`
-        : BASE_STORAGE_KEY;
+    const STORAGE_KEY = BASE_STORAGE_KEY;
     const RECENT_LIMIT = 20;
     const ERROR_EXAMPLES_PER_TAG_LIMIT = 1;
     const ERROR_EXAMPLE_TEXT_LIMIT = 360;
-    const MODE_FAMILIES = Core.MODE_FAMILIES || {};
-    const MODE_IDS = Object.keys(MODE_FAMILIES);
-    const DEFAULT_MODE_ID =
-      typeof Core.defaultModeId === "string" &&
-      MODE_IDS.includes(Core.defaultModeId)
-        ? Core.defaultModeId
-        : MODE_IDS[0] || "";
-    const CUSTOM_MODE_ID =
-      typeof Core.customModeId === "string" &&
-      MODE_IDS.includes(Core.customModeId)
-        ? Core.customModeId
-        : DEFAULT_MODE_ID;
-    const VALID_MODES = new Set(MODE_IDS);
     const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
-    const VALID_ERROR_TAGS = new Set(
-      (Core.ERROR_TYPES || []).map((error) => error.id).concat(Core.ERROR_TAGS),
-    );
-    const VALID_FAMILY_IDS = new Set(Core.FAMILIES.map((family) => family.id));
-    const VALID_MATH_FAMILY_IDS = new Set(
-      (Core.MATH_FAMILIES || []).map((family) => family.id),
-    );
-    const VALID_METHOD_IDS = new Set(
-      (Core.METHODS || []).map((method) => method.id),
-    );
-    const DEFAULT_FAMILY_IDS = familyIdsForMode(DEFAULT_MODE_ID);
-    const DEFAULT_MATH_FAMILY_IDS = (Core.MATH_FAMILIES || [])
-      .filter((family) => family && family.enabled !== false)
-      .map((family) => family.id)
-      .filter(Boolean);
-    const DEFAULT_METHOD_IDS = (Core.METHODS || [])
-      .filter((method) => method && method.enabled !== false)
-      .map((method) => method.id)
-      .filter(Boolean);
-
-    const defaultState = {
-      totalAnswered: 0,
-      totalCorrect: 0,
-      totalIncorrect: 0,
-      errorCountsByTag: {},
-      familyCounts: {},
-      familyErrorCounts: {},
-      mathFamilyCounts: {},
-      mathFamilyErrorCounts: {},
-      methodCounts: {},
-      methodErrorCounts: {},
-      submethodCounts: {},
-      submethodErrorCounts: {},
-      difficultyCounts: {},
-      difficultyErrorCounts: {},
-      templateCounts: {},
-      templateErrorCounts: {},
-      variantCounts: {},
-      variantErrorCounts: {},
-      errorExamplesByTag: {},
-      recentErrorHistory: [],
-      settings: {
-        mode: DEFAULT_MODE_ID,
-        practiceMode: "practice",
-        difficulty: "1",
-        rangeMin: -20,
-        rangeMax: 20,
-        activeFamilyIds: DEFAULT_FAMILY_IDS.slice(),
-        activeMathFamilyIds: DEFAULT_MATH_FAMILY_IDS.slice(),
-        activeMethodIds: DEFAULT_METHOD_IDS.slice(),
-        includePendingMethods: false,
-        includeExperimentalMethods: true,
-        disabledTemplateIds: [],
-      },
-      recentExercises: [],
-    };
 
     let state = loadState();
 
     function cloneDefaultState() {
-      return JSON.parse(JSON.stringify(defaultState));
+      return JSON.parse(JSON.stringify(defaultState()));
+    }
+
+    function modeFamilies() {
+      return (Core && Core.MODE_FAMILIES) || {};
+    }
+
+    function modeIds() {
+      return Object.keys(modeFamilies());
+    }
+
+    function defaultModeId() {
+      const ids = modeIds();
+      return typeof Core.defaultModeId === "string" &&
+        ids.includes(Core.defaultModeId)
+        ? Core.defaultModeId
+        : ids[0] || "";
+    }
+
+    function customModeId() {
+      const ids = modeIds();
+      return typeof Core.customModeId === "string" &&
+        ids.includes(Core.customModeId)
+        ? Core.customModeId
+        : defaultModeId();
+    }
+
+    function validModes() {
+      return new Set(modeIds());
+    }
+
+    function validErrorTags() {
+      return new Set(
+        ((Core && Core.ERROR_TYPES) || [])
+          .map((error) => error.id)
+          .concat((Core && Core.ERROR_TAGS) || []),
+      );
+    }
+
+    function validFamilyIds() {
+      return new Set(((Core && Core.FAMILIES) || []).map((family) => family.id));
+    }
+
+    function validMathFamilyIds() {
+      return new Set(
+        ((Core && Core.MATH_FAMILIES) || []).map((family) => family.id),
+      );
+    }
+
+    function validMethodIds() {
+      return new Set(((Core && Core.METHODS) || []).map((method) => method.id));
+    }
+
+    function defaultMathFamilyIds() {
+      return ((Core && Core.MATH_FAMILIES) || [])
+        .filter((family) => family && family.enabled !== false)
+        .map((family) => family.id)
+        .filter(Boolean);
+    }
+
+    function defaultMethodIds() {
+      return ((Core && Core.METHODS) || [])
+        .filter((method) => method && method.enabled !== false)
+        .map((method) => method.id)
+        .filter(Boolean);
+    }
+
+    function defaultState() {
+      const mode = defaultModeId();
+      return {
+        practiceScope: { typeIds: [] },
+        totalAnswered: 0,
+        totalCorrect: 0,
+        totalIncorrect: 0,
+        errorCountsByTag: {},
+        familyCounts: {},
+        familyErrorCounts: {},
+        mathFamilyCounts: {},
+        mathFamilyErrorCounts: {},
+        methodCounts: {},
+        methodErrorCounts: {},
+        submethodCounts: {},
+        submethodErrorCounts: {},
+        difficultyCounts: {},
+        difficultyErrorCounts: {},
+        templateCounts: {},
+        templateErrorCounts: {},
+        variantCounts: {},
+        variantErrorCounts: {},
+        errorExamplesByTag: {},
+        recentErrorHistory: [],
+        settings: {
+          mode,
+          practiceMode: "practice",
+          difficulty: "1",
+          rangeMin: -20,
+          rangeMax: 20,
+          activeFamilyIds: familyIdsForMode(mode),
+          activeMathFamilyIds: defaultMathFamilyIds(),
+          activeMethodIds: defaultMethodIds(),
+          includePendingMethods: false,
+          includeExperimentalMethods: true,
+          disabledTemplateIds: [],
+        },
+        recentExercises: [],
+      };
     }
 
     function isPlainObject(value) {
@@ -115,34 +148,41 @@
       }, {});
     }
 
+    function keyFilter(validKeys) {
+      return validKeys && validKeys.size ? validKeys : null;
+    }
+
     function normalizeBoolean(value) {
       return value === true || value === "true";
     }
 
     function familyIdsForMode(mode) {
-      const modeFamilies = Array.isArray(MODE_FAMILIES[mode])
-        ? MODE_FAMILIES[mode]
+      const familiesByMode = modeFamilies();
+      const validIds = validFamilyIds();
+      const idsForMode = Array.isArray(familiesByMode[mode])
+        ? familiesByMode[mode]
         : [];
-      const ids = modeFamilies.filter(
+      const ids = idsForMode.filter(
         (id, index) =>
-          VALID_FAMILY_IDS.has(id) && modeFamilies.indexOf(id) === index,
+          validIds.has(id) && idsForMode.indexOf(id) === index,
       );
       if (ids.length) {
         return ids;
       }
-      return (Core.FAMILIES || []).map((family) => family.id).filter(Boolean);
+      return ((Core && Core.FAMILIES) || []).map((family) => family.id).filter(Boolean);
     }
 
     function normalizeFamilyIds(value, fallbackIds) {
       const fallback = Array.isArray(fallbackIds)
         ? fallbackIds
-        : DEFAULT_FAMILY_IDS;
+        : familyIdsForMode(defaultModeId());
+      const validIds = validFamilyIds();
       if (!Array.isArray(value)) {
         return fallback.slice();
       }
       const ids = value.filter(
         (id, index) =>
-          VALID_FAMILY_IDS.has(id) && value.indexOf(id) === index,
+          validIds.has(id) && value.indexOf(id) === index,
       );
       return ids.length ? ids : fallback.slice();
     }
@@ -150,13 +190,14 @@
     function normalizeMethodIds(value, fallbackIds) {
       const fallback = Array.isArray(fallbackIds) && fallbackIds.length
         ? fallbackIds
-        : DEFAULT_METHOD_IDS;
+        : defaultMethodIds();
+      const validIds = validMethodIds();
       if (!Array.isArray(value)) {
         return fallback.slice();
       }
       const ids = value.filter(
         (id, index) =>
-          VALID_METHOD_IDS.has(id) && value.indexOf(id) === index,
+          validIds.has(id) && value.indexOf(id) === index,
       );
       return ids.length ? ids : fallback.slice();
     }
@@ -164,13 +205,14 @@
     function normalizeMathFamilyIds(value, fallbackIds) {
       const fallback = Array.isArray(fallbackIds) && fallbackIds.length
         ? fallbackIds
-        : DEFAULT_MATH_FAMILY_IDS;
+        : defaultMathFamilyIds();
+      const validIds = validMathFamilyIds();
       if (!Array.isArray(value)) {
         return fallback.slice();
       }
       const ids = value.filter(
         (id, index) =>
-          VALID_MATH_FAMILY_IDS.has(id) && value.indexOf(id) === index,
+          validIds.has(id) && value.indexOf(id) === index,
       );
       return ids.length ? ids : fallback.slice();
     }
@@ -196,7 +238,8 @@
       const base = cloneDefaultState().settings;
       const saved = isPlainObject(value) ? value : {};
       const range = Core.sanitizeRange(saved.rangeMin, saved.rangeMax);
-      const mode = VALID_MODES.has(saved.mode) ? saved.mode : base.mode;
+      const modes = validModes();
+      const mode = modes.has(saved.mode) ? saved.mode : base.mode;
       const difficulty = VALID_DIFFICULTIES.has(String(saved.difficulty))
         ? String(saved.difficulty)
         : base.difficulty;
@@ -259,19 +302,23 @@
       if (!isPlainObject(value)) {
         return null;
       }
-      const errorTag = VALID_ERROR_TAGS.has(value.errorTag)
+      const errorTags = validErrorTags();
+      const familyIds = validFamilyIds();
+      const mathFamilyIds = validMathFamilyIds();
+      const methodIds = validMethodIds();
+      const errorTag = errorTags.has(value.errorTag)
         ? value.errorTag
         : fallbackTag;
-      const familyId = VALID_FAMILY_IDS.has(value.familyId)
+      const familyId = familyIds.has(value.familyId)
         ? value.familyId
         : "";
-      const mathFamilyId = VALID_MATH_FAMILY_IDS.has(value.mathFamilyId)
+      const mathFamilyId = mathFamilyIds.has(value.mathFamilyId)
         ? value.mathFamilyId
         : "";
-      const methodId = VALID_METHOD_IDS.has(value.methodId)
+      const methodId = methodIds.has(value.methodId)
         ? value.methodId
         : "";
-      if (!VALID_ERROR_TAGS.has(errorTag)) {
+      if (!errorTags.has(errorTag)) {
         return null;
       }
       return {
@@ -281,6 +328,7 @@
             : `err-${normalizeTimestamp(value.timestamp)}`,
         timestamp: normalizeTimestamp(value.timestamp),
         errorTag,
+        moduleId: normalizeText(value.moduleId),
         familyId,
         mathFamilyId,
         methodId,
@@ -304,8 +352,9 @@
       if (!isPlainObject(value)) {
         return {};
       }
+      const errorTags = validErrorTags();
       return Object.entries(value).reduce((result, [tag, examples]) => {
-        if (!VALID_ERROR_TAGS.has(tag)) {
+        if (!errorTags.has(tag)) {
           return result;
         }
         const source = Array.isArray(examples) ? examples : [examples];
@@ -321,13 +370,40 @@
       }, {});
     }
 
+    function normalizePracticeScope(value) {
+      if (Core && typeof Core.normalizePracticeScope === "function") {
+        return Core.normalizePracticeScope(value);
+      }
+      if (isPlainObject(value) && Array.isArray(value.typeIds)) {
+        return {
+          typeIds: value.typeIds.filter(
+            (typeId, index) =>
+              typeof typeId === "string" &&
+              typeId &&
+              value.typeIds.indexOf(typeId) === index,
+          ),
+        };
+      }
+      return { typeIds: [] };
+    }
+
     function mergeState(saved) {
       const base = cloneDefaultState();
+      const practiceScope = normalizePracticeScope(saved.practiceScope);
+      if (
+        Core &&
+        typeof Core.hasValidScope === "function" &&
+        typeof Core.setPracticeScope === "function" &&
+        Core.hasValidScope(practiceScope)
+      ) {
+        Core.setPracticeScope(practiceScope.typeIds);
+      }
       const totalCorrect = normalizeCounter(saved.totalCorrect);
       const totalIncorrect = normalizeCounter(saved.totalIncorrect);
       const savedTotalAnswered = normalizeCounter(saved.totalAnswered);
       return {
         ...base,
+        practiceScope,
         totalAnswered: Math.max(
           savedTotalAnswered,
           totalCorrect + totalIncorrect,
@@ -336,25 +412,31 @@
         totalIncorrect,
         errorCountsByTag: normalizeCountMap(
           saved.errorCountsByTag,
-          VALID_ERROR_TAGS,
+          keyFilter(validErrorTags()),
         ),
-        familyCounts: normalizeCountMap(saved.familyCounts, VALID_FAMILY_IDS),
+        familyCounts: normalizeCountMap(
+          saved.familyCounts,
+          keyFilter(validFamilyIds()),
+        ),
         familyErrorCounts: normalizeCountMap(
           saved.familyErrorCounts,
-          VALID_FAMILY_IDS,
+          keyFilter(validFamilyIds()),
         ),
         mathFamilyCounts: normalizeCountMap(
           saved.mathFamilyCounts,
-          VALID_MATH_FAMILY_IDS,
+          keyFilter(validMathFamilyIds()),
         ),
         mathFamilyErrorCounts: normalizeCountMap(
           saved.mathFamilyErrorCounts,
-          VALID_MATH_FAMILY_IDS,
+          keyFilter(validMathFamilyIds()),
         ),
-        methodCounts: normalizeCountMap(saved.methodCounts, VALID_METHOD_IDS),
+        methodCounts: normalizeCountMap(
+          saved.methodCounts,
+          keyFilter(validMethodIds()),
+        ),
         methodErrorCounts: normalizeCountMap(
           saved.methodErrorCounts,
-          VALID_METHOD_IDS,
+          keyFilter(validMethodIds()),
         ),
         submethodCounts: normalizeCountMap(saved.submethodCounts),
         submethodErrorCounts: normalizeCountMap(saved.submethodErrorCounts),
@@ -408,9 +490,9 @@
 
     function updateSettings(values) {
       const range = Core.sanitizeRange(values.rangeMin, values.rangeMax);
-      state.settings.mode = VALID_MODES.has(values.mode)
+      state.settings.mode = validModes().has(values.mode)
         ? values.mode
-        : DEFAULT_MODE_ID;
+        : defaultModeId();
       state.settings.practiceMode =
         typeof values.practiceMode === "string" && values.practiceMode
           ? values.practiceMode
@@ -450,7 +532,7 @@
     }
 
     function applyMode(mode) {
-      const safeMode = VALID_MODES.has(mode) ? mode : DEFAULT_MODE_ID;
+      const safeMode = validModes().has(mode) ? mode : defaultModeId();
       const ids = familyIdsForMode(safeMode);
       state.settings.mode = safeMode;
       state.settings.activeFamilyIds = ids.slice();
@@ -461,11 +543,33 @@
     function setCustomFamilies(familyIds) {
       state.settings.activeFamilyIds = normalizeFamilyIds(
         familyIds,
-        DEFAULT_FAMILY_IDS,
+        familyIdsForMode(defaultModeId()),
       );
-      state.settings.mode = CUSTOM_MODE_ID || state.settings.mode || DEFAULT_MODE_ID;
+      state.settings.mode = customModeId() || state.settings.mode || defaultModeId();
       saveState();
       return state.settings;
+    }
+
+    function setPracticeScope(typeIds) {
+      const previous = state.practiceScope.typeIds.join("|");
+      const normalized = normalizePracticeScope({ typeIds }).typeIds;
+      if (Core && typeof Core.setPracticeScope === "function") {
+        Core.setPracticeScope(normalized);
+      }
+      state.practiceScope = normalizePracticeScope({ typeIds: normalized });
+      state.settings = normalizeSettings(state.settings);
+      if (previous !== state.practiceScope.typeIds.join("|")) {
+        state.recentExercises = [];
+      }
+      saveState();
+      return state.practiceScope;
+    }
+
+    function hasValidPracticeScope(scope) {
+      const source = scope || state.practiceScope;
+      return Core && typeof Core.hasValidScope === "function"
+        ? Core.hasValidScope(source)
+        : normalizePracticeScope(source).typeIds.length > 0;
     }
 
     function pushRecent(signature) {
@@ -476,8 +580,10 @@
 
     function resetProgressKeepingSettings() {
       const settings = state.settings;
+      const practiceScope = state.practiceScope;
       state = cloneDefaultState();
       state.settings = settings;
+      state.practiceScope = practiceScope;
       saveState();
       return state;
     }
@@ -487,13 +593,16 @@
         ERROR_EXAMPLES_PER_TAG_LIMIT,
         RECENT_LIMIT,
       },
-      isValidErrorTag: (tag) => VALID_ERROR_TAGS.has(tag),
-      isValidFamilyId: (familyId) => VALID_FAMILY_IDS.has(familyId),
+      isValidErrorTag: (tag) => validErrorTags().has(tag),
+      isValidFamilyId: (familyId) => validFamilyIds().has(familyId),
       getState: () => state,
+      getPracticeScope: () => normalizePracticeScope(state.practiceScope),
+      hasValidPracticeScope,
       saveState,
       updateSettings,
       applyMode,
       setCustomFamilies,
+      setPracticeScope,
       pushRecent,
       resetProgressKeepingSettings,
     };

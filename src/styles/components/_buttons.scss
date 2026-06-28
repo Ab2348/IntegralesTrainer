@@ -53,6 +53,17 @@
   box-shadow: 0 12px 24px rgba(99, 87, 237, 0.18);
 }
 
+.btn.secondary {
+  color: var(--primary);
+  background: transparent;
+  border-color: var(--primary-line);
+}
+
+.btn.secondary:hover {
+  color: var(--text-strong);
+  background: var(--primary-soft);
+}
+
 .primary-button {
   width: 100%;
 }
@@ -116,4 +127,10 @@
   mask:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
     center / contain no-repeat;
+}
+
+.settings-card .change-practice-types {
+  width: 100%;
+  min-height: var(--settings-button-height);
+  border-radius: 8px;
 }

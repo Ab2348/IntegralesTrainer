@@ -1,0 +1,147 @@
+@use "../../abstracts/breakpoints";
+@use "../../abstracts/mixins";
+
+.practice-scope-view {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  gap: 18px;
+  padding: clamp(18px, 2vw, 30px);
+}
+
+.practice-scope-head {
+  display: grid;
+  gap: 8px;
+  max-width: 720px;
+}
+
+.practice-scope-head h2 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.practice-scope-head p,
+.practice-scope-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--font-md);
+  line-height: 1.5;
+}
+
+.practice-type-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+  gap: 14px;
+}
+
+.practice-type-card {
+  min-width: 0;
+  min-height: 210px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 18px;
+  text-align: left;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
+}
+
+.practice-type-card:hover,
+.practice-type-card:focus-visible {
+  border-color: var(--primary-line);
+  box-shadow: var(--shadow);
+  transform: translateY(-1px);
+}
+
+.practice-type-card.is-selected {
+  color: var(--text-strong);
+  background: linear-gradient(180deg, var(--surface), var(--primary-soft));
+  border-color: var(--primary);
+  box-shadow: 0 16px 34px rgba(101, 87, 237, 0.18);
+}
+
+.practice-type-label {
+  width: max-content;
+  max-width: 100%;
+  padding: 4px 8px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  font-size: var(--font-xs);
+  font-weight: 850;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.practice-type-title {
+  color: var(--text-strong);
+  font-size: var(--font-h2);
+  line-height: 1.2;
+}
+
+.practice-type-description {
+  color: var(--muted);
+  font-size: var(--font-base);
+  line-height: 1.45;
+}
+
+.practice-type-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-type-preview li {
+  min-width: 0;
+  padding: 5px 8px;
+  color: var(--text);
+  background: var(--surface-tint);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--font-xs);
+  font-weight: 750;
+}
+
+.practice-scope-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.practice-scope-confirm {
+  min-width: min(100%, 220px);
+}
+
+@include mixins.media-max(breakpoints.$mobile) {
+  .practice-scope-view {
+    padding: 16px;
+  }
+
+  .practice-type-card {
+    min-height: 0;
+  }
+
+  .practice-scope-actions {
+    justify-content: stretch;
+  }
+
+  .practice-scope-confirm {
+    width: 100%;
+  }
+}

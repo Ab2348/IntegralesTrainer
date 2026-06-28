@@ -57,6 +57,18 @@
   }
 
   const MODULE_ID = "integrales-algebraicas-lineales";
+  const PRACTICE_TYPE = {
+    id: MODULE_ID,
+    title: "Algebraicas con argumento lineal",
+    description: "potencias, exponentes negativos y recíprocas lineales.",
+    preview: [
+      "potencia lineal positiva",
+      "potencia lineal negativa",
+      "recíproca lineal",
+    ],
+    shortLabel: "Algebraicas",
+    order: 20,
+  };
 
   function hasModuleFilter(filters) {
     return Boolean(
@@ -102,6 +114,7 @@
   const api = {
     moduleId: MODULE_ID,
     moduleName: "Integrales algebraicas con argumento lineal",
+    practiceType: PRACTICE_TYPE,
     modelVersion: "1.5",
     generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.5",
     ERROR_TAGS: Errors.ERROR_TAGS,

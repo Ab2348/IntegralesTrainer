@@ -133,13 +133,37 @@
 
 .diagnostic-value {
   min-width: 0;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
   padding: 8px 10px;
-  overflow-x: auto;
+  overflow: hidden;
   color: var(--text-strong);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
-  white-space: nowrap;
+}
+
+.diagnostic-value-key {
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.diagnostic-value-equals {
+  color: var(--faint);
+  font-weight: 850;
+}
+
+.diagnostic-value-content {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.diagnostic-value-content .katex {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .diagnostic-section {

@@ -153,7 +153,11 @@ function testHtmlUsesOnlyModuleBootstrap() {
     const source = readProjectFile(file);
     assert.ok(source.includes("js/core/modules/index.js"));
     if (file === "index.html") {
-      assert.ok(source.includes("moduleSelect"));
+      assert.ok(!source.includes("moduleSelect"));
+      assert.ok(!source.includes(">Módulo<"));
+      assert.ok(source.includes("changePracticeTypesButton"));
+      assert.ok(source.includes("js/app/practice-runtime.js"));
+      assert.ok(source.includes("js/app/practice-scope-selector.js"));
     }
     assert.ok(!source.includes("integraleslineales.js"));
     assert.ok(!source.includes("modules/integrales-lineales/"));
@@ -207,7 +211,7 @@ function testBrowserIifeBootstrapWithoutLegacyFacade() {
   assert.equal(exercise.options.length, 4);
 }
 
-function testBrowserCoreSelectsStoredModule() {
+function testBrowserCoreIgnoresStoredModuleSelection() {
   const context = createBrowserContext();
   context.localStorage.setItem(
     "trig-integral-trainer:active-module",
@@ -215,11 +219,24 @@ function testBrowserCoreSelectsStoredModule() {
   );
   loadCurrentBrowserBootstrapWithoutLegacyFacade(context);
 
-  assert.equal(context.TrigCore.moduleId, "integrales-algebraicas-lineales");
+  assert.equal(context.TrigCore.moduleId, "integrales-lineales");
   assert.equal(
     context.TrigCoreRegistry.getActive().moduleId,
-    "integrales-algebraicas-lineales",
+    "integrales-lineales",
   );
+}
+
+function testNoReloadBasedModuleSwitching() {
+  [
+    "core.js",
+    "app.js",
+    "js/app/controls-panel.js",
+    "index.html",
+  ].forEach((file) => {
+    const source = readProjectFile(file);
+    assert.ok(!source.includes("location.reload"));
+    assert.ok(!source.includes("TrigCoreModuleSelection"));
+  });
 }
 
 function testBrowserBootstrapRejectsLateDocumentWrite() {
@@ -239,7 +256,8 @@ function run() {
   testBootstrapManifestMetadata();
   testHtmlUsesOnlyModuleBootstrap();
   testBrowserIifeBootstrapWithoutLegacyFacade();
-  testBrowserCoreSelectsStoredModule();
+  testBrowserCoreIgnoresStoredModuleSelection();
+  testNoReloadBasedModuleSwitching();
   testBrowserBootstrapRejectsLateDocumentWrite();
   console.log("Bootstrap tests passed!");
 }

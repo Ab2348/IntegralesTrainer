@@ -152,11 +152,41 @@ function testStateDoesNotRequireBasicMode() {
   assert.equal(store.getState().settings.mode, "starter");
 }
 
+function testPracticeScopePersistsAndValidatesThroughRuntime() {
+  const Core = createCore({
+    normalizePracticeScope(scope) {
+      const allowed = new Set(["integrales-lineales", "integrales-algebraicas-lineales"]);
+      return {
+        typeIds: Array.isArray(scope && scope.typeIds)
+          ? scope.typeIds.filter((id, index) => allowed.has(id) && scope.typeIds.indexOf(id) === index)
+          : [],
+      };
+    },
+    hasValidScope(scope) {
+      return this.normalizePracticeScope(scope).typeIds.length > 0;
+    },
+    setPracticeScope(scope) {
+      this.lastScope = this.normalizePracticeScope({ typeIds: scope });
+      return this.lastScope;
+    },
+  });
+  const { context, store } = createStateStore(undefined, Core);
+
+  assert.equal(store.hasValidPracticeScope(), false);
+  store.setPracticeScope(["integrales-lineales", "missing"]);
+  assert.equal(store.hasValidPracticeScope(), true);
+  assert.deepEqual(store.getPracticeScope().typeIds, ["integrales-lineales"]);
+  assert.deepEqual(context.localStorage.lastSaved().practiceScope.typeIds, [
+    "integrales-lineales",
+  ]);
+}
+
 function run() {
   testOldOptionCountIsIgnoredWhenLoadingState();
   testOptionCountIsNotPersistedFromUpdates();
   testModuleDefaultsComeFromCoreMetadata();
   testStateDoesNotRequireBasicMode();
+  testPracticeScopePersistsAndValidatesThroughRuntime();
   console.log("State tests passed!");
 }
 

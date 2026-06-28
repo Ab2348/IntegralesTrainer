@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Entrenador de integrales trigonométricas</title>
+    <title>Entrenador de integrales</title>
     <script src="js/app/theme.js"></script>
     <link rel="stylesheet" href="vendor/katex/katex.min.css" />
     <link rel="stylesheet" href="styles.css" />
@@ -14,7 +14,7 @@
         <aside class="panel sidebar">
           <div class="brand">
             <div class="logo" aria-hidden="true">∫</div>
-            <h1>Entrenador de<br />integrales<br />trigonométricas</h1>
+            <h1>Entrenador de<br />integrales</h1>
           </div>
 
           <section class="nav-section">
@@ -250,11 +250,6 @@
               >
                 <div class="settings-content-inner">
                   <div class="field">
-                    <label class="label" for="moduleSelect">Módulo</label>
-                    <select id="moduleSelect"></select>
-                  </div>
-
-                  <div class="field">
                     <label class="label" for="modeSelect">Modo</label>
                     <select id="modeSelect"></select>
                   </div>
@@ -295,6 +290,13 @@
                     Aplicar cambios
                     <span class="apply-icon" aria-hidden="true"></span>
                   </button>
+                  <button
+                    class="btn secondary change-practice-types"
+                    id="changePracticeTypesButton"
+                    type="button"
+                  >
+                    Cambiar tipos de práctica
+                  </button>
                 </div>
               </div>
             </aside>
@@ -303,8 +305,11 @@
           <section class="learning-banner" aria-label="Mensaje de práctica">
             <div class="learning-icon" aria-hidden="true">🎓</div>
             <div class="learning-copy">
-              <strong>Domina las integrales trigonométricas paso a paso</strong>
-              <span>La práctica constante te llevará a la perfección.</span>
+              <strong>Practica integrales paso a paso</strong>
+              <span
+                >Elige el tipo de ejercicios y refuerza tu técnica con práctica
+                constante.</span
+              >
             </div>
             <svg
               class="learning-wave"
@@ -423,6 +428,8 @@
     <script src="js/app/collapse-animator.js"></script>
     <script src="js/app/collapsible-view.js"></script>
     <script src="js/app/floating-layer.js"></script>
+    <script src="js/app/practice-runtime.js"></script>
+    <script src="js/app/practice-scope-selector.js"></script>
     <script src="js/app/stats-service.js"></script>
     <script src="js/app/controls-panel.js"></script>
     <script src="js/app/exercise-view.js"></script>

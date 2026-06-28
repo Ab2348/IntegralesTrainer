@@ -43,6 +43,10 @@
         id: `err-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         timestamp: Date.now(),
         errorTag: tag,
+        moduleId:
+          exercise.moduleId ||
+          (exercise.statsInfo && exercise.statsInfo.moduleId) ||
+          "",
         familyId: exercise.familyId,
         mathFamilyId:
           validation.mathFamilyId || validation.stats.mathFamilyId || "",

@@ -106,12 +106,23 @@
       renderPracticeTip(exercise);
     }
 
-    function appendDiagnosticRow(container, latex) {
+    function appendDiagnosticRow(container, symbol, expression) {
       const item = document.createElement("div");
       item.className = "diagnostic-value";
-      Dom.renderContentInto(Core, item, [
-        { type: "math", latex, display: "inline" },
-      ]);
+
+      const key = document.createElement("span");
+      key.className = "diagnostic-value-key";
+      Dom.renderLatexInto(Core, key, symbol, { display: "inline" });
+
+      const equals = document.createElement("span");
+      equals.className = "diagnostic-value-equals";
+      equals.textContent = "=";
+
+      const value = document.createElement("span");
+      value.className = "diagnostic-value-content";
+      Dom.renderLatexInto(Core, value, expression, { display: "inline" });
+
+      item.append(key, equals, value);
       container.appendChild(item);
     }
 
@@ -165,12 +176,12 @@
 
       const values = document.createElement("div");
       values.className = "diagnostic-values";
-      appendDiagnosticRow(values, `A = ${vars.ALatex}`);
-      appendDiagnosticRow(values, `k = ${vars.kLatex}`);
-      appendDiagnosticRow(values, `b = ${vars.bLatex}`);
-      appendDiagnosticRow(values, `u = ${vars.uLatex}`);
-      appendDiagnosticRow(values, `f(u) = ${vars.fULatex}`);
-      appendDiagnosticRow(values, `F(u) = ${vars.FULatex}`);
+      appendDiagnosticRow(values, "A", vars.ALatex);
+      appendDiagnosticRow(values, "k", vars.kLatex);
+      appendDiagnosticRow(values, "b", vars.bLatex);
+      appendDiagnosticRow(values, "u", vars.uLatex);
+      appendDiagnosticRow(values, "f(u)", vars.fULatex);
+      appendDiagnosticRow(values, "F(u)", vars.FULatex);
 
       els.feedbackZone.append(title, explanation, values);
       appendMathSection(els.feedbackZone, "Regla base", vars.baseRuleLatex);

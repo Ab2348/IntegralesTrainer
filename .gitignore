@@ -10,6 +10,7 @@ tests/*
 !tests/reproducibility.test.js
 !tests/state.test.js
 !tests/validation.test.js
+!tests/practice-runtime.test.js
 !tests/modules/
 !tests/modules/integrales-lineales.test.js
 URS-SRS/

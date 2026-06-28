@@ -1,19 +1,26 @@
 (function () {
   "use strict";
 
-  const Core = window.TrigCore;
   const App = window.TrigTrainerApp;
+  const Core = App.createPracticeRuntime({
+    registry: window.TrigCoreRegistry,
+    generator: window.TrigExerciseGenerator,
+  });
 
   let currentExercise = null;
   let answered = false;
 
   const els = {
-    moduleSelect: document.getElementById("moduleSelect"),
+    workspace: document.querySelector(".workspace"),
+    practicePanel: document.getElementById("practicePanel"),
     modeSelect: document.getElementById("modeSelect"),
     difficultySelect: document.getElementById("difficultySelect"),
     rangeMinInput: document.getElementById("rangeMinInput"),
     rangeMaxInput: document.getElementById("rangeMaxInput"),
     familyChecklist: document.getElementById("familyChecklist"),
+    changePracticeTypesButton: document.getElementById(
+      "changePracticeTypesButton",
+    ),
     nextExerciseButton: document.getElementById("nextExerciseButton"),
     resetStatsButton: document.getElementById("resetStatsButton"),
     familyLabel: document.getElementById("familyLabel"),
@@ -39,11 +46,17 @@
   };
 
   const stateStore = App.createStateStore(Core);
+  const storedScope = stateStore.getPracticeScope();
+  if (Core.hasValidScope(storedScope)) {
+    stateStore.setPracticeScope(storedScope.typeIds);
+  }
+
   const statsService = App.createStatsService({ Core, stateStore });
   const controlsPanel = App.createControlsPanel({
     Core,
     els,
     stateStore,
+    onChangePracticeTypes: openScopeSelector,
   });
   const exerciseView = App.createExerciseView({ Core, els });
   const statsPanel = App.createStatsPanel({
@@ -69,8 +82,48 @@
   const pageWarning = App.createPageWarning
     ? App.createPageWarning(App.pageWarningConfig)
     : null;
+  const scopeSelector = App.createPracticeScopeSelector({
+    Core,
+    workspace: els.workspace,
+    practicePanel: els.practicePanel,
+    controlsPanel: els.controlsPanel,
+    onConfirm: confirmPracticeScope,
+  });
+
+  function setExerciseActionsEnabled(enabled) {
+    if (els.nextExerciseButton) {
+      els.nextExerciseButton.disabled = !enabled;
+    }
+  }
+
+  function hasPracticeScope() {
+    return Core.hasValidScope() && stateStore.hasValidPracticeScope();
+  }
+
+  function openScopeSelector() {
+    setExerciseActionsEnabled(false);
+    scopeSelector.show({
+      selectedTypeIds: Core.getPracticeScope().typeIds,
+    });
+  }
+
+  function confirmPracticeScope(typeIds) {
+    stateStore.setPracticeScope(typeIds);
+    scopeSelector.hide();
+    setExerciseActionsEnabled(true);
+    currentExercise = null;
+    answered = false;
+    controlsPanel.syncControlsFromState();
+    formulaPanel.render();
+    statsPanel.render();
+    generateNextExercise();
+  }
 
   function generateNextExercise() {
+    if (!hasPracticeScope()) {
+      openScopeSelector();
+      return;
+    }
     const settings = controlsPanel.updateSettingsFromControls();
     try {
       currentExercise = Core.generateExercise({
@@ -80,7 +133,9 @@
         seed: settings.seed,
         maxAttempts: settings.maxAttempts,
       });
-      stateStore.pushRecent(currentExercise.signature);
+      if (currentExercise && currentExercise.signature) {
+        stateStore.pushRecent(currentExercise.signature);
+      }
       stateStore.saveState();
       answered = false;
       exerciseView.renderExercise(
@@ -118,12 +173,18 @@
   }
 
   function init() {
-    controlsPanel.syncControlsFromState();
-    formulaPanel.render();
     uiOrchestrator.init();
     bindEvents();
     statsPanel.render();
-    generateNextExercise();
+    if (hasPracticeScope()) {
+      controlsPanel.syncControlsFromState();
+      formulaPanel.render();
+      setExerciseActionsEnabled(true);
+      generateNextExercise();
+    } else {
+      setExerciseActionsEnabled(false);
+      openScopeSelector();
+    }
     if (pageWarning) {
       pageWarning.show();
     }

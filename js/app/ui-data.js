@@ -30,7 +30,7 @@
     },
     {
       title: "Evita el error común",
-      copy: "No basta con reconocer la función trigonométrica. En integrales con argumento lineal, el coeficiente también importa.",
+      copy: "No basta con reconocer la familia de la integral. En argumentos lineales, el coeficiente también importa.",
     },
   ];
 

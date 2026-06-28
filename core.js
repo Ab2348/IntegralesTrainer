@@ -1,35 +1,9 @@
 (function (root) {
   "use strict";
 
-  const ACTIVE_MODULE_STORAGE_KEY = "trig-integral-trainer:active-module";
-
-  function readStoredActiveModuleId() {
-    try {
-      return root.localStorage
-        ? root.localStorage.getItem(ACTIVE_MODULE_STORAGE_KEY) || ""
-        : "";
-    } catch (error) {
-      return "";
-    }
-  }
-
-  function selectStoredActiveModule() {
-    const registry = root.TrigCoreRegistry;
-    const storedModuleId = readStoredActiveModuleId();
-    if (
-      storedModuleId &&
-      registry &&
-      typeof registry.get === "function" &&
-      typeof registry.setActive === "function" &&
-      registry.get(storedModuleId)
-    ) {
-      return registry.setActive(storedModuleId);
-    }
-    return registry && registry.getActive ? registry.getActive() : null;
-  }
-
   function loadDefaultModule() {
-    const existing = selectStoredActiveModule();
+    const registry = root.TrigCoreRegistry;
+    const existing = registry && registry.getActive ? registry.getActive() : null;
     if (existing) {
       return existing;
     }
@@ -50,7 +24,10 @@
       require("./js/core/generador.js");
       require("./js/core/registro.js");
       require("./js/core/modules/index.js");
-      const loaded = selectStoredActiveModule();
+      const loaded =
+        root.TrigCoreRegistry && root.TrigCoreRegistry.getActive
+          ? root.TrigCoreRegistry.getActive()
+          : null;
       if (loaded) {
         return loaded;
       }
@@ -68,7 +45,4 @@
   }
 
   root.TrigCore = api;
-  root.TrigCoreModuleSelection = {
-    ACTIVE_MODULE_STORAGE_KEY,
-  };
 })(typeof window !== "undefined" ? window : globalThis);
