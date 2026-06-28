@@ -13,7 +13,7 @@
   const els = {
     workspace: document.querySelector(".workspace"),
     practicePanel: document.getElementById("practicePanel"),
-    modeSelect: document.getElementById("modeSelect"),
+    modeSelector: document.getElementById("modeSelector"),
     difficultySelect: document.getElementById("difficultySelect"),
     rangeMinInput: document.getElementById("rangeMinInput"),
     rangeMaxInput: document.getElementById("rangeMaxInput"),

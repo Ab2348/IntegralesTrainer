@@ -154,6 +154,8 @@ function testHtmlUsesOnlyModuleBootstrap() {
     assert.ok(source.includes("js/core/modules/index.js"));
     if (file === "index.html") {
       assert.ok(!source.includes("moduleSelect"));
+      assert.ok(!source.includes('id="modeSelect"'));
+      assert.ok(source.includes("modeSelector"));
       assert.ok(!source.includes(">Módulo<"));
       assert.ok(source.includes("changePracticeTypesButton"));
       assert.ok(source.includes("js/app/practice-runtime.js"));
@@ -239,6 +241,18 @@ function testNoReloadBasedModuleSwitching() {
   });
 }
 
+function testGroupedModeSelectorStaticContracts() {
+  const controls = readProjectFile("js/app/controls-panel.js");
+  const formulas = readProjectFile("js/app/formula-panel.js");
+
+  assert.ok(!controls.includes("modeSelect."));
+  assert.ok(!controls.includes("getElementById(\"modeSelect\")"));
+  assert.ok(!controls.includes("setCustomFamilies("));
+  assert.ok(controls.includes("pendingSettings"));
+  assert.ok(controls.includes("stateStore.updateSettings"));
+  assert.ok(!formulas.includes("u = kx + b, con k distinto de cero."));
+}
+
 function testBrowserBootstrapRejectsLateDocumentWrite() {
   const context = createBrowserContext();
   context.document.readyState = "complete";
@@ -258,6 +272,7 @@ function run() {
   testBrowserIifeBootstrapWithoutLegacyFacade();
   testBrowserCoreIgnoresStoredModuleSelection();
   testNoReloadBasedModuleSwitching();
+  testGroupedModeSelectorStaticContracts();
   testBrowserBootstrapRejectsLateDocumentWrite();
   console.log("Bootstrap tests passed!");
 }

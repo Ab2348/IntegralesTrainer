@@ -1637,6 +1637,29 @@ input:focus {
   gap: 7px;
 }
 
+.mode-field {
+  min-width: 0;
+}
+
+.mode-selector {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.mode-selector-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--font-small);
+}
+
+.mode-group-list {
+  display: grid;
+  gap: 7px;
+  padding: 2px 0 2px 4px;
+}
+
+.mode-check,
 .family-check {
   display: flex;
   align-items: center;
@@ -1645,6 +1668,7 @@ input:focus {
   font-size: var(--font-path);
 }
 
+.mode-check input,
 .family-check input {
   width: 14px;
   height: 14px;
@@ -1653,11 +1677,22 @@ input:focus {
   accent-color: var(--primary);
 }
 
+.mode-check input:focus-visible,
+.family-check input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.mode-check-label,
 .family-check-label {
   display: inline-flex;
   align-items: center;
   min-width: 0;
   line-height: 1.2;
+}
+
+.mode-check-label {
+  overflow-wrap: anywhere;
 }
 
 .family-check-label .katex,

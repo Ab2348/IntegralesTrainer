@@ -86,7 +86,7 @@
 
       exercise.options.forEach((option, index) => {
         const optionDisplay = Core.renderOption
-          ? Core.renderOption(option)
+          ? Core.renderOption(option, exercise)
           : option.display;
         const button = document.createElement("button");
         button.type = "button";

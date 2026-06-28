@@ -9,6 +9,7 @@
     const RECENT_LIMIT = 20;
     const ERROR_EXAMPLES_PER_TAG_LIMIT = 1;
     const ERROR_EXAMPLE_TEXT_LIMIT = 360;
+    const SCOPE_SETTINGS_VERSION = 1;
     const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
 
     let state = loadState();
@@ -43,6 +44,16 @@
 
     function validModes() {
       return new Set(modeIds());
+    }
+
+    function validModeSelectionIds() {
+      return new Set(
+        Core && typeof Core.getModeGroups === "function"
+          ? Core.getModeGroups().flatMap((group) =>
+              (group.items || []).map((item) => item.id),
+            )
+          : [],
+      );
     }
 
     function validErrorTags() {
@@ -114,9 +125,11 @@
           activeFamilyIds: familyIdsForMode(mode),
           activeMathFamilyIds: defaultMathFamilyIds(),
           activeMethodIds: defaultMethodIds(),
+          activeModeIds: modeIdsForMode(mode),
           includePendingMethods: false,
           includeExperimentalMethods: true,
           disabledTemplateIds: [],
+          scopeSettingsVersion: SCOPE_SETTINGS_VERSION,
         },
         recentExercises: [],
       };
@@ -156,6 +169,28 @@
       return value === true || value === "true";
     }
 
+    function normalizeScopeSettingsVersion(value) {
+      const number = Number.parseInt(value, 10);
+      return Number.isFinite(number) && number > 0 ? number : 0;
+    }
+
+    function normalizeActiveModeIds(value) {
+      if (Core && typeof Core.normalizeActiveModeIds === "function") {
+        return Core.normalizeActiveModeIds(value);
+      }
+      if (!Array.isArray(value)) {
+        return [];
+      }
+      const validIds = validModeSelectionIds();
+      return value.filter(
+        (id, index) =>
+          typeof id === "string" &&
+          id &&
+          (!validIds.size || validIds.has(id)) &&
+          value.indexOf(id) === index,
+      );
+    }
+
     function familyIdsForMode(mode) {
       const familiesByMode = modeFamilies();
       const validIds = validFamilyIds();
@@ -170,6 +205,18 @@
         return ids;
       }
       return ((Core && Core.FAMILIES) || []).map((family) => family.id).filter(Boolean);
+    }
+
+    function modeIdsForMode(mode) {
+      return Core && typeof Core.modeIdsForMode === "function"
+        ? Core.modeIdsForMode(mode)
+        : [];
+    }
+
+    function deriveSettingsFromModeIds(settings, activeModeIds) {
+      return Core && typeof Core.settingsFromModeIds === "function"
+        ? Core.settingsFromModeIds(activeModeIds, settings)
+        : { ...settings, activeModeIds };
     }
 
     function normalizeFamilyIds(value, fallbackIds) {
@@ -240,11 +287,18 @@
       const range = Core.sanitizeRange(saved.rangeMin, saved.rangeMax);
       const modes = validModes();
       const mode = modes.has(saved.mode) ? saved.mode : base.mode;
+      const activeModeIds = normalizeActiveModeIds(
+        Array.isArray(saved.activeModeIds)
+          ? saved.activeModeIds
+          : mode === customModeId()
+            ? []
+            : modeIdsForMode(mode),
+      );
       const difficulty = VALID_DIFFICULTIES.has(String(saved.difficulty))
         ? String(saved.difficulty)
         : base.difficulty;
 
-      return {
+      const normalized = {
         mode,
         practiceMode:
           typeof saved.practiceMode === "string" && saved.practiceMode
@@ -265,12 +319,35 @@
           saved.activeMethodIds,
           base.activeMethodIds,
         ),
+        activeModeIds,
         includePendingMethods: normalizeBoolean(saved.includePendingMethods),
         includeExperimentalMethods:
           saved.includeExperimentalMethods === undefined
             ? base.includeExperimentalMethods
             : normalizeBoolean(saved.includeExperimentalMethods),
         disabledTemplateIds: normalizeTemplateIds(saved.disabledTemplateIds),
+        scopeSettingsVersion: SCOPE_SETTINGS_VERSION,
+      };
+      if (!activeModeIds.length) {
+        return normalized;
+      }
+      const derived = deriveSettingsFromModeIds(normalized, activeModeIds);
+      return {
+        ...normalized,
+        mode: validModes().has(derived.mode) ? derived.mode : normalized.mode,
+        activeFamilyIds: normalizeFamilyIds(
+          derived.activeFamilyIds,
+          normalized.activeFamilyIds,
+        ),
+        activeMathFamilyIds: normalizeMathFamilyIds(
+          derived.activeMathFamilyIds,
+          normalized.activeMathFamilyIds,
+        ),
+        activeMethodIds: normalizeMethodIds(
+          derived.activeMethodIds,
+          normalized.activeMethodIds,
+        ),
+        activeModeIds,
       };
     }
 
@@ -294,13 +371,58 @@
         activeFamilyIds: familyIdsForMode(mode),
         activeMathFamilyIds: defaultMathFamilyIds(),
         activeMethodIds: defaultMethodIds(),
+        activeModeIds: modeIdsForMode(mode),
         includePendingMethods: normalizeBoolean(saved.includePendingMethods),
         includeExperimentalMethods:
           saved.includeExperimentalMethods === undefined
             ? true
             : normalizeBoolean(saved.includeExperimentalMethods),
         disabledTemplateIds: [],
+        scopeSettingsVersion: SCOPE_SETTINGS_VERSION,
       };
+    }
+
+    function includesAllIds(values, expectedValues) {
+      if (!Array.isArray(expectedValues) || !expectedValues.length) {
+        return true;
+      }
+      if (!Array.isArray(values)) {
+        return false;
+      }
+      const source = new Set(values);
+      return expectedValues.every((id) => source.has(id));
+    }
+
+    function needsScopeSettingsMigration(settings, practiceScope) {
+      if (
+        normalizeScopeSettingsVersion(
+          settings && settings.scopeSettingsVersion,
+        ) >= SCOPE_SETTINGS_VERSION
+      ) {
+        return false;
+      }
+      if (
+        !practiceScope ||
+        !Array.isArray(practiceScope.typeIds) ||
+        practiceScope.typeIds.length < 2
+      ) {
+        return false;
+      }
+      const mode = defaultModeId();
+      return (
+        !includesAllIds(
+          settings && settings.activeFamilyIds,
+          familyIdsForMode(mode),
+        ) ||
+        !includesAllIds(
+          settings && settings.activeMathFamilyIds,
+          defaultMathFamilyIds(),
+        ) ||
+        !includesAllIds(
+          settings && settings.activeMethodIds,
+          defaultMethodIds(),
+        )
+      );
     }
 
     function normalizeRecentExercises(value) {
@@ -430,6 +552,9 @@
       const totalCorrect = normalizeCounter(saved.totalCorrect);
       const totalIncorrect = normalizeCounter(saved.totalIncorrect);
       const savedTotalAnswered = normalizeCounter(saved.totalAnswered);
+      const settings = needsScopeSettingsMigration(saved.settings, practiceScope)
+        ? settingsForNewScope(saved.settings)
+        : normalizeSettings(saved.settings);
       return {
         ...base,
         practiceScope,
@@ -487,7 +612,7 @@
         recentErrorHistory: Array.isArray(saved.recentErrorHistory)
           ? saved.recentErrorHistory.slice(0, 20)
           : [],
-        settings: normalizeSettings(saved.settings),
+        settings,
         recentExercises: normalizeRecentExercises(saved.recentExercises),
       };
     }
@@ -519,9 +644,21 @@
 
     function updateSettings(values) {
       const range = Core.sanitizeRange(values.rangeMin, values.rangeMax);
-      state.settings.mode = validModes().has(values.mode)
-        ? values.mode
-        : defaultModeId();
+      const activeModeIds = normalizeActiveModeIds(values.activeModeIds);
+      const derived = activeModeIds.length
+        ? deriveSettingsFromModeIds(state.settings, activeModeIds)
+        : null;
+      const nextMode =
+        activeModeIds.length > 1 && validModes().has("mixed")
+          ? "mixed"
+          : derived
+            ? derived.mode
+            : values.mode;
+      state.settings.mode = validModes().has(nextMode)
+        ? nextMode
+        : activeModeIds.length
+          ? customModeId()
+          : defaultModeId();
       state.settings.practiceMode =
         typeof values.practiceMode === "string" && values.practiceMode
           ? values.practiceMode
@@ -533,17 +670,22 @@
         : "1";
       state.settings.rangeMin = range.min;
       state.settings.rangeMax = range.max;
-      state.settings.activeFamilyIds = normalizeFamilyIds(
-        values.activeFamilyIds,
-      );
-      state.settings.activeMathFamilyIds = normalizeMathFamilyIds(
-        values.activeMathFamilyIds,
-        state.settings.activeMathFamilyIds,
-      );
-      state.settings.activeMethodIds = normalizeMethodIds(
-        values.activeMethodIds,
-        state.settings.activeMethodIds,
-      );
+      state.settings.activeModeIds = activeModeIds;
+      state.settings.activeFamilyIds = activeModeIds.length
+        ? normalizeFamilyIds(derived.activeFamilyIds)
+        : normalizeFamilyIds(values.activeFamilyIds);
+      state.settings.activeMathFamilyIds = activeModeIds.length
+        ? normalizeMathFamilyIds(derived.activeMathFamilyIds)
+        : normalizeMathFamilyIds(
+            values.activeMathFamilyIds,
+            state.settings.activeMathFamilyIds,
+          );
+      state.settings.activeMethodIds = activeModeIds.length
+        ? normalizeMethodIds(derived.activeMethodIds)
+        : normalizeMethodIds(
+            values.activeMethodIds,
+            state.settings.activeMethodIds,
+          );
       state.settings.includePendingMethods = normalizeBoolean(
         values.includePendingMethods,
       );
@@ -556,6 +698,7 @@
       )
         ? normalizeTemplateIds(values.disabledTemplateIds)
         : state.settings.disabledTemplateIds;
+      state.settings.scopeSettingsVersion = SCOPE_SETTINGS_VERSION;
       saveState();
       return state.settings;
     }
@@ -565,6 +708,22 @@
       const ids = familyIdsForMode(safeMode);
       state.settings.mode = safeMode;
       state.settings.activeFamilyIds = ids.slice();
+      state.settings.activeModeIds = modeIdsForMode(safeMode);
+      if (state.settings.activeModeIds.length) {
+        const derived = deriveSettingsFromModeIds(
+          state.settings,
+          state.settings.activeModeIds,
+        );
+        state.settings.activeFamilyIds = normalizeFamilyIds(
+          derived.activeFamilyIds,
+        );
+        state.settings.activeMathFamilyIds = normalizeMathFamilyIds(
+          derived.activeMathFamilyIds,
+        );
+        state.settings.activeMethodIds = normalizeMethodIds(
+          derived.activeMethodIds,
+        );
+      }
       saveState();
       return state.settings;
     }
@@ -575,6 +734,7 @@
         familyIdsForMode(defaultModeId()),
       );
       state.settings.mode = customModeId() || state.settings.mode || defaultModeId();
+      state.settings.activeModeIds = [];
       saveState();
       return state.settings;
     }

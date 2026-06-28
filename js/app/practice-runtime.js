@@ -26,6 +26,7 @@
     let errorOwnerById = {};
     let familyCollisions = [];
     let templateOwnerById = {};
+    let modeGroups = [];
 
     function uniqueStrings(values) {
       if (!Array.isArray(values)) {
@@ -224,6 +225,10 @@
       return firstAvailableModule();
     }
 
+    function resolveModuleForOptionContext(option, exercise) {
+      return resolveModuleForExercise(exercise) || resolveModuleForOption(option);
+    }
+
     function resolveModuleForErrorTag(errorTag) {
       return errorOwnerById[errorTag] || firstAvailableModule();
     }
@@ -256,6 +261,221 @@
       return typeof value === "object" ? value : { plain: String(value) };
     }
 
+    function enabledIds(items) {
+      return (items || [])
+        .filter((item) => item && item.enabled !== false && item.id)
+        .map((item) => item.id);
+    }
+
+    function moduleModeGroups(selectedModules) {
+      return selectedModules
+        .map((moduleApi) => {
+          const type =
+            practiceTypes.find((item) => item.moduleId === moduleApi.moduleId) ||
+            normalizePracticeType(moduleApi);
+          const modeFamilies = moduleApi.MODE_FAMILIES || {};
+          const modeDefinitions = Array.isArray(moduleApi.MODES)
+            ? moduleApi.MODES
+            : Object.keys(modeFamilies).map((modeId) => ({ id: modeId }));
+          const mathFamilyIds = enabledIds(moduleApi.MATH_FAMILIES);
+          const methodIds = enabledIds(moduleApi.METHODS);
+          const items = modeDefinitions
+            .filter(
+              (mode) =>
+                mode &&
+                typeof mode.id === "string" &&
+                mode.id &&
+                Array.isArray(modeFamilies[mode.id]),
+            )
+            .map((mode) => ({
+              id: `${moduleApi.moduleId}:${mode.id}`,
+              moduleId: moduleApi.moduleId,
+              modeId: mode.id,
+              label: mode.name || mode.label || mode.id,
+              familyIds: uniqueStrings(modeFamilies[mode.id]),
+              mathFamilyIds: mathFamilyIds.slice(),
+              methodIds: methodIds.slice(),
+            }));
+          return {
+            id: type.id,
+            moduleId: moduleApi.moduleId,
+            label: type.title,
+            shortLabel: type.shortLabel || type.title,
+            items,
+          };
+        })
+        .filter((group) => group.items.length);
+    }
+
+    function modeItemById(modeId) {
+      return modeGroups
+        .flatMap((group) => group.items)
+        .find((item) => item.id === modeId);
+    }
+
+    function normalizeActiveModeIds(modeIds) {
+      return uniqueStrings(modeIds).filter((modeId) => modeItemById(modeId));
+    }
+
+    function settingsFromModeIds(modeIds, baseSettings) {
+      const ids = normalizeActiveModeIds(modeIds);
+      const items = ids.map(modeItemById).filter(Boolean);
+      const familyIds = uniqueStrings(
+        items.flatMap((item) => item.familyIds || []),
+      );
+      const mathFamilyIds = uniqueStrings(
+        items.flatMap((item) => item.mathFamilyIds || []),
+      );
+      const methodIds = uniqueStrings(
+        items.flatMap((item) => item.methodIds || []),
+      );
+      const modules = uniqueStrings(items.map((item) => item.moduleId));
+      const modeIdsOnly = uniqueStrings(items.map((item) => item.modeId));
+      const customMode = runtime.customModeId || "custom";
+      const derivedMode =
+        ids.length === 1 && modules.length === 1
+          ? modeIdsOnly[0]
+          : runtime.MODE_FAMILIES && runtime.MODE_FAMILIES.mixed
+            ? "mixed"
+            : customMode;
+      return {
+        ...(baseSettings || {}),
+        mode: derivedMode,
+        activeModeIds: ids,
+        activeFamilyIds: familyIds,
+        activeMathFamilyIds: mathFamilyIds,
+        activeMethodIds: methodIds,
+      };
+    }
+
+    function modeIdsForMode(mode) {
+      const singleModule = activeModules().length === 1 ? activeModules()[0] : null;
+      if (singleModule && mode) {
+        const id = `${singleModule.moduleId}:${mode}`;
+        return modeItemById(id) ? [id] : [];
+      }
+      if (!mode) {
+        return [];
+      }
+      return modeGroups
+        .map((group) =>
+          group.items.find((item) => item.modeId === mode) ||
+          group.items.find((item) => item.modeId === "mixed") ||
+          null,
+        )
+        .filter(Boolean)
+        .map((item) => item.id);
+    }
+
+    function mixedRangeLimits(selectedModules) {
+      const limits = selectedModules
+        .map((moduleApi) => moduleApi && moduleApi.RANGE_LIMITS)
+        .filter(
+          (range) =>
+            range &&
+            Number.isFinite(Number(range.min)) &&
+            Number.isFinite(Number(range.max)),
+        );
+      if (!limits.length) {
+        return (modules[0] && modules[0].RANGE_LIMITS) || null;
+      }
+      const min = Math.max(...limits.map((range) => Number(range.min)));
+      const max = Math.min(...limits.map((range) => Number(range.max)));
+      return min <= max ? { min, max } : limits[0];
+    }
+
+    function sanitizeWithLimits(minValue, maxValue, limits) {
+      const fallback = limits || { min: -20, max: 20 };
+      let min = Number.parseInt(minValue, 10);
+      let max = Number.parseInt(maxValue, 10);
+      if (!Number.isFinite(min)) {
+        min = fallback.min;
+      }
+      if (!Number.isFinite(max)) {
+        max = fallback.max;
+      }
+      min = Math.max(fallback.min, Math.min(fallback.max, min));
+      max = Math.max(fallback.min, Math.min(fallback.max, max));
+      if (min > max) {
+        min = fallback.min;
+        max = fallback.max;
+      }
+      return { min, max };
+    }
+
+    function templateFiltersForSettings(settings, moduleId) {
+      const source = settings || {};
+      return {
+        moduleIds: [moduleId],
+        familyIds: source.activeFamilyIds,
+        mathFamilyIds: source.activeMathFamilyIds,
+        methodIds: source.activeMethodIds,
+        difficulty: source.difficulty,
+        includePending: source.includePendingMethods,
+        includeExperimental: source.includeExperimentalMethods !== false,
+        excludedTemplateIds: source.disabledTemplateIds,
+      };
+    }
+
+    function eligibleModuleIds(settings) {
+      if (!generator.findTemplates) {
+        return activeModuleIds.slice();
+      }
+      return activeModuleIds.filter((moduleId) =>
+        generator.findTemplates(templateFiltersForSettings(settings, moduleId))
+          .length,
+      );
+    }
+
+    function chooseBucket(moduleIds, rng) {
+      const random = typeof rng === "function" ? rng : Math.random;
+      return moduleIds[Math.floor(random() * moduleIds.length)];
+    }
+
+    function annotateExerciseModule(exercise) {
+      const owner = resolveModuleForExercise(exercise);
+      exercise.moduleId = exercise.moduleId || (owner && owner.moduleId) || "";
+      if (exercise.statsInfo) {
+        exercise.statsInfo.moduleId =
+          exercise.statsInfo.moduleId || exercise.moduleId;
+      }
+      return exercise;
+    }
+
+    function generateBalancedExercise(sourceConfig, settings) {
+      const buckets = eligibleModuleIds(settings);
+      if (!buckets.length) {
+        throw new Error("No hay ejercicios disponibles para la configuración actual.");
+      }
+      const remaining = buckets.slice();
+      while (remaining.length) {
+        const moduleId = chooseBucket(remaining, sourceConfig.rng);
+        const index = remaining.indexOf(moduleId);
+        if (index >= 0) {
+          remaining.splice(index, 1);
+        }
+        const scopedSettings = {
+          ...settings,
+          moduleIds: [moduleId],
+        };
+        try {
+          const exercise = generator.generateExercise({
+            ...sourceConfig,
+            settings: scopedSettings,
+            moduleIds: [moduleId],
+          });
+          if (exercise) {
+            return annotateExerciseModule(exercise);
+          }
+        } catch (error) {
+          if (!remaining.length) {
+            throw error;
+          }
+        }
+      }
+      throw new Error("No hay ejercicios disponibles para la configuración actual.");
+    }
+
     function mergeAggregate() {
       const selectedModules = activeModules();
       const familyCollisionsNext = [];
@@ -276,6 +496,7 @@
       mathFamilyOwnerById = {};
       methodOwnerById = {};
       errorOwnerById = {};
+      modeGroups = moduleModeGroups(selectedModules);
 
       selectedModules.forEach((moduleApi) => {
         const type =
@@ -362,9 +583,11 @@
         modelVersion: "1.5",
         generatorVersion: generator.ENGINE_VERSION || "1.5",
         RANGE_LIMITS:
-          (selectedModules[0] && selectedModules[0].RANGE_LIMITS) ||
-          (modules[0] && modules[0].RANGE_LIMITS) ||
-          null,
+          selectedModules.length > 1
+            ? mixedRangeLimits(selectedModules)
+            : (selectedModules[0] && selectedModules[0].RANGE_LIMITS) ||
+              (modules[0] && modules[0].RANGE_LIMITS) ||
+              null,
         FAMILIES: families,
         FAMILY_MAP: familyMap,
         familyGroups,
@@ -382,6 +605,7 @@
         MODE_MAP: modeAggregate.MODE_MAP,
         defaultModeId: modeAggregate.defaultModeId,
         customModeId: modeAggregate.customModeId,
+        modeGroups,
         familyCollisions: familyCollisions.slice(),
       });
     }
@@ -419,6 +643,20 @@
       getActiveModuleIds() {
         return activeModuleIds.slice();
       },
+      getModeGroups() {
+        return modeGroups.map((group) => ({
+          ...group,
+          items: group.items.map((item) => ({
+            ...item,
+            familyIds: item.familyIds.slice(),
+            mathFamilyIds: item.mathFamilyIds.slice(),
+            methodIds: item.methodIds.slice(),
+          })),
+        }));
+      },
+      normalizeActiveModeIds,
+      settingsFromModeIds,
+      modeIdsForMode,
       hasValidScope,
       setPracticeScope,
       normalizePracticeScope(scope) {
@@ -451,21 +689,18 @@
           ...(sourceConfig.settings || {}),
           moduleIds: activeModuleIds.slice(),
         };
-        const exercise = generator.generateExercise({
-          ...sourceConfig,
-          settings,
-          moduleIds: activeModuleIds.slice(),
-        });
+        const exercise =
+          activeModuleIds.length > 1
+            ? generateBalancedExercise(sourceConfig, settings)
+            : generator.generateExercise({
+                ...sourceConfig,
+                settings,
+                moduleIds: activeModuleIds.slice(),
+              });
         if (!exercise) {
           throw new Error("No hay ejercicios disponibles para la configuración actual.");
         }
-        const owner = resolveModuleForExercise(exercise);
-        exercise.moduleId = exercise.moduleId || (owner && owner.moduleId) || "";
-        if (exercise.statsInfo) {
-          exercise.statsInfo.moduleId =
-            exercise.statsInfo.moduleId || exercise.moduleId;
-        }
-        return exercise;
+        return annotateExerciseModule(exercise);
       },
       validateAnswer(exercise, optionId) {
         const owner = resolveModuleForExercise(exercise);
@@ -479,10 +714,10 @@
           ? owner.renderIntegral(exercise)
           : defaultRenderExpression(exercise && exercise.integralShown);
       },
-      renderOption(option) {
-        const owner = resolveModuleForOption(option);
+      renderOption(option, exercise) {
+        const owner = resolveModuleForOptionContext(option, exercise);
         return owner && owner.renderOption
-          ? owner.renderOption(option)
+          ? owner.renderOption(option, exercise)
           : defaultRenderExpression(option && option.display);
       },
       feedbackContent(exercise, chosen) {
@@ -534,9 +769,11 @@
           ? owner.exerciseSnapshot(exercise)
           : null;
       },
-      optionSnapshot(option) {
-        const owner = resolveModuleForOption(option);
-        return owner && owner.optionSnapshot ? owner.optionSnapshot(option) : null;
+      optionSnapshot(option, exercise) {
+        const owner = resolveModuleForOptionContext(option, exercise);
+        return owner && owner.optionSnapshot
+          ? owner.optionSnapshot(option, exercise)
+          : null;
       },
       errorExampleMath(example) {
         const owner = resolveModuleForExample(example);
@@ -544,13 +781,16 @@
           ? owner.errorExampleMath(example)
           : null;
       },
-      optionIdentity(option) {
-        const owner = resolveModuleForOption(option);
+      optionIdentity(option, exercise) {
+        const owner = resolveModuleForOptionContext(option, exercise);
         return owner && owner.optionIdentity
-          ? owner.optionIdentity(option)
+          ? owner.optionIdentity(option, exercise)
           : option && (option.key || option.id);
       },
       sanitizeRange(min, max) {
+        if (activeModuleIds.length > 1 && runtime.RANGE_LIMITS) {
+          return sanitizeWithLimits(min, max, runtime.RANGE_LIMITS);
+        }
         const owner = firstAvailableModule();
         return owner && owner.sanitizeRange
           ? owner.sanitizeRange(min, max)

@@ -57,6 +57,15 @@
     };
   }
 
+  function linearArgumentNoteContent() {
+    return [
+      mathInline("u = kx + b"),
+      ", con ",
+      mathInline("k"),
+      " distinto de cero.",
+    ];
+  }
+
   function formulaCatalog() {
     return FAMILY_DEFINITIONS.map((family) => ({
       id: family.id,
@@ -66,6 +75,7 @@
       baseLatex: baseRuleLatex(family),
       linearPlain: linearFormulaPlain(family),
       linearLatex: linearFormulaLatex(family),
+      noteContent: linearArgumentNoteContent(),
     }));
   }
 
@@ -82,6 +92,7 @@
     baseRuleLatex,
     linearFormulaLatex,
     linearFormulaPlain,
+    linearArgumentNoteContent,
     formulaCatalog,
     familyLabelLatex,
     familyLabelExpression,

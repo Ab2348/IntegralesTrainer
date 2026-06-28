@@ -30,15 +30,33 @@
       container.appendChild(block);
     }
 
-    function appendFormulaNote(container) {
+    function formulaNoteContent(formula) {
+      if (!formula) {
+        return null;
+      }
+      if (Array.isArray(formula.noteContent)) {
+        return formula.noteContent;
+      }
+      if (Array.isArray(formula.conditions)) {
+        return formula.conditions;
+      }
+      if (formula.noteLatex) {
+        return [{ type: "math", latex: formula.noteLatex, display: "inline" }];
+      }
+      if (formula.note) {
+        return [formula.note];
+      }
+      return null;
+    }
+
+    function appendFormulaNote(container, formula) {
+      const content = formulaNoteContent(formula);
+      if (!content) {
+        return;
+      }
       const note = document.createElement("p");
       note.className = "formula-note";
-      Dom.renderContentInto(Core, note, [
-        { type: "math", latex: "u = kx + b", display: "inline" },
-        ", con ",
-        { type: "math", latex: "k", display: "inline" },
-        " distinto de cero.",
-      ], "u = kx + b, con k distinto de cero.");
+      Dom.renderContentInto(Core, note, content);
       container.appendChild(note);
     }
 
@@ -59,7 +77,7 @@
 
       appendFormulaBlock(item.content, "Regla base", formula.baseLatex);
       appendFormulaBlock(item.content, "Argumento lineal", formula.linearLatex);
-      appendFormulaNote(item.content);
+      appendFormulaNote(item.content, formula);
       container.appendChild(item.section);
     }
 
@@ -76,6 +94,7 @@
       current.appendChild(label);
       appendFormulaBlock(current, "Regla base", formula.baseLatex);
       appendFormulaBlock(current, "Argumento lineal", formula.linearLatex);
+      appendFormulaNote(current, formula);
       container.appendChild(current);
     }
 

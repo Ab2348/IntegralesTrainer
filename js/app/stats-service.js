@@ -54,7 +54,7 @@
         chosenPlain: chosen.displayExpression,
         correctPlain: exercise.correctAnswer.displayExpression,
         exerciseMath: Core.exerciseSnapshot(exercise),
-        chosenMath: Core.optionSnapshot(chosen),
+        chosenMath: Core.optionSnapshot(chosen, exercise),
         methodId: validation.methodId || validation.stats.methodId || "",
         submethodId:
           validation.submethodId || validation.stats.submethodId || "",

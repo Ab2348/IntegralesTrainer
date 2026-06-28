@@ -118,6 +118,10 @@ function createScopedCore() {
     "integrales-algebraicas-lineales",
   ]);
   const core = createCore();
+  core.algebraicTypeId = Object.keys(scopes).find(
+    (scopeId) => !scopeId.includes("|") && scopeId !== "integrales-lineales",
+  );
+  let currentTypeIds = [];
 
   function applyScope(typeIds) {
     const ids = Array.isArray(typeIds)
@@ -134,6 +138,7 @@ function createScopedCore() {
       METHODS: [],
       templates: [],
     };
+    currentTypeIds = ids;
     Object.assign(core, metadata);
     return { typeIds: ids };
   }
@@ -147,6 +152,91 @@ function createScopedCore() {
     },
     setPracticeScope(typeIds) {
       return applyScope(typeIds);
+    },
+    getModeGroups() {
+      return currentTypeIds.map((typeId) => {
+        const moduleId = typeId;
+        const metadata = scopes[typeId];
+        return {
+          id: typeId,
+          moduleId,
+          label:
+            typeId === "integrales-lineales"
+              ? "Trigonométricas directas"
+              : "Algebraicas con argumento lineal",
+          items: Object.entries(metadata.MODE_FAMILIES).map(
+            ([modeId, familyIds]) => ({
+              id: `${moduleId}:${modeId}`,
+              moduleId,
+              modeId,
+              label: modeId,
+              familyIds: familyIds.slice(),
+              mathFamilyIds: metadata.MATH_FAMILIES.map((item) => item.id),
+              methodIds: metadata.METHODS.map((item) => item.id),
+            }),
+          ),
+        };
+      });
+    },
+    normalizeActiveModeIds(modeIds) {
+      const valid = new Set(
+        Object.entries(scopes).flatMap(([scopeId, metadata]) =>
+          scopeId.includes("|")
+            ? []
+            : Object.keys(metadata.MODE_FAMILIES).map(
+                (modeId) => `${scopeId}:${modeId}`,
+              ),
+        ),
+      );
+      return Array.isArray(modeIds)
+        ? modeIds.filter(
+            (id, index) =>
+              valid.has(id) && modeIds.indexOf(id) === index,
+          )
+        : [];
+    },
+    settingsFromModeIds(modeIds, settings) {
+      const items = Object.entries(scopes)
+        .flatMap(([scopeId, metadata]) =>
+          scopeId.includes("|")
+            ? []
+            : Object.entries(metadata.MODE_FAMILIES).map(
+                ([modeId, familyIds]) => ({
+                  id: `${scopeId}:${modeId}`,
+                  moduleId: scopeId,
+                  modeId,
+                  familyIds,
+                  mathFamilyIds: metadata.MATH_FAMILIES.map((item) => item.id),
+                  methodIds: metadata.METHODS.map((item) => item.id),
+                }),
+              ),
+        )
+        .filter((item) => modeIds.includes(item.id));
+      return {
+        ...(settings || {}),
+        mode: items.length === 1 ? items[0].modeId : "mixed",
+        activeModeIds: modeIds.slice(),
+        activeFamilyIds: items.flatMap((item) => item.familyIds),
+        activeMathFamilyIds: items.flatMap((item) => item.mathFamilyIds),
+        activeMethodIds: items.flatMap((item) => item.methodIds),
+      };
+    },
+    modeIdsForMode(mode) {
+      const items = Object.entries(scopes).flatMap(([scopeId, metadata]) =>
+        scopeId.includes("|")
+          ? []
+          : Object.keys(metadata.MODE_FAMILIES).map((modeId) => ({
+              id: `${scopeId}:${modeId}`,
+              modeId,
+            })),
+      );
+      if (mode === "mixed") {
+        return items
+          .filter((candidate) => candidate.modeId === mode)
+          .map((item) => item.id);
+      }
+      const item = items.find((candidate) => candidate.modeId === mode);
+      return item ? [item.id] : [];
     },
     listTemplates() {
       return this.templates || [];
@@ -289,7 +379,7 @@ function testScopeChangeRebuildsScopedSettingsFromTrigToMixed() {
 
   store.setPracticeScope([
     "integrales-lineales",
-    "integrales-algebraicas-lineales",
+    Core.algebraicTypeId,
   ]);
   const settings = store.getState().settings;
 
@@ -330,7 +420,7 @@ function testScopeChangeRebuildsScopedSettingsFromAlgebraicToMixed() {
 
   store.setPracticeScope([
     "integrales-lineales",
-    "integrales-algebraicas-lineales",
+    Core.algebraicTypeId,
   ]);
   const settings = store.getState().settings;
 
@@ -356,7 +446,7 @@ function testSameScopeKeepsSettingsAndRecentExercises() {
 
   store.setPracticeScope([
     "integrales-lineales",
-    "integrales-algebraicas-lineales",
+    Core.algebraicTypeId,
   ]);
   store.updateSettings({
     mode: "custom",
@@ -373,7 +463,7 @@ function testSameScopeKeepsSettingsAndRecentExercises() {
 
   store.setPracticeScope([
     "integrales-lineales",
-    "integrales-algebraicas-lineales",
+    Core.algebraicTypeId,
   ]);
   const state = store.getState();
 
@@ -389,6 +479,184 @@ function testSameScopeKeepsSettingsAndRecentExercises() {
   assert.deepEqual(Array.from(state.recentExercises), ["same-scope-recent"]);
 }
 
+function testOldMixedScopeIncompleteSettingsMigrateOnLoad() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(
+    {
+      practiceScope: {
+        typeIds: [
+          "integrales-lineales",
+          "integrales-algebraicas-lineales",
+        ],
+      },
+      settings: {
+        mode: "custom",
+        difficulty: "3",
+        rangeMin: -10,
+        rangeMax: 10,
+        activeFamilyIds: ["sin"],
+        activeMathFamilyIds: ["trigonometrica-directa"],
+        activeMethodIds: ["directa"],
+        includeExperimentalMethods: false,
+        disabledTemplateIds: ["algebraic-linear-power-positive"],
+      },
+      recentExercises: ["legacy-recent"],
+    },
+    Core,
+  );
+  const state = store.getState();
+
+  assert.equal(state.settings.mode, "mixed");
+  assert.equal(state.settings.difficulty, "3");
+  assert.equal(state.settings.includeExperimentalMethods, false);
+  assert.equal(state.settings.scopeSettingsVersion, 1);
+  assert.deepEqual(Array.from(state.settings.activeFamilyIds), [
+    "sin",
+    "potencia-lineal-positiva",
+  ]);
+  assert.deepEqual(Array.from(state.settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+    "algebraica-inmediata",
+  ]);
+  assert.deepEqual(Array.from(state.settings.activeMethodIds), [
+    "directa",
+    "sustitucion-lineal-directa",
+  ]);
+  assert.deepEqual(Array.from(state.settings.disabledTemplateIds), []);
+  assert.deepEqual(Array.from(state.recentExercises), ["legacy-recent"]);
+}
+
+function testVersionedMixedScopeCustomSettingsDoNotMigrateAgain() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(
+    {
+      practiceScope: {
+        typeIds: [
+          "integrales-lineales",
+          "integrales-algebraicas-lineales",
+        ],
+      },
+      settings: {
+        mode: "custom",
+        difficulty: "5",
+        rangeMin: -6,
+        rangeMax: 6,
+        activeFamilyIds: ["sin"],
+        activeMathFamilyIds: ["trigonometrica-directa"],
+        activeMethodIds: ["directa"],
+        includeExperimentalMethods: true,
+        disabledTemplateIds: ["algebraic-linear-power-positive"],
+        scopeSettingsVersion: 1,
+      },
+    },
+    Core,
+  );
+  const settings = store.getState().settings;
+
+  assert.equal(settings.mode, "custom");
+  assert.equal(settings.scopeSettingsVersion, 1);
+  assert.deepEqual(Array.from(settings.activeFamilyIds), ["sin"]);
+  assert.deepEqual(Array.from(settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMethodIds), ["directa"]);
+  assert.deepEqual(Array.from(settings.disabledTemplateIds), [
+    "algebraic-linear-power-positive",
+  ]);
+}
+
+function testActiveModeIdsPersistAndDeriveFilters() {
+  const Core = createScopedCore();
+  const { context, store } = createStateStore(undefined, Core);
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    Core.algebraicTypeId,
+  ]);
+  const modeItems = Core.getModeGroups().flatMap((group) => group.items);
+  const trigBasic = modeItems.find(
+    (item) => item.moduleId === "integrales-lineales" && item.modeId === "basic",
+  ).id;
+  const algebraicMode = modeItems.find(
+    (item) =>
+      item.moduleId !== "integrales-lineales" && item.modeId === "algebraic",
+  ).id;
+  const settings = store.updateSettings({
+    ...store.getState().settings,
+    activeModeIds: [trigBasic, algebraicMode],
+  });
+
+  assert.equal(settings.mode, "mixed");
+  assert.deepEqual(Array.from(settings.activeModeIds), [
+    trigBasic,
+    algebraicMode,
+  ]);
+  assert.deepEqual(Array.from(settings.activeFamilyIds), [
+    "sin",
+    "potencia-lineal-positiva",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+    "algebraica-inmediata",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMethodIds), [
+    "directa",
+    "sustitucion-lineal-directa",
+  ]);
+  assert.deepEqual(
+    context.localStorage.lastSaved().settings.activeModeIds,
+    [trigBasic, algebraicMode],
+  );
+}
+
+function testScopeChangeFiltersActiveModeIds() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(undefined, Core);
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const algebraicMode = Core.getModeGroups()
+    .flatMap((group) => group.items)
+    .find(
+      (item) =>
+        item.moduleId !== "integrales-lineales" &&
+        item.modeId === "algebraic",
+    ).id;
+  store.updateSettings({
+    ...store.getState().settings,
+    activeModeIds: ["integrales-lineales:basic", algebraicMode],
+  });
+  store.setPracticeScope(["integrales-lineales"]);
+
+  assert.deepEqual(Array.from(store.getState().settings.activeModeIds), [
+    "integrales-lineales:basic",
+  ]);
+}
+
+function testManualFamiliesClearActiveModeIdsAndBecomeCustom() {
+  const Core = createScopedCore();
+  const { store } = createStateStore(undefined, Core);
+
+  store.setPracticeScope([
+    "integrales-lineales",
+    "integrales-algebraicas-lineales",
+  ]);
+  const settings = store.updateSettings({
+    ...store.getState().settings,
+    mode: "custom",
+    activeModeIds: [],
+    activeFamilyIds: ["sin"],
+    activeMathFamilyIds: ["trigonometrica-directa"],
+    activeMethodIds: ["directa"],
+  });
+
+  assert.equal(settings.mode, "custom");
+  assert.deepEqual(Array.from(settings.activeModeIds), []);
+  assert.deepEqual(Array.from(settings.activeFamilyIds), ["sin"]);
+}
+
 function run() {
   testOldOptionCountIsIgnoredWhenLoadingState();
   testOptionCountIsNotPersistedFromUpdates();
@@ -398,6 +666,11 @@ function run() {
   testScopeChangeRebuildsScopedSettingsFromTrigToMixed();
   testScopeChangeRebuildsScopedSettingsFromAlgebraicToMixed();
   testSameScopeKeepsSettingsAndRecentExercises();
+  testOldMixedScopeIncompleteSettingsMigrateOnLoad();
+  testVersionedMixedScopeCustomSettingsDoNotMigrateAgain();
+  testActiveModeIdsPersistAndDeriveFilters();
+  testScopeChangeFiltersActiveModeIds();
+  testManualFamiliesClearActiveModeIdsAndBecomeCustom();
   console.log("State tests passed!");
 }
 
