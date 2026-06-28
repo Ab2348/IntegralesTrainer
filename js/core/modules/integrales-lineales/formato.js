@@ -5,14 +5,14 @@
     require("../../racionales.js");
     require("../../math-renderer.js");
     require("../../math-content.js");
-    require("./datos.js");
+    require("./familias.js");
   }
 
   const MathRenderer = root.TrigMathRenderer || {};
   const MathContent = root.TrigMathContent || {};
-  const Data = root.TrigLinearData || {};
+  const Families = root.TrigLinearFamilies || {};
   const Rational = root.TrigRationalUtils || {};
-  const { NEGATIVE_CORES } = Data;
+  const { NEGATIVE_CORES } = Families;
   const {
     rational,
     multiplyInt,

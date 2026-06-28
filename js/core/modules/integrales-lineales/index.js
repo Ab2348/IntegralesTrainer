@@ -20,7 +20,6 @@
     require("./errores.js");
     require("./variantes.js");
     require("./parametros.js");
-    require("./datos.js");
     require("./formato.js");
     require("./formulas.js");
     require("./snapshots.js");
@@ -39,7 +38,9 @@
   const OptionIdentity = root.TrigOptionIdentity || {};
   const Validation = root.TrigValidation || {};
   const Rational = root.TrigRationalUtils || {};
-  const Data = root.TrigLinearData || {};
+  const Families = root.TrigLinearFamilies || {};
+  const Errors = root.TrigLinearErrors || {};
+  const Parameters = root.TrigLinearParameters || {};
   const Format = root.TrigLinearFormat || {};
   const Formulas = root.TrigLinearFormulas || {};
   const Snapshots = root.TrigLinearSnapshots || {};
@@ -62,19 +63,19 @@
     moduleName: "Integrales con argumento lineal",
     modelVersion: "1.4",
     generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.4",
-    ERROR_TAGS: Data.ERROR_TAGS,
-    ERROR_LABELS: Data.ERROR_LABELS,
+    ERROR_TAGS: Errors.ERROR_TAGS,
+    ERROR_LABELS: Errors.ERROR_LABELS,
     MATH_FAMILIES: Taxonomy.MATH_FAMILIES || [],
     MATH_FAMILY_MAP: Taxonomy.MATH_FAMILY_MAP || {},
     METHODS: Taxonomy.METHODS || [],
     METHOD_MAP: Taxonomy.METHOD_MAP || {},
     ERROR_TYPES: Taxonomy.ERROR_TYPES || [],
     ERROR_TYPE_MAP: Taxonomy.ERROR_TYPE_MAP || {},
-    FAMILIES: Data.FAMILY_DEFINITIONS,
-    FAMILY_MAP: Data.FAMILY_MAP,
-    MODE_FAMILIES: Data.MODE_FAMILIES,
-    RANGE_LIMITS: Data.RANGE_LIMITS,
-    COEFFICIENT_TYPES: Data.COEFFICIENT_TYPES,
+    FAMILIES: Families.FAMILY_DEFINITIONS,
+    FAMILY_MAP: Families.FAMILY_MAP,
+    MODE_FAMILIES: Families.MODE_FAMILIES,
+    RANGE_LIMITS: Parameters.RANGE_LIMITS,
+    COEFFICIENT_TYPES: Parameters.COEFFICIENT_TYPES,
     optionCountForDifficulty: OptionEngine.optionCountForDifficulty,
     optionIdentity: OptionEngine.optionIdentity || OptionIdentity.optionIdentity,
     rational: Rational.rational,

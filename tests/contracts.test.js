@@ -130,6 +130,28 @@ function testLinearTemplatesDeclareV15Fields() {
   });
 }
 
+function testUniversalExerciseModelUsesNeutralModuleDefaults() {
+  const exercise = globalThis.TrigExerciseModel.createUniversalExercise({
+    id: "neutral-model-defaults",
+    integralShown: {
+      plain: "int f(x) dx",
+      latex: "\\int f(x)\\,dx",
+    },
+    options: [
+      {
+        id: "correct",
+        displayPlain: "F(x) + C",
+        displayLatex: "F(x) + C",
+        isCorrect: true,
+        key: "correct",
+      },
+    ],
+  });
+
+  assert.equal(exercise.methodId, "");
+  assert.equal(exercise.mathFamilyId, "");
+}
+
 function testModuleRegistryDiagnostics() {
   const Registry = globalThis.TrigCoreRegistry;
 
@@ -330,6 +352,7 @@ function run() {
   testTemplateContractNormalization();
   testInvalidValidationModeSurvivesNormalizationDiagnostics();
   testLinearTemplatesDeclareV15Fields();
+  testUniversalExerciseModelUsesNeutralModuleDefaults();
   testModuleRegistryDiagnostics();
   testTemplateDiagnosticsAreReadable();
   testTemplateDiagnosticsAreExposedByTemplateTest();

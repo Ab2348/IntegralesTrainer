@@ -20,6 +20,14 @@
     const VALID_METHOD_IDS = new Set(
       (Core.METHODS || []).map((method) => method.id),
     );
+    const DEFAULT_MATH_FAMILY_IDS = (Core.MATH_FAMILIES || [])
+      .filter((family) => family && family.enabled !== false)
+      .map((family) => family.id)
+      .filter(Boolean);
+    const DEFAULT_METHOD_IDS = (Core.METHODS || [])
+      .filter((method) => method && method.enabled !== false)
+      .map((method) => method.id)
+      .filter(Boolean);
 
     const defaultState = {
       totalAnswered: 0,
@@ -49,8 +57,8 @@
         rangeMin: -20,
         rangeMax: 20,
         activeFamilyIds: Core.MODE_FAMILIES.basic.slice(),
-        activeMathFamilyIds: ["trigonometrica-directa"],
-        activeMethodIds: ["directa"],
+        activeMathFamilyIds: DEFAULT_MATH_FAMILY_IDS.slice(),
+        activeMethodIds: DEFAULT_METHOD_IDS.slice(),
         includePendingMethods: false,
         includeExperimentalMethods: true,
         disabledTemplateIds: [],
@@ -111,7 +119,7 @@
     function normalizeMethodIds(value, fallbackIds) {
       const fallback = Array.isArray(fallbackIds) && fallbackIds.length
         ? fallbackIds
-        : ["directa"];
+        : DEFAULT_METHOD_IDS;
       if (!Array.isArray(value)) {
         return fallback.slice();
       }
@@ -125,7 +133,7 @@
     function normalizeMathFamilyIds(value, fallbackIds) {
       const fallback = Array.isArray(fallbackIds) && fallbackIds.length
         ? fallbackIds
-        : ["trigonometrica-directa"];
+        : DEFAULT_MATH_FAMILY_IDS;
       if (!Array.isArray(value)) {
         return fallback.slice();
       }

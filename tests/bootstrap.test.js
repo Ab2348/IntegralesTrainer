@@ -11,6 +11,10 @@ function loadScript(context, relativePath) {
   vm.runInContext(source, context, { filename });
 }
 
+function readProjectFile(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
 function createBrowserContext() {
   const writtenScripts = [];
   const context = {
@@ -81,6 +85,40 @@ function testCommonJsBootstrap() {
   assert.equal(typeof Core.formulaCatalog, "function");
 }
 
+function testRemovedLegacyFilesAndAliasesStayRemoved() {
+  assert.equal(
+    fs.existsSync(path.join(rootDir, "js/core/integraleslineales.js")),
+    false,
+  );
+  assert.equal(
+    fs.existsSync(path.join(rootDir, "js/core/modules/integrales-lineales/datos.js")),
+    false,
+  );
+
+  const Bootstrap = require("../js/core/modules/index.js");
+  assert.ok(!Bootstrap.moduleScripts.includes("integrales-lineales/datos.js"));
+  assert.ok(
+    Bootstrap.moduleScripts.every(
+      (scriptPath) => !scriptPath.includes("integraleslineales"),
+    ),
+  );
+  assert.equal(globalThis.TrigLinearData, undefined);
+  assert.ok(
+    !globalThis.TrigCoreModules ||
+      !globalThis.TrigCoreModules.integralesLineales,
+  );
+}
+
+function testHtmlUsesOnlyModuleBootstrap() {
+  ["index.html", "PrototiposVisuales/indexvisual.html"].forEach((file) => {
+    const source = readProjectFile(file);
+    assert.ok(source.includes("js/core/modules/index.js"));
+    assert.ok(!source.includes("integraleslineales.js"));
+    assert.ok(!source.includes("modules/integrales-lineales/"));
+    assert.ok(!source.includes("optionCountSelect"));
+  });
+}
+
 function testBrowserIifeBootstrapWithoutLegacyFacade() {
   const context = createBrowserContext();
   loadCurrentBrowserBootstrapWithoutLegacyFacade(context);
@@ -130,6 +168,8 @@ function testBrowserBootstrapRejectsLateDocumentWrite() {
 
 function run() {
   testCommonJsBootstrap();
+  testRemovedLegacyFilesAndAliasesStayRemoved();
+  testHtmlUsesOnlyModuleBootstrap();
   testBrowserIifeBootstrapWithoutLegacyFacade();
   testBrowserBootstrapRejectsLateDocumentWrite();
   console.log("Bootstrap tests passed!");

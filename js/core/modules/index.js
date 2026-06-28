@@ -6,7 +6,6 @@
     "integrales-lineales/errores.js",
     "integrales-lineales/variantes.js",
     "integrales-lineales/parametros.js",
-    "integrales-lineales/datos.js",
     "integrales-lineales/formato.js",
     "integrales-lineales/formulas.js",
     "integrales-lineales/snapshots.js",

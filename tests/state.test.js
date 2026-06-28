@@ -119,9 +119,20 @@ function testOptionCountIsNotPersistedFromUpdates() {
   );
 }
 
+function testModuleDefaultsComeFromCoreMetadata() {
+  const { store } = createStateStore();
+  const settings = store.getState().settings;
+
+  assert.deepEqual(Array.from(settings.activeMathFamilyIds), [
+    "trigonometrica-directa",
+  ]);
+  assert.deepEqual(Array.from(settings.activeMethodIds), ["directa"]);
+}
+
 function run() {
   testOldOptionCountIsIgnoredWhenLoadingState();
   testOptionCountIsNotPersistedFromUpdates();
+  testModuleDefaultsComeFromCoreMetadata();
   console.log("State tests passed!");
 }
 

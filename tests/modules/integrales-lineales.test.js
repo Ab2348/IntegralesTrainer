@@ -11,6 +11,7 @@ function fixedRng() {
 function testModuleContractSurface() {
   assert.equal(Core.moduleId, "integrales-lineales");
   assert.equal(Core.moduleName, "Integrales con argumento lineal");
+  assert.equal(globalThis.TrigLinearData, undefined);
   assert.ok(Array.isArray(Core.FAMILIES));
   assert.equal(Core.FAMILIES.length, 13);
   assert.ok(Core.FAMILY_MAP.sin);
@@ -153,11 +154,34 @@ function testSnapshotsAndFormulaCatalog() {
   assert.ok(formulas.every((formula) => formula.linearPlain.includes("kx + b")));
 }
 
+function testGeneratedExercisesDeclareModuleMetadata() {
+  const exercise = Core.generateExercise(
+    {
+      mode: "basic",
+      difficulty: "4",
+      rangeMin: -20,
+      rangeMax: 20,
+      activeFamilyIds: ["sin"],
+      activeMathFamilyIds: ["trigonometrica-directa"],
+      activeMethodIds: ["directa"],
+      includeExperimentalMethods: true,
+      seed: "linear-module-metadata",
+    },
+    [],
+    fixedRng,
+  );
+
+  assert.equal(exercise.methodId, "directa");
+  assert.equal(exercise.mathFamilyId, "trigonometrica-directa");
+  assert.equal(exercise.submethodId, "argumento-lineal");
+}
+
 function run() {
   testModuleContractSurface();
   testDifficultyParameterProfilesRemainIntegerBased();
   testFamiliesGenerateUniqueOptionsAndFeedbackRules();
   testSnapshotsAndFormulaCatalog();
+  testGeneratedExercisesDeclareModuleMetadata();
   console.log("Integrales-lineales module tests passed!");
 }
 
