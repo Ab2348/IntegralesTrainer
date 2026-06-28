@@ -6,10 +6,6 @@
       return root.TrigCoreRegistry.getActive();
     }
 
-    if (root.TrigCoreModules && root.TrigCoreModules.integralesLineales) {
-      return root.TrigCoreModules.integralesLineales;
-    }
-
     if (typeof require === "function") {
       require("./js/core/taxonomia.js");
       require("./js/core/diagnostico-contratos.js");
@@ -26,11 +22,14 @@
       require("./js/core/retroalimentacion.js");
       require("./js/core/generador.js");
       require("./js/core/registro.js");
-      return require("./js/core/integraleslineales.js");
+      require("./js/core/modules/index.js");
+      if (root.TrigCoreRegistry && root.TrigCoreRegistry.getActive()) {
+        return root.TrigCoreRegistry.getActive();
+      }
     }
 
     throw new Error(
-      "No se cargo el modulo de integrales lineales antes de core.js.",
+      "No se cargo ningun modulo matematico activo antes de core.js.",
     );
   }
 

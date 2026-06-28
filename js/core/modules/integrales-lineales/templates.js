@@ -48,6 +48,8 @@
         mathFamilyId: DEFAULT_MATH_FAMILY_ID,
         methodId: DEFAULT_METHOD_ID,
         submethodId: DEFAULT_SUBMETHOD_ID,
+        validationMode: "multiple-choice",
+        rendererId: TRIG_LINEAR_RENDERER_ID,
         tags: ["trigonometrica", "directa", "argumento-lineal", family.group],
         difficultyMin: 1,
         difficultyMax: 5,

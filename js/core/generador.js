@@ -304,6 +304,8 @@
 
     exercise.templateId = exercise.templateId || template.id || "";
     exercise.variantId = exercise.variantId || variant.id || "";
+    exercise.validationMode =
+      exercise.validationMode || template.validationMode || "multiple-choice";
     exercise.seed = exercise.seed || context.seed || null;
     exercise.generation = {
       engineVersion: ENGINE_VERSION,
@@ -496,6 +498,9 @@
         passed: errors.length === 0,
         iterations,
         contractDiagnostics: template.contractDiagnostics || [],
+        warnings: (template.contractDiagnostics || []).filter(
+          (diagnostic) => diagnostic && diagnostic.severity === "warning",
+        ),
         errors,
       });
     });

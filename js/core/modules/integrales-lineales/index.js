@@ -31,6 +31,7 @@
   const MathRenderer = root.TrigMathRenderer || {};
   const OptionEngine = root.TrigOptionEngine || {};
   const OptionIdentity = root.TrigOptionIdentity || {};
+  const Validation = root.TrigValidation || {};
   const Rational = root.TrigRationalUtils || {};
   const Data = root.TrigLinearData || {};
   const Format = root.TrigLinearFormat || {};
@@ -91,7 +92,7 @@
     testTemplates: ExerciseGenerator.testTemplates,
     createSeededRng: ExerciseGenerator.createSeededRng,
     validateGeneratedExercise: ExerciseGenerator.validateGeneratedExercise,
-    validateAnswer: Feedback.validateAnswer,
+    validateAnswer: Validation.validateAnswer || Feedback.validateAnswer,
     sanitizeRange: Generation.sanitizeRange,
     exerciseSnapshot: Format.exerciseSnapshot,
     optionSnapshot: Format.optionSnapshot,

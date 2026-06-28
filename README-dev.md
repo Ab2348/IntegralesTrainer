@@ -26,8 +26,8 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `js/core/generador.js` registra plantillas, selecciona variantes, genera ejercicios con semilla y valida instancias.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
 - `js/core/modules/integrales-lineales/index.js` implementa el módulo matemático de integrales trigonométricas lineales, registra sus plantillas, variantes, restricciones, reglas y renderizador.
-- `js/core/integraleslineales.js` es una fachada temporal de compatibilidad hacia el módulo anterior.
-- `core.js` publica la fachada compatible `window.TrigCore` usando el módulo matemático activo.
+- `js/core/integraleslineales.js` es una fachada legacy de compatibilidad hacia el módulo anterior; no participa en el arranque normal de producción.
+- `core.js` publica la API compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
 - `js/app/exercise-view.js` renderiza ejercicio, opciones, feedback visual y derivación.
@@ -359,15 +359,14 @@ Al cargar la página:
 
 1. `index.html` carga taxonomía, contratos, políticas centrales, modelo, opciones, validación, retroalimentación y generador.
 2. `index.html` carga `js/core/registro.js`.
-3. `index.html` carga `js/core/modules/integrales-lineales/index.js`.
-4. El módulo matemático registra sus plantillas y el módulo activo `integrales-lineales`.
-5. `index.html` carga `js/core/integraleslineales.js` como fachada temporal.
-6. `index.html` carga `core.js`.
-7. `core.js` publica la API activa en `window.TrigCore`.
-8. `index.html` carga los módulos de `js/app/`.
-9. `index.html` carga `app.js`.
-10. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
-11. Se genera el primer ejercicio con `Core.generateExercise`.
+3. `index.html` carga `js/core/modules/index.js`.
+4. El bootstrap de módulos carga y registra `integrales-lineales`.
+5. `index.html` carga `core.js`.
+6. `core.js` publica la API activa en `window.TrigCore` desde `TrigCoreRegistry.getActive()`.
+7. `index.html` carga los módulos de `js/app/`.
+8. `index.html` carga `app.js`.
+9. `app.js` crea los módulos, lee el estado local y sincroniza los controles.
+10. Se genera el primer ejercicio con `Core.generateExercise`.
 11. La respuesta del usuario pasa por `Core.validateAnswer`, actualiza estadísticas y guarda el estado.
 
 El flujo principal queda distribuido así:

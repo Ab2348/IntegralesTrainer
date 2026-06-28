@@ -20,6 +20,36 @@ function testOptionCountPolicy() {
   assert.equal(Core.optionCountForDifficulty("5"), 6);
 }
 
+function testPublicApiCompatibility() {
+  [
+    "generateExercise",
+    "validateAnswer",
+    "renderIntegral",
+    "renderOption",
+    "feedbackContent",
+    "derivationContent",
+    "formulaCatalog",
+    "listTemplates",
+    "findTemplates",
+    "testTemplates",
+    "optionCountForDifficulty",
+    "optionIdentity",
+    "sanitizeRange",
+    "buildExerciseFromParams",
+    "createSeededRng",
+  ].forEach((name) => {
+    assert.equal(typeof Core[name], "function", `Falta API publica Core.${name}()`);
+  });
+
+  assert.equal(Core.moduleId, "integrales-lineales");
+  assert.equal(Core.modelVersion, "1.4");
+  assert.ok(Array.isArray(Core.FAMILIES));
+  assert.ok(Core.FAMILIES.length > 0);
+  assert.ok(Core.FAMILY_MAP.sin);
+  assert.ok(Array.isArray(Core.MATH_FAMILIES));
+  assert.ok(Array.isArray(Core.METHODS));
+}
+
 function testGenerationSmoke() {
   const exercise = Core.generateExercise(
     {
@@ -41,6 +71,7 @@ function testGenerationSmoke() {
   assert.equal(exercise.templateId, "trig-linear-sin");
   assert.equal(exercise.options.length, 6);
   assert.equal(exercise.options.filter((option) => option.isCorrect).length, 1);
+  assert.equal(exercise.validationMode, "multiple-choice");
   assert.ok(exercise.correctAnswer.id);
   assert.ok(exercise.signature);
 }
@@ -188,6 +219,7 @@ function testTemplatesComprehensive() {
 function run() {
   testRationalUtilsArePublic();
   testOptionCountPolicy();
+  testPublicApiCompatibility();
   testGenerationSmoke();
   testContractWarningsDoNotBlockValidation();
   testOptionIdsIncludeGenerationContext();

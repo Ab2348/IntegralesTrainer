@@ -28,6 +28,12 @@
   };
 
   const TEMPLATE_STATUSES = ["active", "experimental", "disabled", "pending"];
+  const VALIDATION_MODES = [
+    "multiple-choice",
+    "symbolic",
+    "numeric",
+    "hybrid",
+  ];
 
   function cloneObject(value) {
     return value && typeof value === "object" && !Array.isArray(value)
@@ -56,6 +62,10 @@
       return "disabled";
     }
     return "active";
+  }
+
+  function normalizeValidationMode(value) {
+    return VALIDATION_MODES.includes(value) ? value : "multiple-choice";
   }
 
   function normalizeParameter(value) {
@@ -220,6 +230,8 @@
     return {
       difficultyMin: 1,
       difficultyMax: 5,
+      validationMode: "multiple-choice",
+      rendererId: "",
       parameters: [],
       restrictions: [],
       commonErrors: [],
@@ -230,6 +242,11 @@
       status,
       enabled: status !== "disabled",
       pending: status === "pending",
+      validationMode: normalizeValidationMode(template.validationMode),
+      rendererId:
+        template.rendererId ||
+        (template.renderHints && template.renderHints.rendererId) ||
+        "",
       variants: variants.map((variant) => normalizeVariant(variant, template.id)),
       commonErrors: uniqueStrings(template.commonErrors),
       parameters: (Array.isArray(template.parameters)
@@ -273,6 +290,14 @@
     }
     if (!Number.isFinite(Number(source.difficultyMax))) {
       warnings.push("missing-difficultyMax");
+    }
+    if (typeof source.validationMode !== "string" || !source.validationMode) {
+      warnings.push("missing-validationMode");
+    } else if (!VALIDATION_MODES.includes(source.validationMode)) {
+      warnings.push("invalid-validationMode");
+    }
+    if (typeof source.rendererId !== "string" || !source.rendererId) {
+      warnings.push("missing-rendererId");
     }
     if (!Array.isArray(source.variants) || !source.variants.length) {
       warnings.push("missing-variants");
@@ -336,6 +361,8 @@
     DIFFICULTY_LEVELS,
     DEFAULT_VARIANT,
     TEMPLATE_STATUSES,
+    VALIDATION_MODES,
+    normalizeValidationMode,
     normalizeVariant,
     normalizeDifficultyProfile,
     normalizeFeedbackRule,

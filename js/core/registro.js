@@ -1,14 +1,75 @@
 (function (root) {
   "use strict";
 
+  const Diagnostics = root.TrigContractDiagnostics || {};
   const modules = {};
   let activeModuleId = "";
 
+  function diagnostic(code, moduleApi, field) {
+    if (Diagnostics.diagnostic) {
+      return Diagnostics.diagnostic(code, moduleApi, field);
+    }
+    const severity = code === "missing-moduleId" ? "error" : "warning";
+    return {
+      code,
+      severity,
+      message: code,
+      field: field || "",
+      recommendation: "",
+      blocking: severity === "error",
+    };
+  }
+
+  function validateModuleContract(moduleApi) {
+    const source = moduleApi || {};
+    const codes = [];
+    if (typeof source.moduleId !== "string" || !source.moduleId) {
+      codes.push("missing-moduleId");
+    }
+    if (typeof source.moduleName !== "string" || !source.moduleName) {
+      codes.push("missing-moduleName");
+    }
+    if (typeof source.modelVersion !== "string" || !source.modelVersion) {
+      codes.push("missing-modelVersion");
+    }
+    if (
+      typeof source.generatorVersion !== "string" ||
+      !source.generatorVersion
+    ) {
+      codes.push("missing-generatorVersion");
+    }
+    if (
+      typeof source.generateExercise !== "function" &&
+      !Array.isArray(source.templates) &&
+      typeof source.registerTemplates !== "function"
+    ) {
+      codes.push("missing-moduleGenerationApi");
+    }
+
+    const diagnostics = codes.map((code) =>
+      diagnostic(code, source, String(code).replace(/^missing-/, "")),
+    );
+    return {
+      valid: !diagnostics.some((item) => item.blocking),
+      diagnostics,
+      warnings: diagnostics
+        .filter((item) => item.severity === "warning")
+        .map((item) => item.code),
+      errors: diagnostics
+        .filter((item) => item.severity === "error")
+        .map((item) => item.code),
+    };
+  }
+
   function register(moduleApi) {
-    if (!moduleApi || typeof moduleApi.moduleId !== "string") {
+    const contract = validateModuleContract(moduleApi);
+    if (!contract.valid) {
       throw new Error("El modulo matematico debe exponer moduleId.");
     }
 
+    moduleApi.contractDiagnostics = contract.diagnostics;
+    moduleApi.contractWarnings = contract.warnings;
+    moduleApi.isContractComplete = contract.diagnostics.length === 0;
     modules[moduleApi.moduleId] = moduleApi;
     if (!activeModuleId) {
       activeModuleId = moduleApi.moduleId;
@@ -39,6 +100,7 @@
   root.TrigCoreRegistry = {
     register,
     registerMathModule: register,
+    validateModuleContract,
     get,
     getActive,
     setActive,

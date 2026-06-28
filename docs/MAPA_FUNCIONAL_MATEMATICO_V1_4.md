@@ -51,4 +51,4 @@ El modulo debe producir expresiones `plain` y `latex`, contenido estructurado pa
 
 ## Modulo actual
 
-`js/core/modules/integrales-lineales/index.js` es la implementacion activa de integrales trigonometria directa con argumento lineal. `js/core/integraleslineales.js` queda como fachada temporal para mantener compatibilidad con `window.TrigCore`, `require("./js/core/integraleslineales.js")` y el orden historico de carga.
+`js/core/modules/integrales-lineales/index.js` es la implementacion activa de integrales trigonometria directa con argumento lineal. `js/core/integraleslineales.js` queda como fachada legacy para compatibilidad historica directa, pero no participa en el arranque normal de produccion. El flujo normal registra modulos desde `js/core/modules/index.js` y `core.js` publica `window.TrigCore` desde `TrigCoreRegistry.getActive()`.

@@ -3,6 +3,12 @@
 
   const Taxonomy = root.TrigExerciseTaxonomy || {};
   const Identity = root.TrigOptionIdentity || {};
+  const VALIDATION_MODES = new Set([
+    "multiple-choice",
+    "symbolic",
+    "numeric",
+    "hybrid",
+  ]);
 
   function cloneArray(value) {
     return Array.isArray(value) ? value.slice() : [];
@@ -24,6 +30,10 @@
       fallbackLatex ||
       plain;
     return { plain, latex };
+  }
+
+  function normalizeValidationMode(value) {
+    return VALIDATION_MODES.has(value) ? value : "multiple-choice";
   }
 
   function normalizeOption(option) {
@@ -81,6 +91,7 @@
     const mathFamilyId = source.mathFamilyId || "trigonometrica-directa";
     const difficulty = String(source.difficulty || "1");
     const templateId = source.templateId || source.familyId || "";
+    const validationMode = normalizeValidationMode(source.validationMode);
     const integralShown = normalizeExpression(
       source.integralShown,
       source.integrandExpression || "",
@@ -98,6 +109,7 @@
       templateId,
       variantId: source.variantId || "",
       difficulty,
+      validationMode,
       mathFamily:
         source.mathFamily ||
         (Taxonomy.getMathFamily ? Taxonomy.getMathFamily(mathFamilyId) : null),
@@ -164,6 +176,7 @@
   root.TrigExerciseModel = {
     createUniversalExercise,
     normalizeOption,
+    normalizeValidationMode,
   };
 
   if (typeof module !== "undefined" && module.exports) {

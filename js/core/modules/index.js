@@ -1,0 +1,83 @@
+(function (root) {
+  "use strict";
+
+  const MODULE_SCRIPTS = [
+    "integrales-lineales/datos.js",
+    "integrales-lineales/formato.js",
+    "integrales-lineales/distractores.js",
+    "integrales-lineales/feedback.js",
+    "integrales-lineales/generacion.js",
+    "integrales-lineales/derivacion.js",
+    "integrales-lineales/renderer.js",
+    "integrales-lineales/templates.js",
+    "integrales-lineales/index.js",
+  ];
+
+  function linearModuleRegistered() {
+    return Boolean(
+      root.TrigCoreRegistry &&
+        root.TrigCoreRegistry.get &&
+        root.TrigCoreRegistry.get("integrales-lineales"),
+    );
+  }
+
+  function currentScriptSrc() {
+    const doc = root.document;
+    const script = doc && doc.currentScript;
+    if (!script) {
+      return "";
+    }
+    if (typeof script.getAttribute === "function") {
+      return script.getAttribute("src") || "";
+    }
+    return script.src || "";
+  }
+
+  function moduleBasePath() {
+    const src = currentScriptSrc();
+    if (!src) {
+      return "js/core/modules/";
+    }
+    return src.replace(/index\.js(?:[?#].*)?$/, "");
+  }
+
+  function writeScript(doc, src) {
+    doc.write(`<script src="${src.replace(/"/g, "&quot;")}"><\/script>`);
+  }
+
+  function loadBrowserModules() {
+    if (linearModuleRegistered()) {
+      return;
+    }
+
+    const doc = root.document;
+    if (!doc || typeof doc.write !== "function") {
+      throw new Error(
+        "js/core/modules/index.js debe cargarse como script sincrono durante el arranque.",
+      );
+    }
+
+    const basePath = moduleBasePath();
+    MODULE_SCRIPTS.forEach((scriptPath) => {
+      writeScript(doc, `${basePath}${scriptPath}`);
+    });
+  }
+
+  function loadNodeModules() {
+    require("./integrales-lineales/index.js");
+  }
+
+  if (typeof require === "function") {
+    loadNodeModules();
+  } else {
+    loadBrowserModules();
+  }
+
+  root.TrigCoreModuleBootstrap = {
+    moduleScripts: MODULE_SCRIPTS.slice(),
+  };
+
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = root.TrigCoreModuleBootstrap;
+  }
+})(typeof window !== "undefined" ? window : globalThis);

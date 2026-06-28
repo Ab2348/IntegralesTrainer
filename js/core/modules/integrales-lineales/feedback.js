@@ -351,6 +351,9 @@
   }
 
   function validateAnswer(exercise, optionId) {
+    if (Validation.validateAnswer) {
+      return Validation.validateAnswer(exercise, optionId);
+    }
     if (Validation.validateMultipleChoice) {
       return Validation.validateMultipleChoice(exercise, optionId);
     }
