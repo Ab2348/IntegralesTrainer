@@ -1,54 +1,46 @@
 # Mapa funcional matematico V1.4
 
-Este documento fija el contrato interno para agregar contenido matematico sin convertir `app.js` en codigo matematico.
+> Documento historico. La fuente vigente para la arquitectura actual es `docs/MAPA_FUNCIONAL_MATEMATICO_V1_5.md`.
 
-## Taxonomia del core
+Este archivo se conserva solo como referencia del contrato anterior. No debe usarse como guia principal para agregar modulos nuevos ni para modificar la arquitectura plug-and-play vigente.
 
-- `mode`: agrupacion de practica usada por la UI para elegir familias activas.
-- `familyId`: familia concreta de plantilla, por ejemplo `sin`, `cos` o `sec2`.
-- `mathFamilyId`: familia matematica curricular, por ejemplo `trigonometrica-directa`.
-- `methodId`: metodo general, por ejemplo `directa`.
-- `submethodId`: subtipo del metodo, por ejemplo `argumento-lineal`.
-- `templateId`: plantilla concreta registrada en el generador, por ejemplo `trig-linear-sin`.
-- `variantId`: variante real elegida por dificultad, por ejemplo `desplazada`.
+## Estado historico
 
-`mode` no debe usarse como categoria matematica. Las estadisticas y filtros matematicos deben apoyarse en `familyId`, `mathFamilyId`, `methodId`, `submethodId`, `templateId` y `variantId`.
+V1.4 establecio las primeras bases del motor de plantillas:
 
-## Politicas centrales
+- taxonomia con `familyId`, `mathFamilyId`, `methodId`, `submethodId`, `templateId` y `variantId`;
+- generacion por templates registradas;
+- seleccion de variantes por dificultad;
+- metadatos de ejercicio universal;
+- feedback enlazado por `errorType`;
+- cantidad de opciones derivada de dificultad;
+- parametros enteros en rango `-20..20`;
+- diagnostico basico de templates;
+- reproduccion con seed;
+- separacion inicial entre app y core.
 
-- `Core.optionCountForDifficulty(difficulty)` decide la cantidad de opciones: niveles 1, 2 y 3 usan 4; niveles 4 y 5 usan 6.
-- `Core.RANGE_LIMITS` es `{ min: -20, max: 20 }` para los parametros enteros actuales `A`, `k` y `b`.
-- `Core.COEFFICIENT_TYPES` declara los tipos aceptados por contrato: `integer`, `rational`, `irrational-simple`, `symbolic`, `pi-multiple` y `sqrt`.
-- `Core.optionIdentity(option)` es la fuente unica para deduplicar opciones.
+## Diferencia principal con V1.5
 
-La generacion actual sigue usando enteros. El contrato queda listo para coeficientes no enteros futuros sin implementarlos en V1.4.
+V1.5 reemplaza el enfoque de plantilla interna por una arquitectura plug-and-play completa:
 
-## Contrato de modulo matematico
+- `core.js` ya no conoce modulos concretos;
+- `index.html` ya no carga internals de modulos;
+- `js/core/modules/index.js` carga modulos desde `MODULE_MANIFEST`;
+- los modulos se registran en `TrigCoreRegistry`;
+- `js/core/integraleslineales.js` fue eliminado;
+- `TrigCoreModules.integralesLineales` fue eliminado;
+- `js/core/modules/integrales-lineales/datos.js` fue eliminado;
+- `TrigLinearData` fue eliminado;
+- `optionCountSelect` y `optionCount` persistido fueron eliminados;
+- `modelo-ejercicio.js` usa defaults neutros;
+- el modulo lineal queda como referencia de modulo plug-and-play.
 
-Un modulo enchufable debe exponer:
+## Uso permitido de este documento
 
-- `moduleId`, `moduleName`, `modelVersion`, `generatorVersion`.
-- familias concretas o referencias a familias existentes.
-- plantillas normalizadas para `TrigExerciseGenerator.registerTemplate()`.
-- registro de renderer si necesita serializacion o feedback especifico.
-- catalogo de formulas si aplica.
-- diagnosticos opcionales del modulo.
+Usar este archivo solo para entender el estado previo del refactor.
 
-El modulo debe producir expresiones `plain` y `latex`, contenido estructurado para feedback y derivacion, y distractores con `id`, `errorType`, `errorTag`, `sourceStrategy`, `displayPlain`, `displayLatex`, `key` y `metadata`.
+Para trabajo nuevo usar:
 
-## Checklist para nuevas integrales
-
-1. Declarar o reutilizar `mathFamilyId`, `methodId` y `submethodId`.
-2. Crear un modulo bajo `js/core/modules/<module-id>/`.
-3. Definir familias concretas y plantillas dentro del modulo.
-4. Declarar parametros, restricciones, variantes y perfil de dificultad.
-5. Generar integral, respuesta correcta y distractores desde la plantilla.
-6. Usar IDs deterministas para opciones y `Core.optionIdentity()` para deduplicacion.
-7. Registrar reglas de feedback por cada `errorType`.
-8. Registrar renderer si la salida requiere hooks especificos.
-9. Agregar pruebas de generacion, validacion, feedback, opciones y reproducibilidad.
-10. No modificar `app.js` salvo que se agregue una capacidad global nueva.
-
-## Modulo actual
-
-`js/core/modules/integrales-lineales/index.js` es la implementacion activa de integrales trigonometria directa con argumento lineal. El flujo normal registra modulos desde `js/core/modules/index.js` y `core.js` publica `window.TrigCore` desde `TrigCoreRegistry.getActive()`.
+- `docs/MAPA_FUNCIONAL_MATEMATICO_V1_5.md`
+- `docs/GUIA_AGREGAR_MODULO_MATEMATICO.md`
+- `README-dev.md`
