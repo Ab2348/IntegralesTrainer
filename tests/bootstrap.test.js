@@ -17,10 +17,22 @@ function readProjectFile(relativePath) {
 
 function createBrowserContext() {
   const writtenScripts = [];
+  const storage = new Map();
   const context = {
     console,
     setTimeout,
     clearTimeout,
+    localStorage: {
+      getItem(key) {
+        return storage.has(key) ? storage.get(key) : null;
+      },
+      setItem(key, value) {
+        storage.set(key, String(value));
+      },
+      removeItem(key) {
+        storage.delete(key);
+      },
+    },
     document: {
       currentScript: {
         getAttribute(name) {
@@ -140,6 +152,9 @@ function testHtmlUsesOnlyModuleBootstrap() {
   ["index.html", "PrototiposVisuales/indexvisual.html"].forEach((file) => {
     const source = readProjectFile(file);
     assert.ok(source.includes("js/core/modules/index.js"));
+    if (file === "index.html") {
+      assert.ok(source.includes("moduleSelect"));
+    }
     assert.ok(!source.includes("integraleslineales.js"));
     assert.ok(!source.includes("modules/integrales-lineales/"));
     assert.ok(!source.includes("optionCountSelect"));
@@ -192,6 +207,21 @@ function testBrowserIifeBootstrapWithoutLegacyFacade() {
   assert.equal(exercise.options.length, 4);
 }
 
+function testBrowserCoreSelectsStoredModule() {
+  const context = createBrowserContext();
+  context.localStorage.setItem(
+    "trig-integral-trainer:active-module",
+    "integrales-algebraicas-lineales",
+  );
+  loadCurrentBrowserBootstrapWithoutLegacyFacade(context);
+
+  assert.equal(context.TrigCore.moduleId, "integrales-algebraicas-lineales");
+  assert.equal(
+    context.TrigCoreRegistry.getActive().moduleId,
+    "integrales-algebraicas-lineales",
+  );
+}
+
 function testBrowserBootstrapRejectsLateDocumentWrite() {
   const context = createBrowserContext();
   context.document.readyState = "complete";
@@ -209,6 +239,7 @@ function run() {
   testBootstrapManifestMetadata();
   testHtmlUsesOnlyModuleBootstrap();
   testBrowserIifeBootstrapWithoutLegacyFacade();
+  testBrowserCoreSelectsStoredModule();
   testBrowserBootstrapRejectsLateDocumentWrite();
   console.log("Bootstrap tests passed!");
 }

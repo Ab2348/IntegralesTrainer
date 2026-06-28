@@ -132,6 +132,15 @@
         return;
       }
       const vars = Core.feedbackVariables(exercise, chosen);
+      if (!vars.fULatex || !vars.FULatex || !vars.baseRuleLatex) {
+        Dom.renderContentInto(
+          Core,
+          els.feedbackZone,
+          Core.feedbackContent ? Core.feedbackContent(exercise, chosen) : [],
+        );
+        els.feedbackZone.className = "feedback-zone incorrect";
+        return;
+      }
       Dom.clearElement(els.feedbackZone);
       els.feedbackZone.className =
         "feedback-zone incorrect diagnostic-feedback";

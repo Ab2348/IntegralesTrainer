@@ -23,6 +23,27 @@
       ],
       nodeEntry: "./integrales-lineales/index.js",
     },
+    {
+      moduleId: "integrales-algebraicas-lineales",
+      basePath: "integrales-algebraicas-lineales/",
+      scripts: [
+        "familias.js",
+        "errores.js",
+        "variantes.js",
+        "parametros.js",
+        "formato.js",
+        "formulas.js",
+        "snapshots.js",
+        "distractores.js",
+        "feedback.js",
+        "generacion.js",
+        "derivacion.js",
+        "renderer.js",
+        "templates.js",
+        "index.js",
+      ],
+      nodeEntry: "./integrales-algebraicas-lineales/index.js",
+    },
   ];
 
   // Bootstrap buildless/IIFE: cargar este archivo como script sincrono durante

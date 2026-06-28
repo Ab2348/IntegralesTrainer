@@ -11,6 +11,61 @@
     els,
     stateStore,
   }) {
+    const ACTIVE_MODULE_STORAGE_KEY =
+      (root.TrigCoreModuleSelection &&
+        root.TrigCoreModuleSelection.ACTIVE_MODULE_STORAGE_KEY) ||
+      "trig-integral-trainer:active-module";
+
+    function moduleOptions() {
+      const registry = root.TrigCoreRegistry;
+      if (!registry || typeof registry.list !== "function") {
+        return [Core].filter(Boolean);
+      }
+      const modules = registry.list();
+      return modules.length ? modules : [Core].filter(Boolean);
+    }
+
+    function renderModuleOptions() {
+      if (!els.moduleSelect) {
+        return;
+      }
+      Dom.clearElement(els.moduleSelect);
+      moduleOptions().forEach((moduleApi) => {
+        const option = document.createElement("option");
+        option.value = moduleApi.moduleId;
+        option.textContent = moduleApi.moduleName || moduleApi.moduleId;
+        els.moduleSelect.appendChild(option);
+      });
+      els.moduleSelect.value = Core.moduleId;
+    }
+
+    function persistActiveModule(moduleId) {
+      try {
+        if (root.localStorage) {
+          root.localStorage.setItem(ACTIVE_MODULE_STORAGE_KEY, moduleId);
+        }
+      } catch (error) {
+        // Si localStorage no esta disponible, el fallback inmediato queda abajo.
+      }
+    }
+
+    function applyModuleFromControls() {
+      if (!els.moduleSelect || els.moduleSelect.value === Core.moduleId) {
+        return;
+      }
+      persistActiveModule(els.moduleSelect.value);
+      if (root.location && typeof root.location.reload === "function") {
+        root.location.reload();
+        return;
+      }
+      if (
+        root.TrigCoreRegistry &&
+        typeof root.TrigCoreRegistry.setActive === "function"
+      ) {
+        root.TrigCoreRegistry.setActive(els.moduleSelect.value);
+      }
+    }
+
     function modeOptions() {
       if (Array.isArray(Core.MODES) && Core.MODES.length) {
         return Core.MODES.filter(
@@ -117,6 +172,7 @@
 
     function syncControlsFromState() {
       const state = stateStore.getState();
+      renderModuleOptions();
       if (Core.RANGE_LIMITS) {
         els.rangeMinInput.min = Core.RANGE_LIMITS.min;
         els.rangeMinInput.max = Core.RANGE_LIMITS.max;
@@ -159,6 +215,9 @@
     }
 
     function bindEvents() {
+      if (els.moduleSelect) {
+        els.moduleSelect.addEventListener("change", applyModuleFromControls);
+      }
       els.modeSelect.addEventListener("change", applyModeFromControls);
       [
         els.difficultySelect,
@@ -172,6 +231,7 @@
     return {
       bindEvents,
       renderFamilyChecklist,
+      renderModuleOptions,
       syncControlsFromState,
       syncCurrentFamilyGroup,
       updateSettingsFromControls,

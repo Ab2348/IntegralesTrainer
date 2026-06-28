@@ -4,7 +4,11 @@
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
 
   App.createStateStore = function createStateStore(Core) {
-    const STORAGE_KEY = "trig-integral-trainer:v1";
+    const BASE_STORAGE_KEY = "trig-integral-trainer:v1";
+    const STORAGE_KEY =
+      Core && Core.moduleId && Core.moduleId !== "integrales-lineales"
+        ? `${BASE_STORAGE_KEY}:${Core.moduleId}`
+        : BASE_STORAGE_KEY;
     const RECENT_LIMIT = 20;
     const ERROR_EXAMPLES_PER_TAG_LIMIT = 1;
     const ERROR_EXAMPLE_TEXT_LIMIT = 360;

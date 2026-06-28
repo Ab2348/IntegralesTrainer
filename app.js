@@ -8,6 +8,7 @@
   let answered = false;
 
   const els = {
+    moduleSelect: document.getElementById("moduleSelect"),
     modeSelect: document.getElementById("modeSelect"),
     difficultySelect: document.getElementById("difficultySelect"),
     rangeMinInput: document.getElementById("rangeMinInput"),
