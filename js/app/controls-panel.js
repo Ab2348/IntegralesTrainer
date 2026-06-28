@@ -11,6 +11,33 @@
     els,
     stateStore,
   }) {
+    function modeOptions() {
+      if (Array.isArray(Core.MODES) && Core.MODES.length) {
+        return Core.MODES.filter(
+          (mode) =>
+            mode &&
+            typeof mode.id === "string" &&
+            Core.MODE_FAMILIES &&
+            Array.isArray(Core.MODE_FAMILIES[mode.id]),
+        );
+      }
+      return Object.keys(Core.MODE_FAMILIES || {}).map((modeId) => ({
+        id: modeId,
+        name: modeId,
+      }));
+    }
+
+    function renderModeOptions(selectedMode) {
+      Dom.clearElement(els.modeSelect);
+      modeOptions().forEach((mode) => {
+        const option = document.createElement("option");
+        option.value = mode.id;
+        option.textContent = mode.name || mode.label || mode.id;
+        els.modeSelect.appendChild(option);
+      });
+      els.modeSelect.value = selectedMode;
+    }
+
     function selectedFamiliesFromDom() {
       return Array.from(
         els.familyChecklist.querySelectorAll("input[type='checkbox']:checked"),
@@ -62,8 +89,8 @@
           input.checked = activeIds.includes(family.id);
           input.addEventListener("change", () => {
             const selected = selectedFamiliesFromDom();
-            stateStore.setCustomFamilies(selected);
-            els.modeSelect.value = "custom";
+            const settings = stateStore.setCustomFamilies(selected);
+            els.modeSelect.value = settings.mode;
             renderFamilyChecklist();
           });
 
@@ -96,7 +123,7 @@
         els.rangeMaxInput.min = Core.RANGE_LIMITS.min;
         els.rangeMaxInput.max = Core.RANGE_LIMITS.max;
       }
-      els.modeSelect.value = state.settings.mode || "basic";
+      renderModeOptions(state.settings.mode);
       els.difficultySelect.value = String(state.settings.difficulty || "1");
       els.rangeMinInput.value = state.settings.rangeMin;
       els.rangeMaxInput.value = state.settings.rangeMax;

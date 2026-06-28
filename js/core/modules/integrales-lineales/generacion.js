@@ -31,6 +31,7 @@
     MODE_FAMILIES,
     MATH_FAMILY_MAP,
     METHOD_MAP,
+    defaultModeId,
     DEFAULT_MATH_FAMILY_ID,
     DEFAULT_METHOD_ID,
     DEFAULT_SUBMETHOD_ID,
@@ -407,7 +408,9 @@
     const valid = Array.isArray(ids)
       ? ids.filter((id, index) => FAMILY_MAP[id] && ids.indexOf(id) === index)
       : [];
-    return valid.length ? valid : MODE_FAMILIES.basic.slice();
+    return valid.length
+      ? valid
+      : (MODE_FAMILIES[defaultModeId] || Object.keys(FAMILY_MAP)).slice();
   }
 
   function normalizeMethodIds(ids) {

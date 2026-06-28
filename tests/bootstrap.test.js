@@ -44,7 +44,6 @@ function createBrowserContext() {
 
 function loadCurrentBrowserBootstrapWithoutLegacyFacade(context) {
   [
-    "js/core/taxonomia.js",
     "js/core/diagnostico-contratos.js",
     "js/core/contratos.js",
     "js/core/racionales.js",

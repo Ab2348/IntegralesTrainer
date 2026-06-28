@@ -290,6 +290,7 @@
     const source = template || {};
     const requiredStringFields = [
       "id",
+      "moduleId",
       "familyId",
       "mathFamilyId",
       "methodId",

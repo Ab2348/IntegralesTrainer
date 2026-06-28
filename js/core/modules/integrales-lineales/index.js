@@ -56,8 +56,51 @@
     Templates.registerLinearTemplates();
   }
 
+  const MODULE_ID = "integrales-lineales";
+
+  function hasModuleFilter(filters) {
+    return Boolean(
+      filters &&
+        (typeof filters.moduleId === "string" ||
+          Array.isArray(filters.moduleIds)),
+    );
+  }
+
+  function scopedFilters(filters) {
+    const source = filters || {};
+    return hasModuleFilter(source) ? source : { ...source, moduleId: MODULE_ID };
+  }
+
+  function registerTemplate(template) {
+    return ExerciseGenerator.registerTemplate({
+      ...(template || {}),
+      moduleId: (template && template.moduleId) || MODULE_ID,
+    });
+  }
+
+  function listTemplates() {
+    return ExerciseGenerator.listTemplates().filter(
+      (template) => template.moduleId === MODULE_ID,
+    );
+  }
+
+  function findTemplates(filters) {
+    return ExerciseGenerator.findTemplates(scopedFilters(filters));
+  }
+
+  function testTemplates(config) {
+    const source = config || {};
+    if (Array.isArray(source.templates)) {
+      return ExerciseGenerator.testTemplates(source);
+    }
+    return ExerciseGenerator.testTemplates({
+      ...source,
+      filters: scopedFilters(source.filters),
+    });
+  }
+
   const api = {
-    moduleId: "integrales-lineales",
+    moduleId: MODULE_ID,
     moduleName: "Integrales con argumento lineal",
     modelVersion: "1.5",
     generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.5",
@@ -72,6 +115,10 @@
     FAMILIES: Families.FAMILY_DEFINITIONS,
     FAMILY_MAP: Families.FAMILY_MAP,
     MODE_FAMILIES: Families.MODE_FAMILIES,
+    MODES: Families.MODES,
+    MODE_MAP: Families.MODE_MAP,
+    defaultModeId: Families.defaultModeId,
+    customModeId: Families.customModeId,
     FAMILY_GROUPS: Families.FAMILY_GROUPS,
     familyGroups: Families.familyGroups || Families.FAMILY_GROUPS,
     RANGE_LIMITS: Parameters.RANGE_LIMITS,
@@ -95,10 +142,10 @@
     correctCoefficient: Format.correctCoefficient,
     buildExerciseFromParams: Generation.buildExerciseFromParams,
     generateExercise: Generation.generateExercise,
-    registerTemplate: ExerciseGenerator.registerTemplate,
-    listTemplates: ExerciseGenerator.listTemplates,
-    findTemplates: ExerciseGenerator.findTemplates,
-    testTemplates: ExerciseGenerator.testTemplates,
+    registerTemplate,
+    listTemplates,
+    findTemplates,
+    testTemplates,
     createSeededRng: ExerciseGenerator.createSeededRng,
     validateGeneratedExercise: ExerciseGenerator.validateGeneratedExercise,
     validateAnswer: Validation.validateAnswer || Feedback.validateAnswer,

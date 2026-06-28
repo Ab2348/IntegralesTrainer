@@ -8,7 +8,19 @@
     const RECENT_LIMIT = 20;
     const ERROR_EXAMPLES_PER_TAG_LIMIT = 1;
     const ERROR_EXAMPLE_TEXT_LIMIT = 360;
-    const VALID_MODES = new Set(Object.keys(Core.MODE_FAMILIES));
+    const MODE_FAMILIES = Core.MODE_FAMILIES || {};
+    const MODE_IDS = Object.keys(MODE_FAMILIES);
+    const DEFAULT_MODE_ID =
+      typeof Core.defaultModeId === "string" &&
+      MODE_IDS.includes(Core.defaultModeId)
+        ? Core.defaultModeId
+        : MODE_IDS[0] || "";
+    const CUSTOM_MODE_ID =
+      typeof Core.customModeId === "string" &&
+      MODE_IDS.includes(Core.customModeId)
+        ? Core.customModeId
+        : DEFAULT_MODE_ID;
+    const VALID_MODES = new Set(MODE_IDS);
     const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
     const VALID_ERROR_TAGS = new Set(
       (Core.ERROR_TYPES || []).map((error) => error.id).concat(Core.ERROR_TAGS),
@@ -20,6 +32,7 @@
     const VALID_METHOD_IDS = new Set(
       (Core.METHODS || []).map((method) => method.id),
     );
+    const DEFAULT_FAMILY_IDS = familyIdsForMode(DEFAULT_MODE_ID);
     const DEFAULT_MATH_FAMILY_IDS = (Core.MATH_FAMILIES || [])
       .filter((family) => family && family.enabled !== false)
       .map((family) => family.id)
@@ -51,12 +64,12 @@
       errorExamplesByTag: {},
       recentErrorHistory: [],
       settings: {
-        mode: "basic",
+        mode: DEFAULT_MODE_ID,
         practiceMode: "practice",
         difficulty: "1",
         rangeMin: -20,
         rangeMax: 20,
-        activeFamilyIds: Core.MODE_FAMILIES.basic.slice(),
+        activeFamilyIds: DEFAULT_FAMILY_IDS.slice(),
         activeMathFamilyIds: DEFAULT_MATH_FAMILY_IDS.slice(),
         activeMethodIds: DEFAULT_METHOD_IDS.slice(),
         includePendingMethods: false,
@@ -102,10 +115,24 @@
       return value === true || value === "true";
     }
 
+    function familyIdsForMode(mode) {
+      const modeFamilies = Array.isArray(MODE_FAMILIES[mode])
+        ? MODE_FAMILIES[mode]
+        : [];
+      const ids = modeFamilies.filter(
+        (id, index) =>
+          VALID_FAMILY_IDS.has(id) && modeFamilies.indexOf(id) === index,
+      );
+      if (ids.length) {
+        return ids;
+      }
+      return (Core.FAMILIES || []).map((family) => family.id).filter(Boolean);
+    }
+
     function normalizeFamilyIds(value, fallbackIds) {
       const fallback = Array.isArray(fallbackIds)
         ? fallbackIds
-        : Core.MODE_FAMILIES.basic;
+        : DEFAULT_FAMILY_IDS;
       if (!Array.isArray(value)) {
         return fallback.slice();
       }
@@ -181,7 +208,7 @@
         rangeMax: range.max,
         activeFamilyIds: normalizeFamilyIds(
           saved.activeFamilyIds,
-          Core.MODE_FAMILIES[mode],
+          familyIdsForMode(mode),
         ),
         activeMathFamilyIds: normalizeMathFamilyIds(
           saved.activeMathFamilyIds,
@@ -379,7 +406,7 @@
       const range = Core.sanitizeRange(values.rangeMin, values.rangeMax);
       state.settings.mode = VALID_MODES.has(values.mode)
         ? values.mode
-        : "basic";
+        : DEFAULT_MODE_ID;
       state.settings.practiceMode =
         typeof values.practiceMode === "string" && values.practiceMode
           ? values.practiceMode
@@ -419,8 +446,8 @@
     }
 
     function applyMode(mode) {
-      const safeMode = VALID_MODES.has(mode) ? mode : "basic";
-      const ids = Core.MODE_FAMILIES[safeMode] || Core.MODE_FAMILIES.basic;
+      const safeMode = VALID_MODES.has(mode) ? mode : DEFAULT_MODE_ID;
+      const ids = familyIdsForMode(safeMode);
       state.settings.mode = safeMode;
       state.settings.activeFamilyIds = ids.slice();
       saveState();
@@ -430,9 +457,9 @@
     function setCustomFamilies(familyIds) {
       state.settings.activeFamilyIds = normalizeFamilyIds(
         familyIds,
-        Core.MODE_FAMILIES.basic,
+        DEFAULT_FAMILY_IDS,
       );
-      state.settings.mode = "custom";
+      state.settings.mode = CUSTOM_MODE_ID || state.settings.mode || DEFAULT_MODE_ID;
       saveState();
       return state.settings;
     }

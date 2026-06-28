@@ -7,7 +7,6 @@
     }
 
     if (typeof require === "function") {
-      require("./js/core/taxonomia.js");
       require("./js/core/diagnostico-contratos.js");
       require("./js/core/contratos.js");
       require("./js/core/racionales.js");

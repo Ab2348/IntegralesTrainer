@@ -183,6 +183,12 @@ function testTemplateDiagnosticsAreReadable() {
   }).diagnostics;
 
   assert.ok(diagnostics.some((diagnostic) => diagnostic.blocking));
+  assert.ok(
+    diagnostics.some(
+      (diagnostic) =>
+        diagnostic.code === "missing-moduleId" && diagnostic.blocking,
+    ),
+  );
   diagnostics.forEach((diagnostic) => {
     assert.ok(diagnostic.message);
     assert.notEqual(diagnostic.message, diagnostic.code);

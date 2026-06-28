@@ -28,7 +28,7 @@ Archivos principales:
 - `js/core/retroalimentacion.js`: orquesta feedback desde resultados de validacion y reglas de template.
 - `js/core/math-renderer.js`: frontera segura de render matematico. Recibe expresiones `plain`/`latex` y contenido estructurado; no debe recibir HTML generado por modulos.
 - `js/core/math-content.js`: helpers de contenido estructurado para feedback, derivacion y mensajes matematicos.
-- `js/core/taxonomia.js`: catalogo global de familias matematicas, metodos y tipos de error.
+- `js/core/taxonomia.js`: compatibilidad temporal; la taxonomia activa la declara cada modulo.
 - `js/core/modules/integrales-lineales/`: modulo matematico activo de referencia.
 - `js/app/`: capa de UI, estado, estadisticas, controles, render visual y manejo de respuesta.
 - `tests/`: pruebas de core, estado, reproducibilidad, validacion, bootstrap, contratos y modulo lineal.

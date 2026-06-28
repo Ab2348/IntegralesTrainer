@@ -16,6 +16,10 @@ function testModuleContractSurface() {
   assert.equal(Core.FAMILIES.length, 13);
   assert.ok(Core.FAMILY_MAP.sin);
   assert.ok(Core.FAMILY_MAP.arccos);
+  assert.equal(Core.defaultModeId, "basic");
+  assert.equal(Core.customModeId, "custom");
+  assert.ok(Array.isArray(Core.MODES));
+  assert.ok(Core.MODE_MAP[Core.defaultModeId]);
   assert.ok(Array.isArray(Core.familyGroups));
   assert.equal(
     Core.familyGroups.flatMap((group) => group.families).length,

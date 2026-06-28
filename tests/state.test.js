@@ -5,8 +5,8 @@ const vm = require("node:vm");
 
 const rootDir = path.resolve(__dirname, "..");
 
-function createCore() {
-  return {
+function createCore(overrides) {
+  const core = {
     MODE_FAMILIES: {
       basic: ["sin"],
       custom: ["sin"],
@@ -29,6 +29,7 @@ function createCore() {
       return [];
     },
   };
+  return { ...core, ...(overrides || {}) };
 }
 
 function createLocalStorage(initialValue) {
@@ -50,7 +51,7 @@ function createLocalStorage(initialValue) {
   };
 }
 
-function createStateStore(savedState) {
+function createStateStore(savedState, Core) {
   const context = {
     console,
     localStorage: createLocalStorage(savedState),
@@ -63,7 +64,7 @@ function createStateStore(savedState) {
   vm.runInContext(fs.readFileSync(filename, "utf8"), context, { filename });
   return {
     context,
-    store: context.TrigTrainerApp.createStateStore(createCore()),
+    store: context.TrigTrainerApp.createStateStore(Core || createCore()),
   };
 }
 
@@ -129,10 +130,33 @@ function testModuleDefaultsComeFromCoreMetadata() {
   assert.deepEqual(Array.from(settings.activeMethodIds), ["directa"]);
 }
 
+function testStateDoesNotRequireBasicMode() {
+  const Core = createCore({
+    MODE_FAMILIES: {
+      starter: ["sin"],
+      tailored: ["sin"],
+    },
+    MODES: [
+      { id: "starter", name: "Starter" },
+      { id: "tailored", name: "Tailored" },
+    ],
+    defaultModeId: "starter",
+    customModeId: "tailored",
+  });
+  const { store } = createStateStore(undefined, Core);
+
+  assert.equal(store.getState().settings.mode, "starter");
+  store.setCustomFamilies(["sin"]);
+  assert.equal(store.getState().settings.mode, "tailored");
+  store.applyMode("missing-mode");
+  assert.equal(store.getState().settings.mode, "starter");
+}
+
 function run() {
   testOldOptionCountIsIgnoredWhenLoadingState();
   testOptionCountIsNotPersistedFromUpdates();
   testModuleDefaultsComeFromCoreMetadata();
+  testStateDoesNotRequireBasicMode();
   console.log("State tests passed!");
 }
 

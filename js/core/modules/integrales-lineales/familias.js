@@ -162,6 +162,19 @@
     custom: ["sin", "cos"],
   };
 
+  const MODE_DEFINITIONS = [
+    { id: "basic", name: "Básico" },
+    { id: "intermediate", name: "Intermedio" },
+    { id: "products", name: "Productos" },
+    { id: "logarithmic", name: "Logarítmico" },
+    { id: "inverse", name: "Inversas" },
+    { id: "mixed", name: "Mixto" },
+    { id: "custom", name: "Personalizado" },
+  ];
+
+  const DEFAULT_MODE_ID = "basic";
+  const CUSTOM_MODE_ID = "custom";
+
   const FAMILY_GROUPS = [
     {
       id: "basic-trig",
@@ -232,11 +245,16 @@
 
   const MATH_FAMILY_MAP = indexById(MATH_FAMILIES);
   const METHOD_MAP = indexById(METHODS);
+  const MODE_MAP = indexById(MODE_DEFINITIONS);
 
   root.TrigLinearFamilies = {
     FAMILY_DEFINITIONS,
     FAMILY_MAP,
     MODE_FAMILIES,
+    MODES: MODE_DEFINITIONS,
+    MODE_MAP,
+    defaultModeId: DEFAULT_MODE_ID,
+    customModeId: CUSTOM_MODE_ID,
     FAMILY_GROUPS,
     familyGroups: FAMILY_GROUPS,
     ANSWER_CORES,
