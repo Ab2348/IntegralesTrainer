@@ -3,27 +3,35 @@
 
   if (typeof require === "function") {
     require("../../math-renderer.js");
-    require("./datos.js");
+    require("./variantes.js");
     require("./formato.js");
+    require("./formulas.js");
+    require("./snapshots.js");
     require("./feedback.js");
     require("./derivacion.js");
   }
 
   const MathRenderer = root.TrigMathRenderer || {};
-  const Data = root.TrigLinearData || {};
+  const Variants = root.TrigLinearVariants || {};
   const Format = root.TrigLinearFormat || {};
+  const Formulas = root.TrigLinearFormulas || {};
+  const Snapshots = root.TrigLinearSnapshots || {};
   const Feedback = root.TrigLinearFeedback || {};
   const Derivation = root.TrigLinearDerivation || {};
-  const { TRIG_LINEAR_RENDERER_ID } = Data;
+  const { TRIG_LINEAR_RENDERER_ID } = Variants;
   const {
     integralPlain,
     integralLatex,
     expressionPlain,
     expressionLatex,
+  } = Format;
+  const {
     familyLabelExpression,
     formulaCatalog,
+  } = Formulas;
+  const {
     errorExampleMath,
-  } = Format;
+  } = Snapshots;
   const { feedbackContent } = Feedback;
   const { derivationContent } = Derivation;
 

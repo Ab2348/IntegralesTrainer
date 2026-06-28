@@ -8,7 +8,9 @@
     require("../../modelo-ejercicio.js");
     require("../../opciones.js");
     require("../../generador.js");
-    require("./datos.js");
+    require("./familias.js");
+    require("./variantes.js");
+    require("./parametros.js");
     require("./formato.js");
     require("./distractores.js");
     require("./feedback.js");
@@ -20,7 +22,9 @@
   const OptionEngine = root.TrigOptionEngine || {};
   const ParameterPolicy = root.TrigParameterPolicy || {};
   const SignatureEngine = root.TrigSignatureEngine || {};
-  const Data = root.TrigLinearData || {};
+  const Families = root.TrigLinearFamilies || {};
+  const Variants = root.TrigLinearVariants || {};
+  const Parameters = root.TrigLinearParameters || {};
   const Format = root.TrigLinearFormat || {};
   const Distractors = root.TrigLinearDistractors || {};
   const Feedback = root.TrigLinearFeedback || {};
@@ -30,12 +34,17 @@
     DEFAULT_MATH_FAMILY_ID,
     DEFAULT_METHOD_ID,
     DEFAULT_SUBMETHOD_ID,
+  } = Families;
+  const {
     BASE_VARIANT,
     TRIG_LINEAR_VARIANTS,
-    TRIG_LINEAR_DIFFICULTY_PROFILE,
     RANGE_LIMITS,
     TRIG_LINEAR_RENDERER_ID,
-  } = Data;
+  } = {
+    ...Variants,
+    ...Parameters,
+  };
+  const { TRIG_LINEAR_DIFFICULTY_PROFILE } = Parameters;
   const {
     rational,
     createArgument,

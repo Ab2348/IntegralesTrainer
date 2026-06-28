@@ -5,16 +5,22 @@
     require("../../racionales.js");
     require("../../identidad-opciones.js");
     require("../../opciones.js");
-    require("./datos.js");
+    require("./familias.js");
+    require("./errores.js");
+    require("./variantes.js");
     require("./formato.js");
   }
 
-  const Data = root.TrigLinearData || {};
+  const Families = root.TrigLinearFamilies || {};
+  const Errors = root.TrigLinearErrors || {};
+  const Variants = root.TrigLinearVariants || {};
   const Format = root.TrigLinearFormat || {};
   const Rational = root.TrigRationalUtils || {};
   const OptionEngine = root.TrigOptionEngine || {};
   const OptionIdentity = root.TrigOptionIdentity || {};
-  const { TRIG_LINEAR_RENDERER_ID, ANSWER_CORES, WRONG_CORE_MAP } = Data;
+  const { TRIG_LINEAR_RENDERER_ID } = Variants;
+  const { ANSWER_CORES } = Families;
+  const { WRONG_CORE_MAP } = Errors;
   const { rational, multiplyInt, divide, negate, absRational, equals } = Rational;
   const { createArgument, expressionPlain, expressionLatex, rationalKey, correctCoefficient } = Format;
 

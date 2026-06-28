@@ -2,8 +2,14 @@
   "use strict";
 
   const MODULE_SCRIPTS = [
+    "integrales-lineales/familias.js",
+    "integrales-lineales/errores.js",
+    "integrales-lineales/variantes.js",
+    "integrales-lineales/parametros.js",
     "integrales-lineales/datos.js",
     "integrales-lineales/formato.js",
+    "integrales-lineales/formulas.js",
+    "integrales-lineales/snapshots.js",
     "integrales-lineales/distractores.js",
     "integrales-lineales/feedback.js",
     "integrales-lineales/generacion.js",

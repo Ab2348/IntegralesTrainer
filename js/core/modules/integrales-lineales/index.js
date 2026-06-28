@@ -16,8 +16,14 @@
     require("../../retroalimentacion.js");
     require("../../generador.js");
     require("../../registro.js");
+    require("./familias.js");
+    require("./errores.js");
+    require("./variantes.js");
+    require("./parametros.js");
     require("./datos.js");
     require("./formato.js");
+    require("./formulas.js");
+    require("./snapshots.js");
     require("./distractores.js");
     require("./feedback.js");
     require("./generacion.js");
@@ -35,6 +41,8 @@
   const Rational = root.TrigRationalUtils || {};
   const Data = root.TrigLinearData || {};
   const Format = root.TrigLinearFormat || {};
+  const Formulas = root.TrigLinearFormulas || {};
+  const Snapshots = root.TrigLinearSnapshots || {};
   const Distractors = root.TrigLinearDistractors || {};
   const Feedback = root.TrigLinearFeedback || {};
   const Generation = root.TrigLinearGeneration || {};
@@ -94,9 +102,9 @@
     validateGeneratedExercise: ExerciseGenerator.validateGeneratedExercise,
     validateAnswer: Validation.validateAnswer || Feedback.validateAnswer,
     sanitizeRange: Generation.sanitizeRange,
-    exerciseSnapshot: Format.exerciseSnapshot,
-    optionSnapshot: Format.optionSnapshot,
-    errorExampleMath: Format.errorExampleMath,
+    exerciseSnapshot: Snapshots.exerciseSnapshot,
+    optionSnapshot: Snapshots.optionSnapshot,
+    errorExampleMath: Snapshots.errorExampleMath,
     renderLatex: MathRenderer.renderLatex,
     renderExpression: MathRenderer.renderExpression,
     renderInto: MathRenderer.renderInto,
@@ -107,11 +115,11 @@
     feedbackContent: Feedback.feedbackContent,
     derivationContent: Derivation.derivationContent,
     feedbackVariables: Feedback.feedbackVariables,
-    generalRuleLatex: Format.generalRuleLatex,
-    formulaCatalog: Format.formulaCatalog,
-    familyLabelLatex: Format.familyLabelLatex,
-    familyLabelExpression: Format.familyLabelExpression,
-    errorLabelContent: Format.errorLabelContent,
+    generalRuleLatex: Formulas.generalRuleLatex,
+    formulaCatalog: Formulas.formulaCatalog,
+    familyLabelLatex: Formulas.familyLabelLatex,
+    familyLabelExpression: Formulas.familyLabelExpression,
+    errorLabelContent: Formulas.errorLabelContent,
     normalizeMethodIds: Generation.normalizeMethodIds,
     normalizeMathFamilyIds: Generation.normalizeMathFamilyIds,
     shuffle: Generation.shuffle,

@@ -3,7 +3,10 @@
 
   if (typeof require === "function") {
     require("../../generador.js");
-    require("./datos.js");
+    require("./familias.js");
+    require("./errores.js");
+    require("./variantes.js");
+    require("./parametros.js");
     require("./formato.js");
     require("./distractores.js");
     require("./generacion.js");
@@ -11,24 +14,27 @@
   }
 
   const ExerciseGenerator = root.TrigExerciseGenerator || {};
-  const Data = root.TrigLinearData || {};
+  const Families = root.TrigLinearFamilies || {};
+  const Errors = root.TrigLinearErrors || {};
+  const Variants = root.TrigLinearVariants || {};
+  const Parameters = root.TrigLinearParameters || {};
   const Format = root.TrigLinearFormat || {};
   const Distractors = root.TrigLinearDistractors || {};
   const Generation = root.TrigLinearGeneration || {};
   const Feedback = root.TrigLinearFeedback || {};
   const {
     FAMILY_DEFINITIONS,
-    ERROR_TAGS,
-    DISTRACTOR_STRATEGIES,
-    TRIG_LINEAR_DIFFICULTY_PROFILE,
-    RANGE_LIMITS,
     DEFAULT_MATH_FAMILY_ID,
     DEFAULT_METHOD_ID,
     DEFAULT_SUBMETHOD_ID,
+  } = Families;
+  const { ERROR_TAGS, DISTRACTOR_STRATEGIES } = Errors;
+  const {
     BASE_VARIANT,
     TRIG_LINEAR_VARIANTS,
     TRIG_LINEAR_RENDERER_ID,
-  } = Data;
+  } = Variants;
+  const { TRIG_LINEAR_DIFFICULTY_PROFILE, RANGE_LIMITS } = Parameters;
   const { integralPlain, integralLatex } = Format;
   const { buildCorrectOption, buildDistractorCandidates } = Distractors;
   const { paramsForDifficulty, sanitizeRange, buildExerciseFromParams } = Generation;

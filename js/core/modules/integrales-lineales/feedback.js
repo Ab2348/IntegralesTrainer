@@ -6,12 +6,14 @@
     require("../../validacion.js");
     require("../../retroalimentacion.js");
     require("./formato.js");
+    require("./formulas.js");
   }
 
   const FeedbackEngine = root.TrigFeedbackEngine || {};
   const Validation = root.TrigValidation || {};
   const Rational = root.TrigRationalUtils || {};
   const Format = root.TrigLinearFormat || {};
+  const Formulas = root.TrigLinearFormulas || {};
   const { divide, rational, absRational, rationalPlain, rationalLatex } = Rational;
   const {
     mathInline,
@@ -21,15 +23,17 @@
     termPlain,
     coreLatex,
     integralLatex,
+    integralTermLatex,
+    expressionLatex,
+    createSymbolArgument,
+  } = Format;
+  const {
     familyAntiderivativeLatex,
     baseRuleLatex,
     generalRuleLatex,
     antiderivativeWithArgumentPlain,
-    integralTermLatex,
-    expressionLatex,
     errorLabelContent,
-    createSymbolArgument,
-  } = Format;
+  } = Formulas;
 
   function feedbackVariables(exercise, chosen) {
     const aOverK = divide(exercise.A, exercise.k);

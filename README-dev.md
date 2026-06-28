@@ -25,7 +25,7 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `js/core/retroalimentacion.js` orquesta la retroalimentación desde el resultado de validación.
 - `js/core/generador.js` registra plantillas, selecciona variantes, genera ejercicios con semilla y valida instancias.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
-- `js/core/modules/integrales-lineales/index.js` implementa el módulo matemático de integrales trigonométricas lineales, registra sus plantillas, variantes, restricciones, reglas y renderizador.
+- `js/core/modules/integrales-lineales/` implementa el módulo matemático de integrales trigonométricas lineales. `index.js` ensambla el módulo; `familias.js`, `errores.js`, `variantes.js`, `parametros.js`, `formulas.js` y `snapshots.js` separan los datos y helpers reutilizables.
 - `js/core/modules/integrales-lineales/index.js` mantiene `TrigCoreModules.integralesLineales` como alias legacy para consumidores directos; el core no depende de ese alias.
 - `js/core/integraleslineales.js` es una fachada legacy de compatibilidad hacia el módulo anterior; no participa en el arranque normal de producción.
 - `core.js` publica la API compatible `window.TrigCore` usando el módulo matemático activo.
@@ -527,7 +527,7 @@ En modo cargado desde estado guardado, el fallback preferido es el conjunto de f
 
 ## Familias matemáticas
 
-Las familias actuales están definidas en `FAMILY_DEFINITIONS` dentro de `js/core/modules/integrales-lineales/index.js`.
+Las familias actuales están definidas en `FAMILY_DEFINITIONS` dentro de `js/core/modules/integrales-lineales/familias.js`.
 
 Cada familia incluye:
 
@@ -561,7 +561,7 @@ Si se agrega una familia nueva, normalmente también hay que revisar:
 
 - `MODE_FAMILIES`
 - `ANSWER_CORES`
-- `WRONG_CORE_MAP`
+- `WRONG_CORE_MAP` en `errores.js`
 - `corePlain()`
 - `coreLatex()`
 - `derivativeBaseLatex()`
