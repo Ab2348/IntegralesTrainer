@@ -77,6 +77,11 @@
 
   function findTemplates(filters) {
     const source = filters || {};
+    const moduleIds = Array.isArray(source.moduleIds)
+      ? new Set(source.moduleIds)
+      : typeof source.moduleId === "string" && source.moduleId
+        ? new Set([source.moduleId])
+        : null;
     const familyIds = Array.isArray(source.familyIds)
       ? new Set(source.familyIds)
       : null;
@@ -128,6 +133,9 @@
         return false;
       }
       if (methodIds && !methodIds.has(template.methodId)) {
+        return false;
+      }
+      if (moduleIds && !moduleIds.has(template.moduleId)) {
         return false;
       }
       return templateSupportsDifficulty(template, source.difficulty);
@@ -345,6 +353,12 @@
       Array.isArray(source.recentSignatures) ? source.recentSignatures : [],
     );
     const candidates = findTemplates({
+      moduleId:
+        source.moduleId ||
+        (source.settings && source.settings.moduleId),
+      moduleIds:
+        source.moduleIds ||
+        (source.settings && source.settings.moduleIds),
       familyIds:
         source.familyIds ||
         (source.settings && source.settings.activeFamilyIds),
@@ -379,9 +393,11 @@
       const exercise = template.generate({
         settings: source.settings || {},
         range: source.range,
-        optionCount: OptionEngine.optionCountForDifficulty(
-          source.settings && source.settings.difficulty,
-        ),
+        optionCount:
+          Number.parseInt(source.optionCount, 10) ||
+          OptionEngine.optionCountForDifficulty(
+            source.settings && source.settings.difficulty,
+          ),
         rng: random,
         seed,
         attempt,

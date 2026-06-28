@@ -20,6 +20,7 @@
     function renderFamilyChecklist() {
       const state = stateStore.getState();
       const activeIds = state.settings.activeFamilyIds || [];
+      const familyGroups = UIData.getFamilyGroups(Core);
       Dom.clearElement(els.familyChecklist);
 
       const rootSection = CollapsibleView.createCollapsible({
@@ -27,14 +28,14 @@
         title: "Familias activas",
         badge: UIData.countBadge(
           activeIds,
-          UIData.FAMILY_GROUPS.flatMap((group) => group.families),
+          familyGroups.flatMap((group) => group.families),
         ),
         defaultOpen: true,
         level: 1,
         className: "family-root",
       });
 
-      UIData.FAMILY_GROUPS.forEach((group) => {
+      familyGroups.forEach((group) => {
         const groupSection = CollapsibleView.createCollapsible({
           id: `family-group-${group.id}`,
           title: group.label,
@@ -121,9 +122,10 @@
     }
 
     function syncCurrentFamilyGroup(familyId) {
-      const currentGroup = UIData.groupForFamily(familyId);
+      const familyGroups = UIData.getFamilyGroups(Core);
+      const currentGroup = UIData.groupForFamily(Core, familyId);
       CollapsibleView.setOpen("families-active", true);
-      UIData.FAMILY_GROUPS.forEach((group) => {
+      familyGroups.forEach((group) => {
         const isCurrent = Boolean(currentGroup && group.id === currentGroup.id);
         CollapsibleView.setOpen(`family-group-${group.id}`, isCurrent);
       });

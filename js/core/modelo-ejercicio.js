@@ -1,7 +1,6 @@
 (function (root) {
   "use strict";
 
-  const Taxonomy = root.TrigExerciseTaxonomy || {};
   const Identity = root.TrigOptionIdentity || {};
   const VALIDATION_MODES = new Set([
     "multiple-choice",
@@ -143,12 +142,8 @@
       variantId: source.variantId || "",
       difficulty,
       validationMode,
-      mathFamily:
-        source.mathFamily ||
-        (Taxonomy.getMathFamily ? Taxonomy.getMathFamily(mathFamilyId) : null),
-      method:
-        source.method ||
-        (Taxonomy.getMethod ? Taxonomy.getMethod(methodId) : null),
+      mathFamily: source.mathFamily || null,
+      method: source.method || null,
       integralShown,
       promptLatex: source.promptLatex || integralShown.latex || "",
       optionsLatex: options.map((option) => option.displayLatex || ""),

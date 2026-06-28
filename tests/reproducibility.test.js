@@ -57,11 +57,11 @@ function stableExercise(exercise) {
 }
 
 function generated(settings) {
-  return Core.generateExercise(
+  return Core.generateExercise({
     settings,
-    [],
-    () => 0.137,
-  );
+    recentSignatures: [],
+    rng: () => 0.137,
+  });
 }
 
 function assertNoGeneratedFallbackIds(exercise) {

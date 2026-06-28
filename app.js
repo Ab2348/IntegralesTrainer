@@ -72,11 +72,13 @@
   function generateNextExercise() {
     const settings = controlsPanel.updateSettingsFromControls();
     try {
-      currentExercise = Core.generateExercise(
+      currentExercise = Core.generateExercise({
         settings,
-        stateStore.getState().recentExercises,
-        Math.random,
-      );
+        recentSignatures: stateStore.getState().recentExercises,
+        rng: Math.random,
+        seed: settings.seed,
+        maxAttempts: settings.maxAttempts,
+      });
       stateStore.pushRecent(currentExercise.signature);
       stateStore.saveState();
       answered = false;

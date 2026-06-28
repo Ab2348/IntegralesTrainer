@@ -173,8 +173,8 @@ function testBrowserIifeBootstrapWithoutLegacyFacade() {
   assert.equal(typeof Core.derivationContent, "function");
   assert.equal(typeof Core.formulaCatalog, "function");
 
-  const exercise = Core.generateExercise(
-    {
+  const exercise = Core.generateExercise({
+    settings: {
       mode: "basic",
       difficulty: "1",
       rangeMin: -20,
@@ -185,9 +185,9 @@ function testBrowserIifeBootstrapWithoutLegacyFacade() {
       includeExperimentalMethods: true,
       seed: "browser-bootstrap",
     },
-    [],
-    () => 0.42,
-  );
+    recentSignatures: [],
+    rng: () => 0.42,
+  });
 
   assert.equal(exercise.templateId, "trig-linear-sin");
   assert.equal(exercise.options.length, 4);

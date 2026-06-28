@@ -162,6 +162,29 @@
     custom: ["sin", "cos"],
   };
 
+  const FAMILY_GROUPS = [
+    {
+      id: "basic-trig",
+      label: "Trigonométricas básicas",
+      families: ["sin", "cos"],
+    },
+    {
+      id: "quotient-reciprocal",
+      label: "Cocientes y recíprocas",
+      families: ["tan", "cot", "sec", "csc"],
+    },
+    {
+      id: "trig-derivatives",
+      label: "Derivadas trigonométricas",
+      families: ["sec2", "csc2", "secTan", "cscCot"],
+    },
+    {
+      id: "inverse-trig",
+      label: "Inversas trigonométricas",
+      families: ["arctan", "arcsin", "arccos"],
+    },
+  ];
+
   const ANSWER_CORES = [
     "sin",
     "cos",
@@ -184,15 +207,47 @@
   const DEFAULT_METHOD_ID = "directa";
   const DEFAULT_SUBMETHOD_ID = "argumento-lineal";
 
+  const MATH_FAMILIES = [
+    {
+      id: DEFAULT_MATH_FAMILY_ID,
+      name: "Trigonométrica directa",
+      enabled: true,
+    },
+  ];
+
+  const METHODS = [
+    {
+      id: DEFAULT_METHOD_ID,
+      name: "Directa",
+      enabled: true,
+    },
+  ];
+
+  function indexById(items) {
+    return items.reduce((map, item) => {
+      map[item.id] = item;
+      return map;
+    }, {});
+  }
+
+  const MATH_FAMILY_MAP = indexById(MATH_FAMILIES);
+  const METHOD_MAP = indexById(METHODS);
+
   root.TrigLinearFamilies = {
     FAMILY_DEFINITIONS,
     FAMILY_MAP,
     MODE_FAMILIES,
+    FAMILY_GROUPS,
+    familyGroups: FAMILY_GROUPS,
     ANSWER_CORES,
     NEGATIVE_CORES,
     DEFAULT_MATH_FAMILY_ID,
     DEFAULT_METHOD_ID,
     DEFAULT_SUBMETHOD_ID,
+    MATH_FAMILIES,
+    MATH_FAMILY_MAP,
+    METHODS,
+    METHOD_MAP,
   };
 
   if (typeof module !== "undefined" && module.exports) {

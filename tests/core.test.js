@@ -42,7 +42,7 @@ function testPublicApiCompatibility() {
   });
 
   assert.equal(Core.moduleId, "integrales-lineales");
-  assert.equal(Core.modelVersion, "1.4");
+  assert.equal(Core.modelVersion, "1.5");
   assert.ok(Array.isArray(Core.FAMILIES));
   assert.ok(Core.FAMILIES.length > 0);
   assert.ok(Core.FAMILY_MAP.sin);
@@ -51,8 +51,8 @@ function testPublicApiCompatibility() {
 }
 
 function testGenerationSmoke() {
-  const exercise = Core.generateExercise(
-    {
+  const exercise = Core.generateExercise({
+    settings: {
       mode: "basic",
       difficulty: "4",
       rangeMin: -20,
@@ -64,9 +64,9 @@ function testGenerationSmoke() {
       disabledTemplateIds: ["missing-template-id"],
       seed: "core-test-smoke",
     },
-    [],
-    fixedRng,
-  );
+    recentSignatures: [],
+    rng: fixedRng,
+  });
 
   assert.equal(exercise.templateId, "trig-linear-sin");
   assert.equal(exercise.options.length, 6);
@@ -136,8 +136,8 @@ function testAllModesAndDifficulties() {
       const expectedOptionCount = difficulty === "1" || difficulty === "2" || difficulty === "3" ? 4 : 6;
 
       const seed = `test-${mode}-diff-${difficulty}`;
-      const exercise = Core.generateExercise(
-        {
+      const exercise = Core.generateExercise({
+        settings: {
           mode,
           difficulty,
           rangeMin: -20,
@@ -145,9 +145,9 @@ function testAllModesAndDifficulties() {
           includeExperimentalMethods: true,
           seed,
         },
-        [],
-        fixedRng,
-      );
+        recentSignatures: [],
+        rng: fixedRng,
+      });
 
       // Verificar que el ejercicio existe
       assert.ok(exercise, `Ejercicio no generado para mode=${mode}, difficulty=${difficulty}`);

@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 const Core = require("../core.js");
 
 function testExerciseCarriesValidationMode() {
-  const exercise = Core.generateExercise(
-    {
+  const exercise = Core.generateExercise({
+    settings: {
       mode: "basic",
       difficulty: "2",
       rangeMin: -20,
@@ -15,9 +15,9 @@ function testExerciseCarriesValidationMode() {
       includeExperimentalMethods: true,
       seed: "contract-validation-mode",
     },
-    [],
-    () => 0.42,
-  );
+    recentSignatures: [],
+    rng: () => 0.42,
+  });
 
   assert.equal(exercise.validationMode, "multiple-choice");
 }
@@ -91,6 +91,7 @@ function testLinearTemplatesDeclareV15Fields() {
   templates.forEach((template) => {
     assert.equal(template.validationMode, "multiple-choice");
     assert.equal(template.rendererId, "trig-linear-renderer");
+    assert.equal(template.moduleId, "integrales-lineales");
     assert.ok(template.familyId);
     assert.ok(template.mathFamilyId);
     assert.ok(template.methodId);

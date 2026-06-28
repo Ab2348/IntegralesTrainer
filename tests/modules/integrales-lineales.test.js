@@ -16,6 +16,16 @@ function testModuleContractSurface() {
   assert.equal(Core.FAMILIES.length, 13);
   assert.ok(Core.FAMILY_MAP.sin);
   assert.ok(Core.FAMILY_MAP.arccos);
+  assert.ok(Array.isArray(Core.familyGroups));
+  assert.equal(
+    Core.familyGroups.flatMap((group) => group.families).length,
+    Core.FAMILIES.length,
+  );
+  assert.deepEqual(Core.MATH_FAMILIES.map((family) => family.id), [
+    "trigonometrica-directa",
+  ]);
+  assert.deepEqual(Core.METHODS.map((method) => method.id), ["directa"]);
+  assert.ok(Core.ERROR_TYPE_MAP["wrong-family"]);
   assert.deepEqual(Core.RANGE_LIMITS, { min: -20, max: 20 });
   assert.ok(Core.COEFFICIENT_TYPES.includes("integer"));
   assert.equal(typeof Core.buildExerciseFromParams, "function");
@@ -23,6 +33,23 @@ function testModuleContractSurface() {
   assert.equal(typeof Core.feedbackContent, "function");
   assert.equal(typeof Core.derivationContent, "function");
   assert.equal(typeof Core.formulaCatalog, "function");
+}
+
+function testTemplatesDeclareModuleOwner() {
+  const linearTemplates = Core.findTemplates({
+    moduleId: "integrales-lineales",
+    difficulty: "1",
+  });
+  const unrelatedTemplates = Core.findTemplates({
+    moduleId: "synthetic-module",
+    difficulty: "1",
+  });
+
+  assert.equal(linearTemplates.length, Core.FAMILIES.length);
+  assert.equal(unrelatedTemplates.length, 0);
+  linearTemplates.forEach((template) => {
+    assert.equal(template.moduleId, "integrales-lineales");
+  });
 }
 
 function testDifficultyParameterProfilesRemainIntegerBased() {
@@ -155,8 +182,8 @@ function testSnapshotsAndFormulaCatalog() {
 }
 
 function testGeneratedExercisesDeclareModuleMetadata() {
-  const exercise = Core.generateExercise(
-    {
+  const exercise = Core.generateExercise({
+    settings: {
       mode: "basic",
       difficulty: "4",
       rangeMin: -20,
@@ -167,21 +194,41 @@ function testGeneratedExercisesDeclareModuleMetadata() {
       includeExperimentalMethods: true,
       seed: "linear-module-metadata",
     },
-    [],
-    fixedRng,
-  );
+    recentSignatures: [],
+    rng: fixedRng,
+  });
 
   assert.equal(exercise.methodId, "directa");
   assert.equal(exercise.mathFamilyId, "trigonometrica-directa");
   assert.equal(exercise.submethodId, "argumento-lineal");
 }
 
+function testLegacyGenerateSignatureIsRejected() {
+  assert.throws(
+    () =>
+      Core.generateExercise(
+        {
+          mode: "basic",
+          difficulty: "1",
+          rangeMin: -20,
+          rangeMax: 20,
+          activeFamilyIds: ["sin"],
+        },
+        [],
+        fixedRng,
+      ),
+    /config con settings/,
+  );
+}
+
 function run() {
   testModuleContractSurface();
+  testTemplatesDeclareModuleOwner();
   testDifficultyParameterProfilesRemainIntegerBased();
   testFamiliesGenerateUniqueOptionsAndFeedbackRules();
   testSnapshotsAndFormulaCatalog();
   testGeneratedExercisesDeclareModuleMetadata();
+  testLegacyGenerateSignatureIsRejected();
   console.log("Integrales-lineales module tests passed!");
 }
 

@@ -34,6 +34,31 @@
     ) {
       codes.push("missing-moduleGenerationApi");
     }
+    [
+      "FAMILIES",
+      "MATH_FAMILIES",
+      "METHODS",
+      "ERROR_TYPES",
+    ].forEach((field) => {
+      if (!Array.isArray(source[field]) || !source[field].length) {
+        codes.push(`missing-${field}`);
+      }
+    });
+    [
+      "FAMILY_MAP",
+      "MODE_FAMILIES",
+      "MATH_FAMILY_MAP",
+      "METHOD_MAP",
+      "ERROR_TYPE_MAP",
+    ].forEach((field) => {
+      if (
+        !source[field] ||
+        typeof source[field] !== "object" ||
+        !Object.keys(source[field]).length
+      ) {
+        codes.push(`missing-${field}`);
+      }
+    });
 
     const diagnostics = codes.map((code) =>
       diagnostic(code, source, String(code).replace(/^missing-/, "")),

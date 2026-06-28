@@ -26,6 +26,16 @@
 
   const DISTRACTOR_STRATEGIES = ERROR_TAGS.slice();
 
+  const ERROR_TYPES = ERROR_TAGS.concat("correct").map((id) => ({
+    id,
+    name: ERROR_LABELS[id] || id,
+  }));
+
+  const ERROR_TYPE_MAP = ERROR_TYPES.reduce((map, errorType) => {
+    map[errorType.id] = errorType;
+    return map;
+  }, {});
+
   const WRONG_CORE_MAP = {
     sin: ["cos", "tan", "arcsin"],
     cos: ["sin", "cot", "arccos"],
@@ -45,6 +55,8 @@
   root.TrigLinearErrors = {
     ERROR_TAGS,
     ERROR_LABELS,
+    ERROR_TYPES,
+    ERROR_TYPE_MAP,
     DISTRACTOR_STRATEGIES,
     WRONG_CORE_MAP,
   };

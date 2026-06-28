@@ -2,7 +2,6 @@
   "use strict";
 
   if (typeof require === "function") {
-    require("../../taxonomia.js");
     require("../../diagnostico-contratos.js");
     require("../../contratos.js");
     require("../../racionales.js");
@@ -31,7 +30,6 @@
     require("./templates.js");
   }
 
-  const Taxonomy = root.TrigExerciseTaxonomy || {};
   const ExerciseGenerator = root.TrigExerciseGenerator || {};
   const MathRenderer = root.TrigMathRenderer || {};
   const OptionEngine = root.TrigOptionEngine || {};
@@ -65,15 +63,17 @@
     generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.5",
     ERROR_TAGS: Errors.ERROR_TAGS,
     ERROR_LABELS: Errors.ERROR_LABELS,
-    MATH_FAMILIES: Taxonomy.MATH_FAMILIES || [],
-    MATH_FAMILY_MAP: Taxonomy.MATH_FAMILY_MAP || {},
-    METHODS: Taxonomy.METHODS || [],
-    METHOD_MAP: Taxonomy.METHOD_MAP || {},
-    ERROR_TYPES: Taxonomy.ERROR_TYPES || [],
-    ERROR_TYPE_MAP: Taxonomy.ERROR_TYPE_MAP || {},
+    MATH_FAMILIES: Families.MATH_FAMILIES || [],
+    MATH_FAMILY_MAP: Families.MATH_FAMILY_MAP || {},
+    METHODS: Families.METHODS || [],
+    METHOD_MAP: Families.METHOD_MAP || {},
+    ERROR_TYPES: Errors.ERROR_TYPES || [],
+    ERROR_TYPE_MAP: Errors.ERROR_TYPE_MAP || {},
     FAMILIES: Families.FAMILY_DEFINITIONS,
     FAMILY_MAP: Families.FAMILY_MAP,
     MODE_FAMILIES: Families.MODE_FAMILIES,
+    FAMILY_GROUPS: Families.FAMILY_GROUPS,
+    familyGroups: Families.familyGroups || Families.FAMILY_GROUPS,
     RANGE_LIMITS: Parameters.RANGE_LIMITS,
     COEFFICIENT_TYPES: Parameters.COEFFICIENT_TYPES,
     optionCountForDifficulty: OptionEngine.optionCountForDifficulty,

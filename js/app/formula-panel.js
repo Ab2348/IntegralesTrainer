@@ -135,7 +135,7 @@
         className: "formula-type-root",
       });
 
-      UIData.FAMILY_GROUPS.forEach((group) => {
+      UIData.getFamilyGroups(Core).forEach((group) => {
         const groupSection = CollapsibleView.createCollapsible({
           id: `sidebar-formula-group-${group.id}`,
           title: group.label,

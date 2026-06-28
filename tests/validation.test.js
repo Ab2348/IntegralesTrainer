@@ -3,8 +3,8 @@ const assert = require("node:assert/strict");
 const Core = require("../core.js");
 
 function buildExercise() {
-  return Core.generateExercise(
-    {
+  return Core.generateExercise({
+    settings: {
       mode: "basic",
       difficulty: "4",
       rangeMin: -20,
@@ -15,9 +15,9 @@ function buildExercise() {
       includeExperimentalMethods: true,
       seed: "validation-v1-5",
     },
-    [],
-    () => 0.25,
-  );
+    recentSignatures: [],
+    rng: () => 0.25,
+  });
 }
 
 function assertValidationShape(result) {

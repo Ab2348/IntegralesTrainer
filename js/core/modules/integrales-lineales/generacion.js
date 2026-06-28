@@ -2,7 +2,6 @@
   "use strict";
 
   if (typeof require === "function") {
-    require("../../taxonomia.js");
     require("../../parametros.js");
     require("../../firmas.js");
     require("../../modelo-ejercicio.js");
@@ -16,7 +15,6 @@
     require("./feedback.js");
   }
 
-  const Taxonomy = root.TrigExerciseTaxonomy || {};
   const ExerciseModel = root.TrigExerciseModel || {};
   const ExerciseGenerator = root.TrigExerciseGenerator || {};
   const OptionEngine = root.TrigOptionEngine || {};
@@ -31,6 +29,8 @@
   const {
     FAMILY_MAP,
     MODE_FAMILIES,
+    MATH_FAMILY_MAP,
+    METHOD_MAP,
     DEFAULT_MATH_FAMILY_ID,
     DEFAULT_METHOD_ID,
     DEFAULT_SUBMETHOD_ID,
@@ -246,7 +246,15 @@
       familyId: family.id,
       family,
       mathFamilyId: meta.mathFamilyId || DEFAULT_MATH_FAMILY_ID,
+      mathFamily:
+        meta.mathFamily ||
+        MATH_FAMILY_MAP[meta.mathFamilyId || DEFAULT_MATH_FAMILY_ID] ||
+        null,
       methodId: meta.methodId || DEFAULT_METHOD_ID,
+      method:
+        meta.method ||
+        METHOD_MAP[meta.methodId || DEFAULT_METHOD_ID] ||
+        null,
       submethodId: meta.submethodId || DEFAULT_SUBMETHOD_ID,
       templateId,
       variantId,
@@ -403,84 +411,68 @@
   }
 
   function normalizeMethodIds(ids) {
-    const methodMap = Taxonomy.METHOD_MAP || { [DEFAULT_METHOD_ID]: true };
     const valid = Array.isArray(ids)
-      ? ids.filter((id, index) => methodMap[id] && ids.indexOf(id) === index)
+      ? ids.filter((id, index) => METHOD_MAP[id] && ids.indexOf(id) === index)
       : [];
     return valid.length ? valid : [DEFAULT_METHOD_ID];
   }
 
   function normalizeMathFamilyIds(ids) {
-    const mathFamilyMap = Taxonomy.MATH_FAMILY_MAP || {
-      [DEFAULT_MATH_FAMILY_ID]: true,
-    };
     const valid = Array.isArray(ids)
       ? ids.filter(
-          (id, index) => mathFamilyMap[id] && ids.indexOf(id) === index,
+          (id, index) => MATH_FAMILY_MAP[id] && ids.indexOf(id) === index,
         )
       : [];
     return valid.length ? valid : [DEFAULT_MATH_FAMILY_ID];
   }
 
-  function generateExercise(settings, recentSignatures, rng) {
-    const random = rng || Math.random;
-    const optionCount = OptionEngine.optionCountForDifficulty(
-      settings && settings.difficulty,
-    );
-    const familyIds = normalizeFamilyIds(
-      settings.activeFamilyIds || MODE_FAMILIES[settings.mode],
-    );
-    const mathFamilyIds = normalizeMathFamilyIds(settings.activeMathFamilyIds);
-    const methodIds = normalizeMethodIds(settings.activeMethodIds);
-    const range = sanitizeRange(settings.rangeMin, settings.rangeMax);
-
-    if (ExerciseGenerator.generateExercise) {
-      const generated = ExerciseGenerator.generateExercise({
-        settings,
-        recentSignatures,
-        rng: random,
-        seed: settings.seed,
-        maxAttempts: settings.maxAttempts,
-        familyIds,
-        mathFamilyIds,
-        methodIds,
-        range,
-        optionCount,
-      });
-      if (generated) {
-        return generated;
-      }
+  function generateExercise(config) {
+    const source = config || {};
+    if (!source.settings || typeof source.settings !== "object") {
       throw new Error(
-        "No hay plantillas compatibles con la configuracion actual.",
+        "TrigLinearGeneration.generateExercise requiere un objeto config con settings.",
       );
     }
-
-    const recent = new Set(
-      Array.isArray(recentSignatures) ? recentSignatures : [],
+    const settings = source.settings || {};
+    const random = source.rng || Math.random;
+    const optionCount =
+      Number.parseInt(source.optionCount, 10) ||
+      OptionEngine.optionCountForDifficulty(settings.difficulty);
+    const familyIds = normalizeFamilyIds(
+      source.familyIds || settings.activeFamilyIds || MODE_FAMILIES[settings.mode],
     );
+    const mathFamilyIds = normalizeMathFamilyIds(
+      source.mathFamilyIds || settings.activeMathFamilyIds,
+    );
+    const methodIds = normalizeMethodIds(
+      source.methodIds || settings.activeMethodIds,
+    );
+    const range =
+      source.range || sanitizeRange(settings.rangeMin, settings.rangeMax);
 
-    for (let attempt = 0; attempt < 300; attempt += 1) {
-      const params = paramsForDifficulty(
-        settings.difficulty,
-        familyIds,
-        range,
-        random,
-      );
-      if (recent.has(exerciseSignature(params)) && attempt < 250) {
-        continue;
-      }
-      const exercise = buildExerciseFromParams(params, optionCount, random, {
-        difficulty: settings.difficulty,
-        mathFamilyId: mathFamilyIds[0] || DEFAULT_MATH_FAMILY_ID,
-        attempt,
-      });
-      if (exercise) {
-        return exercise;
-      }
+    if (typeof ExerciseGenerator.generateExercise !== "function") {
+      throw new Error("El generador central de ejercicios no esta disponible.");
+    }
+
+    const generated = ExerciseGenerator.generateExercise({
+      settings,
+      recentSignatures: source.recentSignatures,
+      rng: random,
+      seed: source.seed || settings.seed,
+      maxAttempts: source.maxAttempts || settings.maxAttempts,
+      moduleId: "integrales-lineales",
+      familyIds,
+      mathFamilyIds,
+      methodIds,
+      range,
+      optionCount,
+    });
+    if (generated) {
+      return generated;
     }
 
     throw new Error(
-      "No se pudo generar un ejercicio unico con la configuracion actual.",
+      "No hay plantillas compatibles con la configuracion actual.",
     );
   }
 

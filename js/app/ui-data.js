@@ -3,29 +3,6 @@
 
   const App = (root.TrigTrainerApp = root.TrigTrainerApp || {});
 
-  const FAMILY_GROUPS = [
-    {
-      id: "basic-trig",
-      label: "Trigonométricas básicas",
-      families: ["sin", "cos"],
-    },
-    {
-      id: "quotient-reciprocal",
-      label: "Cocientes y recíprocas",
-      families: ["tan", "cot", "sec", "csc"],
-    },
-    {
-      id: "trig-derivatives",
-      label: "Derivadas trigonométricas",
-      families: ["sec2", "csc2", "secTan", "cscCot"],
-    },
-    {
-      id: "inverse-trig",
-      label: "Inversas trigonométricas",
-      families: ["arctan", "arcsin", "arccos"],
-    },
-  ];
-
   const PRACTICE_TIPS = [
     {
       title: "Consejo antes de escoger",
@@ -80,9 +57,47 @@
     return `${active}/${familyIds.length}`;
   }
 
-  function groupForFamily(familyId) {
+  function getFamilyGroups(Core) {
+    const familyMap = (Core && Core.FAMILY_MAP) || {};
+    const groups = Array.isArray(Core && Core.familyGroups)
+      ? Core.familyGroups
+      : Array.isArray(Core && Core.FAMILY_GROUPS)
+        ? Core.FAMILY_GROUPS
+        : [];
+    const normalized = groups
+      .map((group) => ({
+        id: group.id || group.label || "family-group",
+        label: group.label || group.name || "Familias",
+        families: Array.isArray(group.families)
+          ? group.families.filter(
+              (familyId, index) =>
+                familyMap[familyId] &&
+                group.families.indexOf(familyId) === index,
+            )
+          : [],
+      }))
+      .filter((group) => group.families.length);
+
+    if (normalized.length) {
+      return normalized;
+    }
+
+    return [
+      {
+        id: "all-families",
+        label: "Familias",
+        families: Array.isArray(Core && Core.FAMILIES)
+          ? Core.FAMILIES.map((family) => family.id).filter(Boolean)
+          : [],
+      },
+    ].filter((group) => group.families.length);
+  }
+
+  function groupForFamily(Core, familyId) {
     return (
-      FAMILY_GROUPS.find((group) => group.families.includes(familyId)) || null
+      getFamilyGroups(Core).find((group) =>
+        group.families.includes(familyId),
+      ) || null
     );
   }
 
@@ -104,10 +119,10 @@
   }
 
   App.UIData = {
-    FAMILY_GROUPS,
     PRACTICE_TIPS,
     countBadge,
     familyLabelExpression,
+    getFamilyGroups,
     groupForFamily,
     randomPracticeTip,
   };

@@ -48,6 +48,7 @@
       const templateId = `trig-linear-${family.id}`;
       ExerciseGenerator.registerTemplate({
         id: templateId,
+        moduleId: "integrales-lineales",
         name: `Integral directa de ${family.name}`,
         status: "active",
         familyId: family.id,
