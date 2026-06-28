@@ -49,6 +49,40 @@ function testTemplateContractNormalization() {
   assert.ok(Contracts.VALIDATION_MODES.includes("hybrid"));
 }
 
+function testInvalidValidationModeSurvivesNormalizationDiagnostics() {
+  const Contracts = globalThis.TrigContractModels;
+  const template = Contracts.normalizeTemplate({
+    id: "synthetic-invalid-validation-mode",
+    familyId: "synthetic-family",
+    mathFamilyId: "synthetic-math",
+    methodId: "synthetic-method",
+    submethodId: "synthetic-submethod",
+    validationMode: "symbollic",
+    rendererId: "synthetic-renderer",
+    difficultyMin: 1,
+    difficultyMax: 5,
+    variants: [{ id: "base" }],
+    parameters: ["x"],
+    restrictions: ["x != 0"],
+    commonErrors: ["synthetic-error"],
+    distractorStrategies: ["synthetic-error"],
+    feedbackRules: [{ errorType: "synthetic-error", title: "Error" }],
+    buildCorrectAnswer() {},
+    buildDistractors() {},
+    generate() {},
+  });
+  const contract = Contracts.validateTemplateContract(template);
+
+  assert.equal(template.validationMode, "multiple-choice");
+  assert.ok(contract.warnings.includes("invalid-validationMode"));
+  assert.ok(
+    contract.diagnostics.some(
+      (diagnostic) =>
+        diagnostic.code === "invalid-validationMode" && diagnostic.blocking,
+    ),
+  );
+}
+
 function testLinearTemplatesDeclareV15Fields() {
   const templates = Core.listTemplates();
   assert.ok(templates.length > 0);
@@ -127,16 +161,95 @@ function testTemplateDiagnosticsAreExposedByTemplateTest() {
   result.results.forEach((templateResult) => {
     assert.ok(Array.isArray(templateResult.contractDiagnostics));
     assert.ok(Array.isArray(templateResult.warnings));
+    assert.ok(Array.isArray(templateResult.instanceWarnings));
   });
+}
+
+function testTemplateInstanceWarningsAreExposedByTemplateTest() {
+  const template = Core.registerTemplate({
+    id: "synthetic-instance-warning-template",
+    name: "Synthetic warning template",
+    status: "active",
+    familyId: "synthetic-family",
+    mathFamilyId: "synthetic-math",
+    methodId: "synthetic-method",
+    submethodId: "synthetic-submethod",
+    validationMode: "multiple-choice",
+    rendererId: "synthetic-renderer",
+    difficultyMin: 1,
+    difficultyMax: 1,
+    variants: [{ id: "base" }],
+    parameters: ["x"],
+    restrictions: ["x != 0"],
+    commonErrors: ["synthetic-error"],
+    distractorStrategies: ["synthetic-error"],
+    feedbackRules: [{ errorType: "synthetic-error", title: "Error" }],
+    buildCorrectAnswer() {},
+    buildDistractors() {},
+    generate(context) {
+      return {
+        id: "synthetic-instance-warning-exercise",
+        familyId: "synthetic-family",
+        mathFamilyId: "synthetic-math",
+        methodId: "synthetic-method",
+        submethodId: "synthetic-submethod",
+        templateId: context.template.id,
+        difficulty: "1",
+        validationMode: "multiple-choice",
+        integralShown: {
+          plain: "int f(x) dx",
+          latex: "\\int f(x) dx",
+        },
+        correctAnswer: {
+          id: "correct",
+          displayPlain: "F(x) + C",
+          displayLatex: "F(x) + C",
+          isCorrect: true,
+          key: "correct",
+        },
+        options: [
+          {
+            id: "correct",
+            displayPlain: "F(x) + C",
+            displayLatex: "F(x) + C",
+            isCorrect: true,
+            key: "correct",
+          },
+          {
+            id: "fallback-warning",
+            displayPlain: "f(x) + C",
+            displayLatex: "f(x) + C",
+            isCorrect: false,
+            key: "fallback-warning",
+            errorType: "synthetic-error",
+            errorTag: "synthetic-error",
+            metadata: { generatedFallbackId: true },
+          },
+        ],
+      };
+    },
+  });
+  const result = Core.testTemplates({ templates: [template], iterations: 1 });
+
+  assert.equal(result.passed, true);
+  assert.deepEqual(result.results[0].instanceWarnings, [
+    {
+      index: 0,
+      seed: "template-test:synthetic-instance-warning-template:0",
+      warnings: ["option-with-generated-fallback-id"],
+    },
+  ]);
 }
 
 function run() {
   testExerciseCarriesValidationMode();
   testTemplateContractNormalization();
+  testInvalidValidationModeSurvivesNormalizationDiagnostics();
   testLinearTemplatesDeclareV15Fields();
   testModuleRegistryDiagnostics();
   testTemplateDiagnosticsAreReadable();
   testTemplateDiagnosticsAreExposedByTemplateTest();
+  testTemplateInstanceWarningsAreExposedByTemplateTest();
   console.log("Contract tests passed!");
 }
 

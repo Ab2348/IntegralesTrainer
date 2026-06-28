@@ -45,17 +45,26 @@
     doc.write(`<script src="${src.replace(/"/g, "&quot;")}"><\/script>`);
   }
 
+  function assertSynchronousBootstrap(doc) {
+    if (!doc || typeof doc.write !== "function") {
+      throw new Error(
+        "js/core/modules/index.js debe cargarse como script sincrono durante el arranque.",
+      );
+    }
+    if (doc.readyState && doc.readyState !== "loading") {
+      throw new Error(
+        "js/core/modules/index.js solo puede usar document.write() durante el parseo inicial del documento.",
+      );
+    }
+  }
+
   function loadBrowserModules() {
     if (linearModuleRegistered()) {
       return;
     }
 
     const doc = root.document;
-    if (!doc || typeof doc.write !== "function") {
-      throw new Error(
-        "js/core/modules/index.js debe cargarse como script sincrono durante el arranque.",
-      );
-    }
+    assertSynchronousBootstrap(doc);
 
     const basePath = moduleBasePath();
     MODULE_SCRIPTS.forEach((scriptPath) => {

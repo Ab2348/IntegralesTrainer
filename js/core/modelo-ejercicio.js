@@ -36,6 +36,15 @@
     return VALIDATION_MODES.has(value) ? value : "multiple-choice";
   }
 
+  function hasExplicitValidationMode(source) {
+    return (
+      Object.prototype.hasOwnProperty.call(source, "validationMode") &&
+      source.validationMode !== null &&
+      source.validationMode !== undefined &&
+      source.validationMode !== ""
+    );
+  }
+
   function normalizeOption(option) {
     const source = option || {};
     const displayPlain =
@@ -91,6 +100,7 @@
     const mathFamilyId = source.mathFamilyId || "trigonometrica-directa";
     const difficulty = String(source.difficulty || "1");
     const templateId = source.templateId || source.familyId || "";
+    const explicitValidationMode = hasExplicitValidationMode(source);
     const validationMode = normalizeValidationMode(source.validationMode);
     const integralShown = normalizeExpression(
       source.integralShown,
@@ -169,7 +179,10 @@
         variantId: source.variantId || "",
         ...(source.statsInfo || {}),
       },
-      metadata: source.metadata || {},
+      metadata: {
+        ...(source.metadata || {}),
+        explicitValidationMode,
+      },
     };
   }
 

@@ -153,6 +153,7 @@
               generatorId: "integrales-lineales",
               variantId: variant.id || BASE_VARIANT.id,
               rendererId: TRIG_LINEAR_RENDERER_ID,
+              validationMode: template.validationMode,
               seed: context.seed || null,
               attempt: context.attempt,
               engineVersion: context.engineVersion || "",

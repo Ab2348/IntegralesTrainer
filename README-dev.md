@@ -26,6 +26,7 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `js/core/generador.js` registra plantillas, selecciona variantes, genera ejercicios con semilla y valida instancias.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
 - `js/core/modules/integrales-lineales/index.js` implementa el módulo matemático de integrales trigonométricas lineales, registra sus plantillas, variantes, restricciones, reglas y renderizador.
+- `js/core/modules/integrales-lineales/index.js` mantiene `TrigCoreModules.integralesLineales` como alias legacy para consumidores directos; el core no depende de ese alias.
 - `js/core/integraleslineales.js` es una fachada legacy de compatibilidad hacia el módulo anterior; no participa en el arranque normal de producción.
 - `core.js` publica la API compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
@@ -369,6 +370,8 @@ Al cargar la página:
 10. Se genera el primer ejercicio con `Core.generateExercise`.
 11. La respuesta del usuario pasa por `Core.validateAnswer`, actualiza estadísticas y guarda el estado.
 
+`js/core/modules/index.js` usa `document.write()` solo para conservar el arranque buildless/IIFE síncrono. Debe ejecutarse mientras `document.readyState` sigue en `"loading"`; si se carga dinámicamente cuando el documento ya terminó de parsear, el bootstrap lanza un error antes de escribir scripts.
+
 El flujo principal queda distribuido así:
 
 - `state.js`: `loadState()`, `mergeState()`, `saveState()`.
@@ -666,7 +669,7 @@ El motor expone `Core.validateGeneratedExercise(exercise, context)` y `Core.test
 - contrato mínimo de plantilla sin advertencias;
 - hook opcional `template.validateInstance()`.
 
-`testTemplates()` genera múltiples instancias por plantilla con semillas determinísticas. Es la prueba rápida recomendada al agregar familias nuevas.
+`testTemplates()` genera múltiples instancias por plantilla con semillas determinísticas. Es la prueba rápida recomendada al agregar familias nuevas. Los errores de instancia hacen fallar `passed`; los warnings de instancia se reportan en `instanceWarnings` con `index`, `seed` y `warnings`, sin bloquear por sí mismos.
 
 ```js
 const diagnostics = Core.testTemplates({

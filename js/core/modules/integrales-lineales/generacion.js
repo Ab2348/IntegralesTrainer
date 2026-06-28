@@ -186,6 +186,7 @@
       templateId,
       variantId,
       difficulty,
+      validationMode: meta.validationMode,
       generatorId: meta.generatorId || "integrales-lineales",
       rendererId: meta.rendererId || TRIG_LINEAR_RENDERER_ID,
       seed: meta.seed || null,

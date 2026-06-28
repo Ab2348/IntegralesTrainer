@@ -291,6 +291,42 @@
     };
   }
 
+  function hasExplicitValidationMode(exercise) {
+    if (!exercise) {
+      return false;
+    }
+    if (
+      exercise.metadata &&
+      Object.prototype.hasOwnProperty.call(
+        exercise.metadata,
+        "explicitValidationMode",
+      )
+    ) {
+      return Boolean(exercise.metadata.explicitValidationMode);
+    }
+    return (
+      Object.prototype.hasOwnProperty.call(exercise, "validationMode") &&
+      exercise.validationMode !== null &&
+      exercise.validationMode !== undefined &&
+      exercise.validationMode !== ""
+    );
+  }
+
+  function resolveValidationMode(exercise, template) {
+    if (hasExplicitValidationMode(exercise)) {
+      return exercise.validationMode;
+    }
+    if (
+      template &&
+      template.validationMode !== null &&
+      template.validationMode !== undefined &&
+      template.validationMode !== ""
+    ) {
+      return template.validationMode;
+    }
+    return "multiple-choice";
+  }
+
   function annotateExercise(exercise, context) {
     if (!exercise) {
       return exercise;
@@ -304,8 +340,7 @@
 
     exercise.templateId = exercise.templateId || template.id || "";
     exercise.variantId = exercise.variantId || variant.id || "";
-    exercise.validationMode =
-      exercise.validationMode || template.validationMode || "multiple-choice";
+    exercise.validationMode = resolveValidationMode(exercise, template);
     exercise.seed = exercise.seed || context.seed || null;
     exercise.generation = {
       engineVersion: ENGINE_VERSION,
@@ -429,6 +464,7 @@
 
     selectedTemplates.forEach((template) => {
       const errors = [];
+      const instanceWarnings = [];
       for (let index = 0; index < iterations; index += 1) {
         const seed = normalizeSeed(source.seed)
           ? `${source.seed}:${template.id}:${index}`
@@ -478,6 +514,13 @@
             variant,
             settings: { difficulty },
           });
+          if (validation.warnings.length) {
+            instanceWarnings.push({
+              index,
+              seed,
+              warnings: validation.warnings,
+            });
+          }
           if (!validation.valid) {
             errors.push({
               index,
@@ -501,6 +544,7 @@
         warnings: (template.contractDiagnostics || []).filter(
           (diagnostic) => diagnostic && diagnostic.severity === "warning",
         ),
+        instanceWarnings,
         errors,
       });
     });

@@ -68,6 +68,10 @@
     return VALIDATION_MODES.includes(value) ? value : "multiple-choice";
   }
 
+  function hasOwn(object, field) {
+    return Object.prototype.hasOwnProperty.call(object, field);
+  }
+
   function normalizeParameter(value) {
     if (typeof value === "string") {
       return {
@@ -227,7 +231,7 @@
       : [DEFAULT_VARIANT];
     const status = normalizeStatus(template);
 
-    return {
+    const normalized = {
       difficultyMin: 1,
       difficultyMax: 5,
       validationMode: "multiple-choice",
@@ -268,6 +272,17 @@
       ).map(normalizeFeedbackRule),
       difficultyProfile: normalizeDifficultyProfile(template.difficultyProfile),
     };
+    Object.defineProperties(normalized, {
+      __sourceValidationMode: {
+        value: template.validationMode,
+        enumerable: false,
+      },
+      __hasSourceValidationMode: {
+        value: hasOwn(template, "validationMode"),
+        enumerable: false,
+      },
+    });
+    return normalized;
   }
 
   function validateTemplateContract(template) {
@@ -291,9 +306,23 @@
     if (!Number.isFinite(Number(source.difficultyMax))) {
       warnings.push("missing-difficultyMax");
     }
-    if (typeof source.validationMode !== "string" || !source.validationMode) {
+    const hasSourceValidationMode = hasOwn(source, "__hasSourceValidationMode")
+      ? source.__hasSourceValidationMode
+      : hasOwn(source, "validationMode");
+    const sourceValidationMode = hasOwn(source, "__sourceValidationMode")
+      ? source.__sourceValidationMode
+      : source.validationMode;
+    if (
+      !hasSourceValidationMode ||
+      sourceValidationMode === null ||
+      sourceValidationMode === undefined ||
+      sourceValidationMode === ""
+    ) {
       warnings.push("missing-validationMode");
-    } else if (!VALIDATION_MODES.includes(source.validationMode)) {
+    } else if (
+      typeof sourceValidationMode !== "string" ||
+      !VALIDATION_MODES.includes(sourceValidationMode)
+    ) {
       warnings.push("invalid-validationMode");
     }
     if (typeof source.rendererId !== "string" || !source.rendererId) {

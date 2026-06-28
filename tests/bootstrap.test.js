@@ -23,6 +23,7 @@ function createBrowserContext() {
           return name === "src" ? "js/core/modules/index.js" : "";
         },
       },
+      readyState: "loading",
       write(markup) {
         const match = String(markup).match(/<script src="([^"]+)"><\/script>/);
         if (match) {
@@ -58,6 +59,7 @@ function loadCurrentBrowserBootstrapWithoutLegacyFacade(context) {
 
   loadScript(context, "js/core/modules/index.js");
   context.writtenScripts.forEach((file) => loadScript(context, file));
+  delete context.TrigCoreModules.integralesLineales;
   loadScript(context, "core.js");
 }
 
@@ -112,9 +114,21 @@ function testBrowserIifeBootstrapWithoutLegacyFacade() {
   assert.equal(exercise.options.length, 4);
 }
 
+function testBrowserBootstrapRejectsLateDocumentWrite() {
+  const context = createBrowserContext();
+  context.document.readyState = "complete";
+
+  assert.throws(
+    () => loadScript(context, "js/core/modules/index.js"),
+    /parseo inicial del documento/,
+  );
+  assert.deepEqual(context.writtenScripts, []);
+}
+
 function run() {
   testCommonJsBootstrap();
   testBrowserIifeBootstrapWithoutLegacyFacade();
+  testBrowserBootstrapRejectsLateDocumentWrite();
   console.log("Bootstrap tests passed!");
 }
 
