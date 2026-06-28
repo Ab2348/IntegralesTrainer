@@ -61,8 +61,8 @@
   const api = {
     moduleId: "integrales-lineales",
     moduleName: "Integrales con argumento lineal",
-    modelVersion: "1.4",
-    generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.4",
+    modelVersion: "1.5",
+    generatorVersion: ExerciseGenerator.ENGINE_VERSION || "1.5",
     ERROR_TAGS: Errors.ERROR_TAGS,
     ERROR_LABELS: Errors.ERROR_LABELS,
     MATH_FAMILIES: Taxonomy.MATH_FAMILIES || [],

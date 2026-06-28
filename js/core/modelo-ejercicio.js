@@ -14,6 +14,32 @@
     return Array.isArray(value) ? value.slice() : [];
   }
 
+  function safeIdPart(value) {
+    return String(value || "")
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 120);
+  }
+
+  function deterministicExerciseId(source) {
+    if (source.id) {
+      return source.id;
+    }
+    const generation = source.generation || {};
+    const parts = [
+      source.templateId || source.familyId || "exercise",
+      source.variantId || generation.variantId || "base",
+      source.signature || "instance",
+      source.seed || generation.seed || "seedless",
+      source.attempt === 0 || source.attempt
+        ? String(source.attempt)
+        : generation.attempt === 0 || generation.attempt
+          ? String(generation.attempt)
+          : "attempt",
+    ];
+    return `ex-${parts.map(safeIdPart).filter(Boolean).join("-")}`;
+  }
+
   function normalizeExpression(source, fallbackPlain, fallbackLatex) {
     const value = source && typeof source === "object" ? source : {};
     const plain =
@@ -52,14 +78,11 @@
     const displayLatex = source.displayLatex || source.latex || displayPlain;
     const display = normalizeExpression(source.display, displayPlain, displayLatex);
     const hadInputId = Boolean(source.id);
-    const fallbackId = Identity.deterministicOptionId
-      ? Identity.deterministicOptionId([
-          source.errorTag || source.errorType || (source.isCorrect ? "correct" : "option"),
-          source.key || source.equivalenceKey || displayPlain || displayLatex,
-        ])
-      : `opt-${String(displayPlain || displayLatex || "option")
-          .replace(/[^a-zA-Z0-9_-]+/g, "-")
-          .replace(/^-+|-+$/g, "")}`;
+    const fallbackId = Identity.deterministicOptionId([
+      source.errorTag || source.errorType || (source.isCorrect ? "correct" : "option"),
+      source.key || source.equivalenceKey || displayPlain || displayLatex,
+    ]);
+
     return {
       ...source,
       id: source.id || fallbackId,
@@ -110,8 +133,8 @@
 
     return {
       ...source,
-      modelVersion: "1.4",
-      id: source.id || `ex-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      modelVersion: "1.5",
+      id: deterministicExerciseId(source),
       familyId: source.familyId || "",
       mathFamilyId,
       methodId,
@@ -140,13 +163,13 @@
       distractors,
       explanation: source.explanation || "",
       generation: {
-        engineVersion: source.engineVersion || "1.4",
+        ...(source.generation || {}),
+        engineVersion: source.engineVersion || "1.5",
         generatorId: source.generatorId || "",
         templateId,
         seed: source.seed || null,
         params: source.generationParams || {},
         variantId: source.variantId || "",
-        ...(source.generation || {}),
       },
       answer: source.answer || {
         expression: correctAnswer

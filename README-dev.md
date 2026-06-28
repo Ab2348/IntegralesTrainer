@@ -6,7 +6,6 @@ Documentos principales:
 
 - `docs/MAPA_FUNCIONAL_MATEMATICO_V1_5.md`: mapa funcional vigente de la arquitectura plug-and-play.
 - `docs/GUIA_AGREGAR_MODULO_MATEMATICO.md`: guia operativa para agregar un modulo matematico nuevo.
-- `docs/MAPA_FUNCIONAL_MATEMATICO_V1_4.md`: documento historico. No debe usarse como fuente principal para trabajo nuevo.
 
 ## Resumen tecnico
 
@@ -282,7 +281,7 @@ node tests/modules/integrales-lineales.test.js
 
 Cobertura principal:
 
-- API publica compatible con PNP V1.5;
+- API publica PNP V1.5;
 - estado sin `optionCount` persistido;
 - reproducibilidad con seed explicita;
 - validacion por `validationMode`;

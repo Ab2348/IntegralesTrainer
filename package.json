@@ -1,6 +1,6 @@
 {
   "name": "cicloint",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "private": true,
   "description": "Herramientas de desarrollo para compilar SCSS del entrenador de integrales.",
   "engines": {

@@ -1,12 +1,11 @@
 (function (root) {
   "use strict";
 
-  const Contracts = root.TrigContractModels || {};
-  const Diagnostics = root.TrigContractDiagnostics || {};
-  const OptionEngine = root.TrigOptionEngine || {};
-  const Identity = root.TrigOptionIdentity || {};
+  const Contracts = root.TrigContractModels;
+  const OptionEngine = root.TrigOptionEngine;
+  const Identity = root.TrigOptionIdentity;
   const templates = {};
-  const ENGINE_VERSION = "1.4";
+  const ENGINE_VERSION = "1.5";
   const DEFAULT_MAX_ATTEMPTS = 300;
 
   function normalizeSeed(value) {
@@ -43,24 +42,10 @@
   }
 
   function registerTemplate(template) {
-    const normalized = Contracts.normalizeTemplate
-      ? Contracts.normalizeTemplate(template)
-      : {
-          difficultyMin: 1,
-          difficultyMax: 5,
-          enabled: true,
-          pending: false,
-          ...template,
-        };
-    const contract = Contracts.validateTemplateContract
-      ? Contracts.validateTemplateContract(normalized)
-      : { valid: true, warnings: [] };
+    const normalized = Contracts.normalizeTemplate(template);
+    const contract = Contracts.validateTemplateContract(normalized);
     normalized.contractWarnings = contract.warnings || [];
-    normalized.contractDiagnostics =
-      contract.diagnostics ||
-      (Diagnostics.fromWarningCodes
-        ? Diagnostics.fromWarningCodes(normalized.contractWarnings, normalized)
-        : []);
+    normalized.contractDiagnostics = contract.diagnostics || [];
     normalized.isContractComplete = Boolean(contract.valid);
     normalized.hasBlockingContractErrors = normalized.contractDiagnostics.some(
       (diagnostic) => diagnostic && diagnostic.blocking,
@@ -183,22 +168,7 @@
   }
 
   function optionIdentity(option) {
-    if (Identity.optionIdentity) {
-      return Identity.optionIdentity(option);
-    }
-    if (!option) {
-      return "";
-    }
-    return (
-      option.key ||
-      option.equivalenceKey ||
-      option.value ||
-      option.displayPlain ||
-      option.displayExpression ||
-      option.displayLatex ||
-      option.id ||
-      ""
-    );
+    return Identity.optionIdentity(option);
   }
 
   function validateGeneratedExercise(exercise, context) {
@@ -324,7 +294,7 @@
     ) {
       return template.validationMode;
     }
-    return "multiple-choice";
+    throw new Error("La template debe declarar validationMode de forma explicita.");
   }
 
   function annotateExercise(exercise, context) {
@@ -394,7 +364,7 @@
     });
 
     if (!candidates.length) {
-      return source.fallback ? source.fallback({ seed, rng: random }) : null;
+      return null;
     }
 
     let lastValidation = null;
