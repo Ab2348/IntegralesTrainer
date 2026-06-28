@@ -96,6 +96,13 @@ function testRemovedLegacyFilesAndAliasesStayRemoved() {
   );
 
   const Bootstrap = require("../js/core/modules/index.js");
+  assert.ok(Array.isArray(Bootstrap.modules));
+  assert.ok(
+    Bootstrap.modules.some(
+      (moduleDefinition) =>
+        moduleDefinition.moduleId === "integrales-lineales",
+    ),
+  );
   assert.ok(!Bootstrap.moduleScripts.includes("integrales-lineales/datos.js"));
   assert.ok(
     Bootstrap.moduleScripts.every(
@@ -107,6 +114,27 @@ function testRemovedLegacyFilesAndAliasesStayRemoved() {
     !globalThis.TrigCoreModules ||
       !globalThis.TrigCoreModules.integralesLineales,
   );
+}
+
+function testBootstrapManifestMetadata() {
+  const Bootstrap = require("../js/core/modules/index.js");
+  const source = readProjectFile("js/core/modules/index.js");
+  const linearModule = Bootstrap.modules.find(
+    (moduleDefinition) => moduleDefinition.moduleId === "integrales-lineales",
+  );
+  const derivedScripts = Bootstrap.modules.flatMap((moduleDefinition) =>
+    moduleDefinition.scripts.map(
+      (scriptPath) => `${moduleDefinition.basePath}${scriptPath}`,
+    ),
+  );
+
+  assert.ok(linearModule);
+  assert.equal(linearModule.basePath, "integrales-lineales/");
+  assert.equal(linearModule.nodeEntry, "./integrales-lineales/index.js");
+  assert.deepEqual(Bootstrap.moduleScripts, derivedScripts);
+  assert.ok(!Bootstrap.moduleScripts.includes("integrales-lineales/datos.js"));
+  assert.ok(!source.includes("function linearModuleRegistered"));
+  assert.ok(source.includes("function moduleRegistered(moduleId)"));
 }
 
 function testHtmlUsesOnlyModuleBootstrap() {
@@ -123,8 +151,18 @@ function testBrowserIifeBootstrapWithoutLegacyFacade() {
   const context = createBrowserContext();
   loadCurrentBrowserBootstrapWithoutLegacyFacade(context);
   const Core = context.TrigCore;
+  const Bootstrap = context.TrigCoreModuleBootstrap;
 
   assert.ok(Core, "window.TrigCore no quedo disponible");
+  assert.ok(Array.isArray(Bootstrap.modules));
+  assert.deepEqual(
+    Bootstrap.moduleScripts,
+    Bootstrap.modules.flatMap((moduleDefinition) =>
+      moduleDefinition.scripts.map(
+        (scriptPath) => `${moduleDefinition.basePath}${scriptPath}`,
+      ),
+    ),
+  );
   assert.equal(Core.moduleId, "integrales-lineales");
   assert.equal(context.TrigCoreRegistry.getActive().moduleId, "integrales-lineales");
   assert.equal(typeof Core.generateExercise, "function");
@@ -169,6 +207,7 @@ function testBrowserBootstrapRejectsLateDocumentWrite() {
 function run() {
   testCommonJsBootstrap();
   testRemovedLegacyFilesAndAliasesStayRemoved();
+  testBootstrapManifestMetadata();
   testHtmlUsesOnlyModuleBootstrap();
   testBrowserIifeBootstrapWithoutLegacyFacade();
   testBrowserBootstrapRejectsLateDocumentWrite();
