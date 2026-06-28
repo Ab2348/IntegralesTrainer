@@ -85,6 +85,7 @@ function testInvalidValidationModeSurvivesNormalizationDiagnostics() {
 
 function testLinearTemplatesDeclareV15Fields() {
   const templates = Core.listTemplates();
+  const ParameterPolicy = globalThis.TrigParameterPolicy;
   assert.ok(templates.length > 0);
 
   templates.forEach((template) => {
@@ -114,6 +115,18 @@ function testLinearTemplatesDeclareV15Fields() {
       !template.contractWarnings.includes("missing-rendererId"),
       `${template.id} no declaro rendererId`,
     );
+    assert.equal(typeof template.buildSignature, "function");
+    assert.ok(template.difficultyProfile);
+    assert.ok(Array.isArray(template.difficultyProfile.levels));
+    template.difficultyProfile.levels.forEach((level) => {
+      const rules = ParameterPolicy.normalizeParameterRules(level.parameterRules);
+      assert.ok(rules.A, `${template.id} nivel ${level.id} no declara regla para A`);
+      assert.ok(rules.k, `${template.id} nivel ${level.id} no declara regla para k`);
+      assert.ok(rules.b, `${template.id} nivel ${level.id} no declara regla para b`);
+      assert.ok(rules.A.kind, `${template.id} nivel ${level.id} regla A no normaliza`);
+      assert.ok(rules.k.kind, `${template.id} nivel ${level.id} regla k no normaliza`);
+      assert.ok(rules.b.kind, `${template.id} nivel ${level.id} regla b no normaliza`);
+    });
   });
 }
 
@@ -187,7 +200,7 @@ function testTemplateInstanceWarningsAreExposedByTemplateTest() {
     buildCorrectAnswer() {},
     buildDistractors() {},
     generate(context) {
-      return {
+      return globalThis.TrigExerciseModel.createUniversalExercise({
         id: "synthetic-instance-warning-exercise",
         familyId: "synthetic-family",
         mathFamilyId: "synthetic-math",
@@ -216,7 +229,6 @@ function testTemplateInstanceWarningsAreExposedByTemplateTest() {
             key: "correct",
           },
           {
-            id: "fallback-warning",
             displayPlain: "f(x) + C",
             displayLatex: "f(x) + C",
             isCorrect: false,
@@ -226,7 +238,7 @@ function testTemplateInstanceWarningsAreExposedByTemplateTest() {
             metadata: { generatedFallbackId: true },
           },
         ],
-      };
+      });
     },
   });
   const result = Core.testTemplates({ templates: [template], iterations: 1 });
@@ -241,6 +253,78 @@ function testTemplateInstanceWarningsAreExposedByTemplateTest() {
   ]);
 }
 
+function testTemplateBuildSignatureHookIsUsed() {
+  const template = Core.registerTemplate({
+    id: "synthetic-signature-template",
+    name: "Synthetic signature template",
+    status: "active",
+    familyId: "sin",
+    mathFamilyId: "trigonometrica-directa",
+    methodId: "synthetic-signature-method",
+    submethodId: "synthetic-signature-submethod",
+    validationMode: "multiple-choice",
+    rendererId: "trig-linear-renderer",
+    difficultyMin: 1,
+    difficultyMax: 1,
+    variants: [{ id: "base" }],
+    parameters: ["A", "k", "b"],
+    restrictions: ["A != 0", "k != 0"],
+    commonErrors: ["wrong-base-sign"],
+    distractorStrategies: ["wrong-base-sign"],
+    feedbackRules: globalThis.TrigLinearFeedback.buildTrigFeedbackRules(),
+    buildCorrectAnswer() {},
+    buildDistractors() {},
+    buildSignature(params, context) {
+      return [
+        "hook",
+        context.templateId,
+        context.variantId,
+        params.A,
+        params.familyId,
+        params.k,
+        params.b,
+      ].join("|");
+    },
+    generate(context) {
+      return Core.buildExerciseFromParams(
+        { A: 1, k: 1, b: 0, familyId: "sin", difficulty: "1" },
+        4,
+        context.rng,
+        {
+          templateId: context.template.id,
+          mathFamilyId: context.template.mathFamilyId,
+          methodId: context.template.methodId,
+          submethodId: context.template.submethodId,
+          difficulty: "1",
+          validationMode: context.template.validationMode,
+          variantId: "base",
+          rendererId: context.template.rendererId,
+          seed: context.seed,
+          attempt: context.attempt,
+          feedbackRules: context.template.feedbackRules,
+          template: context.template,
+        },
+      );
+    },
+  });
+  const exercise = globalThis.TrigExerciseGenerator.generateExercise({
+    settings: {
+      difficulty: "1",
+      activeFamilyIds: ["sin"],
+      activeMathFamilyIds: ["trigonometrica-directa"],
+      activeMethodIds: ["synthetic-signature-method"],
+      includeExperimentalMethods: true,
+    },
+    seed: "synthetic-signature-hook",
+  });
+
+  assert.equal(template.id, "synthetic-signature-template");
+  assert.equal(
+    exercise.signature,
+    "hook|synthetic-signature-template|base|1|sin|1|0",
+  );
+}
+
 function run() {
   testExerciseCarriesValidationMode();
   testTemplateContractNormalization();
@@ -250,6 +334,7 @@ function run() {
   testTemplateDiagnosticsAreReadable();
   testTemplateDiagnosticsAreExposedByTemplateTest();
   testTemplateInstanceWarningsAreExposedByTemplateTest();
+  testTemplateBuildSignatureHookIsUsed();
   console.log("Contract tests passed!");
 }
 

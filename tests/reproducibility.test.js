@@ -11,6 +11,9 @@ function stableOption(option) {
     errorTag: option.errorTag,
     errorType: option.errorType,
     sourceStrategy: option.sourceStrategy,
+    generatedFallbackId: Boolean(
+      option.metadata && option.metadata.generatedFallbackId,
+    ),
     displayPlain: option.displayPlain,
     displayLatex: option.displayLatex,
     rendererId: option.rendererId,
@@ -28,6 +31,7 @@ function stableExercise(exercise) {
     templateId: exercise.templateId,
     variantId: exercise.variantId,
     difficulty: exercise.difficulty,
+    validationMode: exercise.validationMode,
     rendererId: exercise.rendererId,
     integralShown: exercise.integralShown,
     correctAnswer: stableOption(exercise.correctAnswer),
@@ -37,6 +41,12 @@ function stableExercise(exercise) {
     generation: exercise.generation,
     statsInfo: exercise.statsInfo,
     signature: exercise.signature,
+    metadata: {
+      explicitValidationMode:
+        exercise.metadata && exercise.metadata.explicitValidationMode,
+      contractWarnings:
+        exercise.metadata && exercise.metadata.contractWarnings,
+    },
     params: {
       A: exercise.A,
       k: exercise.k,
@@ -52,6 +62,16 @@ function generated(settings) {
     [],
     () => 0.137,
   );
+}
+
+function assertNoGeneratedFallbackIds(exercise) {
+  exercise.options.forEach((option) => {
+    assert.equal(
+      option.metadata && option.metadata.generatedFallbackId,
+      false,
+      `Opcion normal genero fallback ID: ${option.displayPlain}`,
+    );
+  });
 }
 
 function testSameSeedSameExercise() {
@@ -73,6 +93,11 @@ function testSameSeedSameExercise() {
   const second = stableExercise(generated(settings));
 
   assert.deepEqual(second, first);
+  assert.equal(first.validationMode, "multiple-choice");
+  assert.equal(first.rendererId, "trig-linear-renderer");
+  assert.ok(first.signature.includes(first.templateId));
+  assert.ok(first.signature.includes(first.variantId));
+  assert.equal(first.options.some((option) => option.generatedFallbackId), false);
 }
 
 function testDifferentSeedCanChangeOptionIdsWithoutChangingIdentities() {
@@ -93,6 +118,8 @@ function testDifferentSeedCanChangeOptionIdsWithoutChangingIdentities() {
 
   assert.equal(first.templateId, "trig-linear-sin");
   assert.equal(second.templateId, "trig-linear-sin");
+  assertNoGeneratedFallbackIds(first);
+  assertNoGeneratedFallbackIds(second);
   assert.notDeepEqual(
     first.options.map((option) => option.id),
     second.options.map((option) => option.id),

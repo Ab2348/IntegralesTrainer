@@ -108,6 +108,16 @@
         },
         buildCorrectAnswer: buildCorrectOption,
         buildDistractors: buildDistractorCandidates,
+        buildSignature(params, context) {
+          return [
+            context.templateId || templateId,
+            context.variantId || "",
+            params.A,
+            params.familyId,
+            params.k,
+            params.b,
+          ].join("|");
+        },
         buildExplanation(exercise) {
           return {
             plain: `Aplicar int A f(kx + b) dx = (A/k) F(kx + b) + C para ${exercise.family.name}.`,
@@ -154,6 +164,7 @@
               variantId: variant.id || BASE_VARIANT.id,
               rendererId: TRIG_LINEAR_RENDERER_ID,
               validationMode: template.validationMode,
+              template,
               seed: context.seed || null,
               attempt: context.attempt,
               engineVersion: context.engineVersion || "",

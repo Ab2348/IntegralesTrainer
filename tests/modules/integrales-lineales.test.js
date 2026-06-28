@@ -4,6 +4,7 @@ require("../../js/core/modules/integrales-lineales/index.js");
 
 const Core = globalThis.TrigCoreModules.integralesLineales;
 const Generation = globalThis.TrigLinearGeneration;
+const ParameterPolicy = globalThis.TrigParameterPolicy;
 
 function fixedRng() {
   return 0.42;
@@ -28,6 +29,16 @@ function testModuleContractSurface() {
 function testDifficultyParameterProfilesRemainIntegerBased() {
   const range = { min: -20, max: 20 };
   const familyIds = ["sin"];
+  const rulesByLevel = ["1", "2", "3", "4", "5"].map((level) =>
+    Generation.parameterRulesForLevel(level),
+  );
+
+  rulesByLevel.forEach((rules, index) => {
+    assert.equal(rules.A.type, undefined);
+    assert.ok(rules.A.kind, `Nivel ${index + 1} no normalizo A`);
+    assert.ok(rules.k.kind, `Nivel ${index + 1} no normalizo k`);
+    assert.ok(rules.b.kind, `Nivel ${index + 1} no normalizo b`);
+  });
 
   const level1 = Generation.paramsForDifficulty("1", familyIds, range, fixedRng);
   assert.ok([-1, 1].includes(level1.A));
@@ -50,9 +61,21 @@ function testDifficultyParameterProfilesRemainIntegerBased() {
   assert.ok(Number.isInteger(level4.b));
 
   const level5 = Generation.paramsForDifficulty("5", familyIds, range, fixedRng);
+  const coefficient5 = Core.correctCoefficient(
+    Core.rational(level5.A, 1),
+    Core.FAMILY_MAP[level5.familyId],
+    Core.rational(level5.k, 1),
+  );
   assert.notEqual(level5.A, 0);
   assert.notEqual(level5.k, 0);
   assert.notEqual(level5.b, 0);
+  assert.equal(
+    ParameterPolicy.satisfiesParameterRule(
+      rulesByLevel[4].result,
+      { result: coefficient5 },
+    ),
+    true,
+  );
 }
 
 function testFamiliesGenerateUniqueOptionsAndFeedbackRules() {
@@ -83,12 +106,24 @@ function testFamiliesGenerateUniqueOptionsAndFeedbackRules() {
 
     exercise.distractors.forEach((distractor) => {
       assert.ok(distractor.id, `${family.id} distractor sin id`);
+      assert.notEqual(
+        distractor.metadata && distractor.metadata.generatedFallbackId,
+        true,
+        `${family.id} genero fallback ID en flujo normal`,
+      );
       assert.ok(distractor.errorTag, `${family.id} distractor sin errorTag`);
       assert.ok(distractor.errorType, `${family.id} distractor sin errorType`);
       assert.ok(distractor.sourceStrategy, `${family.id} distractor sin sourceStrategy`);
       assert.ok(
         feedbackTypes.has(distractor.errorType),
         `${family.id} distractor sin feedback: ${distractor.errorType}`,
+      );
+    });
+    exercise.options.forEach((option) => {
+      assert.notEqual(
+        option.metadata && option.metadata.generatedFallbackId,
+        true,
+        `${family.id} opcion con fallback ID en flujo normal`,
       );
     });
   });

@@ -28,8 +28,20 @@
       .join("|");
   }
 
+  function buildTemplateSignature(template, params, context) {
+    const source = context && typeof context === "object" ? context : {};
+    if (template && typeof template.buildSignature === "function") {
+      return normalizePart(template.buildSignature(params || {}, source));
+    }
+    if (Array.isArray(source.parts)) {
+      return buildSignature(source.parts);
+    }
+    return buildSignature(params || source);
+  }
+
   root.TrigSignatureEngine = {
     buildSignature,
+    buildTemplateSignature,
   };
 
   if (typeof module !== "undefined" && module.exports) {

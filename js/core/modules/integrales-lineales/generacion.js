@@ -32,6 +32,7 @@
     DEFAULT_SUBMETHOD_ID,
     BASE_VARIANT,
     TRIG_LINEAR_VARIANTS,
+    TRIG_LINEAR_DIFFICULTY_PROFILE,
     RANGE_LIMITS,
     TRIG_LINEAR_RENDERER_ID,
   } = Data;
@@ -106,16 +107,66 @@
     return { min, max };
   }
 
-  function exerciseSignature(params) {
+  function normalizeParameterRules(rules) {
+    return ParameterPolicy.normalizeParameterRules
+      ? ParameterPolicy.normalizeParameterRules(rules)
+      : rules || {};
+  }
+
+  function parameterRulesForLevel(level) {
+    const profile = TRIG_LINEAR_DIFFICULTY_PROFILE || {};
+    const levels = Array.isArray(profile.levels) ? profile.levels : [];
+    const entry = levels.find((item) => String(item.id) === String(level));
+    return normalizeParameterRules(entry && entry.parameterRules);
+  }
+
+  function integerForRule(rule, range, rng) {
+    if (ParameterPolicy.integerForRule) {
+      return ParameterPolicy.integerForRule(rule, range, rng);
+    }
+    if (rule === "unit") {
+      return choose([-1, 1], rng);
+    }
+    if (rule === "one") {
+      return 1;
+    }
+    if (rule === "zero") {
+      return 0;
+    }
+    if (rule === "non-zero" || rule === "nonzero") {
+      return randomNonZero(range.min, range.max, rng);
+    }
+    return randomInt(range.min, range.max, rng);
+  }
+
+  function satisfiesRule(rule, context) {
+    if (ParameterPolicy.satisfiesParameterRule) {
+      return ParameterPolicy.satisfiesParameterRule(rule, context);
+    }
+    return context && context.result && context.result.d !== 1;
+  }
+
+  function exerciseSignature(params, context) {
+    const signatureContext = context || {};
+    const template = signatureContext.template || params.template || null;
+    const parts = [
+      params.templateId || `trig-linear-${params.familyId}`,
+      params.variantId || "",
+      params.A,
+      params.familyId,
+      params.k,
+      params.b,
+    ];
+    if (template && SignatureEngine.buildTemplateSignature) {
+      return SignatureEngine.buildTemplateSignature(template, params, {
+        ...signatureContext,
+        templateId: parts[0],
+        variantId: parts[1],
+        parts,
+      });
+    }
     if (SignatureEngine.buildSignature) {
-      return SignatureEngine.buildSignature([
-        params.templateId || `trig-linear-${params.familyId}`,
-        params.variantId || "",
-        params.A,
-        params.familyId,
-        params.k,
-        params.b,
-      ]);
+      return SignatureEngine.buildSignature(parts);
     }
     return `${params.A}|${params.familyId}|${params.k}|${params.b}`;
   }
@@ -161,6 +212,11 @@
     const attempt = meta.attempt === 0 || meta.attempt ? meta.attempt : "";
     const signature = exerciseSignature({
       ...params,
+      templateId,
+      variantId,
+      template: meta.template,
+    }, {
+      template: meta.template,
       templateId,
       variantId,
     });
@@ -244,53 +300,88 @@
         ? profileLevel
         : Number.parseInt(difficulty, 10) || 1;
     const familyId = choose(familyIds, rng);
+    const rules = parameterRulesForLevel(level);
     if (level === 1) {
-      return { A: choose([-1, 1], rng), k: 1, b: 0, familyId };
+      return {
+        A: integerForRule(rules.A || "unit", range, rng),
+        k: integerForRule(rules.k || "one", range, rng),
+        b: integerForRule(rules.b || "zero", range, rng),
+        familyId,
+      };
     }
     if (level === 2) {
       return {
-        A: choose([-1, 1], rng),
-        k: randomNonZero(range.min, range.max, rng),
-        b: 0,
+        A: integerForRule(rules.A || "unit", range, rng),
+        k: integerForRule(rules.k || "non-zero", range, rng),
+        b: integerForRule(rules.b || "zero", range, rng),
         familyId,
       };
     }
     if (level === 3) {
       return {
-        A: randomNonZero(range.min, range.max, rng),
-        k: randomNonZero(range.min, range.max, rng),
-        b: 0,
+        A: integerForRule(rules.A || "non-zero", range, rng),
+        k: integerForRule(rules.k || "non-zero", range, rng),
+        b: integerForRule(rules.b || "zero", range, rng),
         familyId,
       };
     }
     if (level === 4) {
       return {
-        A: randomNonZero(range.min, range.max, rng),
-        k: randomNonZero(range.min, range.max, rng),
-        b: randomInt(range.min, range.max, rng),
+        A: integerForRule(rules.A || "non-zero", range, rng),
+        k: integerForRule(rules.k || "non-zero", range, rng),
+        b: integerForRule(rules.b || "integer", range, rng),
         familyId,
       };
     }
 
     const family = FAMILY_MAP[familyId];
     for (let attempt = 0; attempt < 100; attempt += 1) {
-      const A = randomNonZero(range.min, range.max, rng);
-      const k = randomNonZero(range.min, range.max, rng);
-      const b = randomNonZero(range.min, range.max, rng);
+      const A = integerForRule(rules.A || "non-zero", range, rng);
+      const k = integerForRule(rules.k || "non-zero", range, rng);
+      const b = integerForRule(rules.b || "non-zero", range, rng);
       const coefficient = correctCoefficient(
         rational(A, 1),
         family,
         rational(k, 1),
       );
-      if (coefficient.d !== 1) {
+      if (
+        satisfiesRule(rules.result || "fractional-coefficient", {
+          result: coefficient,
+        })
+      ) {
+        return { A, k, b, familyId };
+      }
+    }
+
+    for (let A = range.min; A <= range.max; A += 1) {
+      if (A === 0) {
+        continue;
+      }
+      for (let k = range.min; k <= range.max; k += 1) {
+        if (k === 0) {
+          continue;
+        }
+        const coefficient = correctCoefficient(
+          rational(A, 1),
+          family,
+          rational(k, 1),
+        );
+        if (
+          !satisfiesRule(rules.result || "fractional-coefficient", {
+            result: coefficient,
+          })
+        ) {
+          continue;
+        }
+        const b = range.min !== 0 ? range.min : range.max !== 0 ? range.max : 1;
         return { A, k, b, familyId };
       }
     }
 
     return {
-      A: randomNonZero(range.min, range.max, rng),
-      k: randomNonZero(range.min, range.max, rng),
-      b: randomNonZero(range.min, range.max, rng),
+      A: integerForRule(rules.A || "non-zero", range, rng),
+      k: integerForRule(rules.k || "non-zero", range, rng),
+      b: integerForRule(rules.b || "non-zero", range, rng),
       familyId,
     };
   }
@@ -394,6 +485,7 @@
     randomNonZero,
     sanitizeRange,
     exerciseSignature,
+    parameterRulesForLevel,
     safeIdPart,
     variantIdForDifficulty,
     buildExerciseFromParams,
