@@ -11,6 +11,16 @@
     "missing-generate",
     "missing-difficultyMin",
     "missing-difficultyMax",
+    "missing-validationMode",
+    "missing-rendererId",
+    "missing-variants",
+    "missing-parameters",
+    "missing-restrictions",
+    "missing-buildCorrectAnswer",
+    "missing-buildDistractors",
+    "missing-commonErrors",
+    "missing-distractorStrategies",
+    "missing-feedbackRules",
     "invalid-validationMode",
   ]);
 
@@ -28,15 +38,15 @@
     "missing-generate": "La plantilla debe exponer generate(context).",
     "missing-difficultyMin": "La plantilla debe declarar difficultyMin.",
     "missing-difficultyMax": "La plantilla debe declarar difficultyMax.",
-    "missing-validationMode": "La plantilla deberia declarar validationMode.",
-    "missing-rendererId": "La plantilla deberia declarar rendererId.",
+    "missing-validationMode": "La plantilla debe declarar validationMode.",
+    "missing-rendererId": "La plantilla debe declarar rendererId.",
     "invalid-validationMode": "La plantilla declara un validationMode no soportado.",
     "missing-variants": "La plantilla debe declarar al menos una variante.",
     "missing-parameters": "La plantilla debe declarar parametros.",
     "missing-restrictions": "La plantilla debe declarar restricciones.",
-    "missing-buildCorrectAnswer": "La plantilla deberia declarar buildCorrectAnswer().",
-    "missing-buildDistractors": "La plantilla deberia declarar buildDistractors().",
-    "missing-commonErrors": "La plantilla deberia declarar errores comunes.",
+    "missing-buildCorrectAnswer": "La plantilla debe declarar buildCorrectAnswer().",
+    "missing-buildDistractors": "La plantilla debe declarar buildDistractors().",
+    "missing-commonErrors": "La plantilla debe declarar errores comunes.",
     "missing-distractorStrategies": "La plantilla debe declarar estrategias de distractores.",
     "missing-feedbackRules": "La plantilla debe declarar reglas de feedback.",
   };
@@ -47,8 +57,8 @@
     "missing-modelVersion": "Declara la version del modelo universal que produce el modulo.",
     "missing-generatorVersion": "Declara la version del motor de generacion compatible.",
     "missing-moduleGenerationApi": "Expone generateExercise() o registra templates desde el bootstrap del modulo.",
-    "missing-validationMode": "Usa validationMode: \"multiple-choice\" para templates de opcion multiple.",
-    "missing-rendererId": "Declara rendererId si el modulo usa un renderer especifico.",
+    "missing-validationMode": "Declara validationMode de forma explicita; no hay modo heredado por compatibilidad.",
+    "missing-rendererId": "Declara rendererId para que el core pueda enrutar el render del modulo.",
     "invalid-validationMode": "Usa uno de: multiple-choice, symbolic, numeric, hybrid.",
     "missing-feedbackRules": "Agrega una regla de feedback por cada errorType de distractor.",
   };
@@ -60,7 +70,7 @@
     if (String(code).startsWith("info-")) {
       return "info";
     }
-    return BLOCKING_CODES.has(code) ? "error" : "warning";
+    return BLOCKING_CODES.has(String(code).split(":")[0]) ? "error" : "warning";
   }
 
   function diagnostic(code, template, field) {
