@@ -96,7 +96,8 @@
     const options = optionInputs.map(normalizeOption);
     const correctAnswer = options.find((option) => option.isCorrect) || null;
     const distractors = options.filter((option) => !option.isCorrect);
-    // Defaults legacy de compatibilidad; los modulos nuevos deben declararlos.
+    // Defaults legacy de compatibilidad; los modulos nuevos deben declarar
+    // methodId y mathFamilyId sin depender del modelo central.
     const methodId = source.methodId || "directa";
     const mathFamilyId = source.mathFamilyId || "trigonometrica-directa";
     const difficulty = String(source.difficulty || "1");

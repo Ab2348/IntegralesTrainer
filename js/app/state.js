@@ -10,7 +10,6 @@
     const ERROR_EXAMPLE_TEXT_LIMIT = 360;
     const VALID_MODES = new Set(Object.keys(Core.MODE_FAMILIES));
     const VALID_DIFFICULTIES = new Set(["1", "2", "3", "4", "5"]);
-    const VALID_OPTION_COUNTS = new Set(["4", "6"]);
     const VALID_ERROR_TAGS = new Set(
       (Core.ERROR_TYPES || []).map((error) => error.id).concat(Core.ERROR_TAGS),
     );
@@ -49,7 +48,6 @@
         difficulty: "1",
         rangeMin: -20,
         rangeMax: 20,
-        optionCount: 4,
         activeFamilyIds: Core.MODE_FAMILIES.basic.slice(),
         activeMathFamilyIds: ["trigonometrica-directa"],
         activeMethodIds: ["directa"],
@@ -163,11 +161,6 @@
       const difficulty = VALID_DIFFICULTIES.has(String(saved.difficulty))
         ? String(saved.difficulty)
         : base.difficulty;
-      const optionCount = Core.optionCountForDifficulty
-        ? Core.optionCountForDifficulty(difficulty)
-        : VALID_OPTION_COUNTS.has(String(saved.optionCount))
-          ? Number.parseInt(saved.optionCount, 10)
-          : base.optionCount;
 
       return {
         mode,
@@ -178,7 +171,6 @@
         difficulty,
         rangeMin: range.min,
         rangeMax: range.max,
-        optionCount,
         activeFamilyIds: normalizeFamilyIds(
           saved.activeFamilyIds,
           Core.MODE_FAMILIES[mode],
@@ -391,11 +383,6 @@
         : "1";
       state.settings.rangeMin = range.min;
       state.settings.rangeMax = range.max;
-      state.settings.optionCount = Core.optionCountForDifficulty
-        ? Core.optionCountForDifficulty(state.settings.difficulty)
-        : VALID_OPTION_COUNTS.has(String(values.optionCount))
-          ? Number.parseInt(values.optionCount, 10)
-          : 4;
       state.settings.activeFamilyIds = normalizeFamilyIds(
         values.activeFamilyIds,
       );

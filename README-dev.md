@@ -26,8 +26,7 @@ La aplicación es una página estática sin backend. Todo se ejecuta en el naveg
 - `js/core/generador.js` registra plantillas, selecciona variantes, genera ejercicios con semilla y valida instancias.
 - `js/core/registro.js` registra módulos matemáticos disponibles.
 - `js/core/modules/integrales-lineales/` implementa el módulo matemático de integrales trigonométricas lineales. `index.js` ensambla el módulo; `familias.js`, `errores.js`, `variantes.js`, `parametros.js`, `formulas.js` y `snapshots.js` separan los datos y helpers reutilizables.
-- `js/core/modules/integrales-lineales/index.js` mantiene `TrigCoreModules.integralesLineales` como alias legacy para consumidores directos; el core no depende de ese alias.
-- `js/core/integraleslineales.js` es una fachada legacy de compatibilidad hacia el módulo anterior; no participa en el arranque normal de producción.
+- `js/core/modules/integrales-lineales/index.js` registra el módulo en `TrigCoreRegistry`; no publica alias global legacy.
 - `core.js` publica la API compatible `window.TrigCore` usando el módulo matemático activo.
 - `js/app/state.js` maneja `localStorage`, normalización y validaciones de estado.
 - `js/app/controls-panel.js` maneja el panel izquierdo de configuración.
@@ -416,7 +415,6 @@ El estado base tiene esta forma:
     difficulty: "1",
     rangeMin: -20,
     rangeMax: 20,
-    optionCount: 4,
     activeFamilyIds: ["sin", "cos"],
     activeMethodIds: ["directa"],
     includePendingMethods: false
@@ -433,7 +431,7 @@ Los datos se normalizan al cargar. Esto evita que un estado viejo, corrupto o ed
 - ejemplos recientes por tag de error;
 - modos válidos;
 - dificultades válidas;
-- cantidad válida de opciones;
+- `optionCount` viejo se ignora porque la cantidad se deriva de la dificultad;
 - rango numérico permitido;
 - ejercicios recientes como strings.
 
@@ -517,7 +515,7 @@ La cantidad de opciones visibles por ejercicio es política del core, no de la U
 - Dificultad 4: 6 opciones.
 - Dificultad 5: 6 opciones.
 
-La función compartida es `Core.optionCountForDifficulty(difficulty)`. El selector oculto de `index.html` se conserva solo por compatibilidad de controles, pero no decide la cantidad real.
+La función compartida es `Core.optionCountForDifficulty(difficulty)`. La UI no tiene control persistido para esta cantidad y `state.settings` no guarda `optionCount`.
 
 ### `activeFamilyIds`
 
@@ -618,7 +616,6 @@ const exercise = Core.generateExercise(
     difficulty: "4",
     rangeMin: -5,
     rangeMax: 5,
-    optionCount: 4,
     activeFamilyIds: ["sin"],
     activeMathFamilyIds: ["trigonometrica-directa"],
     activeMethodIds: ["directa"],
@@ -673,8 +670,7 @@ El motor expone `Core.validateGeneratedExercise(exercise, context)` y `Core.test
 
 ```js
 const diagnostics = Core.testTemplates({
-  iterations: 20,
-  optionCount: 4
+  iterations: 20
 });
 ```
 

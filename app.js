@@ -12,7 +12,6 @@
     difficultySelect: document.getElementById("difficultySelect"),
     rangeMinInput: document.getElementById("rangeMinInput"),
     rangeMaxInput: document.getElementById("rangeMaxInput"),
-    optionCountSelect: document.getElementById("optionCountSelect"),
     familyChecklist: document.getElementById("familyChecklist"),
     nextExerciseButton: document.getElementById("nextExerciseButton"),
     resetStatsButton: document.getElementById("resetStatsButton"),

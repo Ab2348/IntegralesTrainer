@@ -1,8 +1,6 @@
 const assert = require("node:assert/strict");
 
-require("../../js/core/modules/integrales-lineales/index.js");
-
-const Core = globalThis.TrigCoreModules.integralesLineales;
+const Core = require("../../js/core/modules/integrales-lineales/index.js");
 const Generation = globalThis.TrigLinearGeneration;
 const ParameterPolicy = globalThis.TrigParameterPolicy;
 

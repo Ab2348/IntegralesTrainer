@@ -19,6 +19,9 @@
     "integrales-lineales/index.js",
   ];
 
+  // Bootstrap buildless/IIFE: cargar este archivo como script sincrono durante
+  // el parseo inicial. No usar con defer ni cargar dinamicamente cuando
+  // document.readyState ya no sea "loading"; document.write() depende de eso.
   function linearModuleRegistered() {
     return Boolean(
       root.TrigCoreRegistry &&

@@ -59,7 +59,10 @@ function loadCurrentBrowserBootstrapWithoutLegacyFacade(context) {
 
   loadScript(context, "js/core/modules/index.js");
   context.writtenScripts.forEach((file) => loadScript(context, file));
-  delete context.TrigCoreModules.integralesLineales;
+  assert.ok(
+    !context.TrigCoreModules || !context.TrigCoreModules.integralesLineales,
+    "El bootstrap no debe publicar el alias legacy TrigCoreModules.integralesLineales",
+  );
   loadScript(context, "core.js");
 }
 

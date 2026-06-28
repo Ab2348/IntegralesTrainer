@@ -13,6 +13,8 @@
   const Variants = root.TrigLinearVariants || {};
   const Parameters = root.TrigLinearParameters || {};
 
+  // Agregador temporal de compatibilidad interna; los datos nuevos deben vivir
+  // en archivos especializados del modulo, no agregarse aqui.
   root.TrigLinearData = {
     ...Variants,
     ...Errors,

@@ -127,9 +127,6 @@
     buildDistractorCandidates: Distractors.buildDistractorCandidates,
   };
 
-  root.TrigCoreModules = root.TrigCoreModules || {};
-  // Alias legacy para consumidores directos del modulo. El core usa el registro.
-  root.TrigCoreModules.integralesLineales = api;
   if (root.TrigCoreRegistry) {
     root.TrigCoreRegistry.register(api);
   }

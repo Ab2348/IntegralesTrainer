@@ -409,11 +409,9 @@
       const exercise = template.generate({
         settings: source.settings || {},
         range: source.range,
-        optionCount: OptionEngine.optionCountForDifficulty
-          ? OptionEngine.optionCountForDifficulty(
-              source.settings && source.settings.difficulty,
-            )
-          : source.optionCount,
+        optionCount: OptionEngine.optionCountForDifficulty(
+          source.settings && source.settings.difficulty,
+        ),
         rng: random,
         seed,
         attempt,
@@ -488,13 +486,8 @@
               activeMethodIds: [template.methodId],
               rangeMin: -20,
               rangeMax: 20,
-              optionCount: OptionEngine.optionCountForDifficulty
-                ? OptionEngine.optionCountForDifficulty(difficulty)
-                : source.optionCount || 4,
             },
-            optionCount: OptionEngine.optionCountForDifficulty
-              ? OptionEngine.optionCountForDifficulty(difficulty)
-              : source.optionCount || 4,
+            optionCount: OptionEngine.optionCountForDifficulty(difficulty),
             rng,
             seed,
             attempt: index,

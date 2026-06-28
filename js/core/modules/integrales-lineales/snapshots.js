@@ -128,10 +128,6 @@
   };
 
   root.TrigLinearSnapshots = api;
-  root.TrigLinearFormat = {
-    ...(root.TrigLinearFormat || {}),
-    ...api,
-  };
 
   if (typeof module !== "undefined" && module.exports) {
     module.exports = root.TrigLinearSnapshots;

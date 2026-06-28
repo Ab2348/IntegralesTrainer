@@ -424,12 +424,9 @@
 
   function generateExercise(settings, recentSignatures, rng) {
     const random = rng || Math.random;
-    const optionCount = OptionEngine.optionCountForDifficulty
-      ? OptionEngine.optionCountForDifficulty(settings && settings.difficulty)
-      : Math.max(
-          4,
-          Math.min(6, Number.parseInt(settings.optionCount, 10) || 4),
-        );
+    const optionCount = OptionEngine.optionCountForDifficulty(
+      settings && settings.difficulty,
+    );
     const familyIds = normalizeFamilyIds(
       settings.activeFamilyIds || MODE_FAMILIES[settings.mode],
     );

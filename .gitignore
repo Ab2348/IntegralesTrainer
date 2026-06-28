@@ -8,6 +8,7 @@ tests/*
 !tests/bootstrap.test.js
 !tests/contracts.test.js
 !tests/reproducibility.test.js
+!tests/state.test.js
 !tests/validation.test.js
 !tests/modules/
 !tests/modules/integrales-lineales.test.js

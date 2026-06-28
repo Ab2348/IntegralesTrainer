@@ -362,11 +362,6 @@
       els.difficultySelect.value = String(state.settings.difficulty || "1");
       els.rangeMinInput.value = state.settings.rangeMin;
       els.rangeMaxInput.value = state.settings.rangeMax;
-      els.optionCountSelect.value = String(
-        Core.optionCountForDifficulty
-          ? Core.optionCountForDifficulty(state.settings.difficulty)
-          : state.settings.optionCount || 4,
-      );
       renderFamilyChecklist();
     }
 
@@ -376,12 +371,10 @@
         difficulty: els.difficultySelect.value,
         rangeMin: els.rangeMinInput.value,
         rangeMax: els.rangeMaxInput.value,
-        optionCount: els.optionCountSelect.value,
         activeFamilyIds: selectedFamiliesFromDom(),
       });
       els.rangeMinInput.value = settings.rangeMin;
       els.rangeMaxInput.value = settings.rangeMax;
-      els.optionCountSelect.value = String(settings.optionCount || 4);
       return settings;
     }
 
@@ -396,7 +389,6 @@
         els.difficultySelect,
         els.rangeMinInput,
         els.rangeMaxInput,
-        els.optionCountSelect,
       ].forEach((control) => {
         control.addEventListener("change", updateSettingsFromControls);
       });

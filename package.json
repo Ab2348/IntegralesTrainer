@@ -9,7 +9,7 @@
   },
   "packageManager": "npm@10.9.8",
   "scripts": {
-    "test": "node tests/core.test.js && node tests/reproducibility.test.js && node tests/validation.test.js && node tests/bootstrap.test.js && node tests/contracts.test.js && node tests/modules/integrales-lineales.test.js",
+    "test": "node tests/core.test.js && node tests/state.test.js && node tests/reproducibility.test.js && node tests/validation.test.js && node tests/bootstrap.test.js && node tests/contracts.test.js && node tests/modules/integrales-lineales.test.js",
     "sass": "sass --no-source-map src/styles/main.scss styles.css",
     "sass:watch": "sass --watch --no-source-map src/styles/main.scss styles.css",
     "sass:check": "sass --no-source-map src/styles/main.scss /tmp/cicloint-styles-check.css"
